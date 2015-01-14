@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"github.com/nu7hatch/gouuid"
 )
@@ -10,7 +11,7 @@ func CreateSession(username string, password string) (string, error) {
 	
 	err := _db.QueryRow("SELECT id FROM neb_users WHERE username = ? AND password = ?", username, password).Scan(&id)
 
-	if err != nil && err.Error() == "sql: no rows in result set" && _cfg["autoRegister"] == "true" { //If user are registered on connection
+	if err != nil && err == sql.ErrNoRows && _cfg["autoRegister"] == "true" { //If user are registered on connection
 		err = RegisterUser(username, password)
 
 		if err != nil{

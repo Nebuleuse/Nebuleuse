@@ -47,7 +47,7 @@ func GetUser(SessionId string) (*User, error){
 	}
 
 	user.PopulateAchievements()
-	//user.PopulateStats()
+	user.PopulateStats()
 
 	return &user, nil
 }
@@ -84,6 +84,48 @@ func (u *User)PopulateAchievements() error{
 	err = rows.Err()
 	if err != nil {
 		log.Println("Could not get user achievements :", err)
+		return err
+	}
+	return nil
+}
+func (u *User)PopulateStats() error{
+	rows, err := _db.Query("SELECT * FROM neb_users_stats WHERE userid = ?", u.id)
+	if err != nil {
+		log.Println("Could not get user stats :", err)
+		return err
+	}
+	defer rows.Close()
+
+	cols, err := rows.Columns()
+	if err != nil {
+		log.Println("Could not get columns:", err)
+		return err
+	}
+	vals := make([]interface{}, len(cols))
+	for i, _ := range cols {
+		vals[i] = new(int64)
+	}
+
+	for rows.Next() {
+		var st Stat
+		err := rows.Scan(vals...)
+		if err != nil {
+			log.Println("Could not get user Stats :", err)
+			return err
+		}
+		for i, _ := range cols {
+			if i == 0 { //First column is userid
+				continue
+			}
+			st.Name = cols[i]
+			st.Value = *vals[i].(*int64)
+			u.Stats = append(u.Stats, st)
+		}
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Println("Could not get user Stats :", err)
 		return err
 	}
 	return nil

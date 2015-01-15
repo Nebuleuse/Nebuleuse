@@ -24,7 +24,7 @@ func createServer(){
 func SessionsPurgeTimer(){
 	PurgeSessions()
 
-	timer := time.NewTimer(time.Hour)
+	timer := time.NewTimer(time.Minute)
     <- timer.C
     go SessionsPurgeTimer()
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 )
 
@@ -128,5 +129,31 @@ func (u *User)PopulateStats() error{
 		log.Println("Could not get user Stats :", err)
 		return err
 	}
+	return nil
+}
+func (u *User)Heartbeat(){
+	stmt, err := _db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
+	res, err := stmt.Exec(u.id)
+	if err != nil {
+		log.Println("Could not Heartbeat :", err)
+	}
+}
+func (u *User)UpdateAchievementProgress(aid int, value int) error{
+	stmt, err := _db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")
+	res, err := stmt.Exec(value, u.id, aid)
+	if err != nil {
+		log.Println("Could not update achievement :", err)
+		return err
+	}
+	rowCnt, err := res.RowsAffected()
+	if err != nil {
+		log.Println("Could not get update rowcount :", err)
+		return err
+	}
+	if rowCnt == 0 {
+		log.Println("Tried to update achievementid : ", aid, " but no rows affected")
+		return errors.New("no rows affected by update")
+	}
+
 	return nil
 }

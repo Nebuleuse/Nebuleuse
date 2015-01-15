@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"log"
 	"encoding/json"
 	"net/http"
@@ -11,8 +12,9 @@ import (
 func registerHandlers(){
 	r := mux.NewRouter()
     r.HandleFunc("/", homeHandler)
-    r.HandleFunc("/status", status)
-    r.HandleFunc("/connect", connectUser)
+    r.HandleFunc("/status", status).Methods("GET")
+    r.HandleFunc("/connect", connectUser).Methods("POST")
+    r.HandleFunc("/updateAchievement", updateAchievement).Methods("POST")
     http.Handle("/", r)
 }
 
@@ -29,15 +31,15 @@ func homeHandler(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, string(res))
 }
 
-type errorResponse struct{
-	ErrorCode int
-	ErrorMessage string
+type easyResponse struct{
+	Code int
+	Message string
 }
-func prepareErrorResponse(code int, message string) string{
-	e := errorResponse{code, message}
+func EasyResponse(code int, message string) string{
+	e := easyResponse{code, message}
 	res, err := json.Marshal(e)
 	if err != nil {
-		log.Println("Could not encode error response")
+		log.Println("Could not encode easy response")
 	} 
 
 	return string(res)
@@ -73,12 +75,21 @@ type connectResponse struct{
 	SessionId string
 }
 func connectUser(w http.ResponseWriter, r *http.Request){
-	id, err := CreateSession("test", "test")
+	r.ParseForm()
+	if(r.PostForm["username"] == nil || r.PostForm["password"] == nil){
+		fmt.Fprint(w, EasyResponse(NebError, "Missing username and/or password"))
+		return
+	}
+
+	username := r.PostForm["username"][0] // For some reason r.PostForm[i] is String[]
+	password := r.PostForm["password"][0]
+	id, err := CreateSession(username, password)
+
 	if err != nil && err.Error() == "" {
-		fmt.Fprint(w, prepareErrorResponse(NebErrorLogin, "Wrong login information"))
+		fmt.Fprint(w, EasyResponse(NebErrorLogin, "Wrong login information"))
 		return
 	} else if err != nil {
-		fmt.Fprint(w, prepareErrorResponse(NebError, err.Error()))
+		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
 		return
 	}
 
@@ -90,4 +101,39 @@ func connectUser(w http.ResponseWriter, r *http.Request){
 	} else {
 		fmt.Fprint(w, string(res))
 	}
+}
+func updateAchievement(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	if(r.PostForm["sessionid"] == nil || r.PostForm["achievementid"] == nil || r.PostForm["value"] == nil){
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid, achievementid or value"))
+		return
+	}
+
+	user,err := GetUser(r.PostForm["sessionid"][0])
+	if(err != nil){
+		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
+		return
+	}
+
+	aid, err := strconv.Atoi(r.PostForm["achievementid"][0])
+	if(err != nil){
+		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
+		return
+	}
+
+	value, err := strconv.Atoi(r.PostForm["value"][0])
+	if(err != nil){
+		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
+		return
+	}
+
+	err = user.UpdateAchievementProgress(aid, value)
+	if err != nil{
+		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
+		return
+	}
+	
+	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Achievement"))
+
+	go user.Heartbeat()
 }

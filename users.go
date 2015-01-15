@@ -21,6 +21,11 @@ type Stat struct{
 	Name string
 	Value int64
 }
+// Kills
+type Kill struct{
+	Weapon string
+	X, Y, Z int
+}
 
 // User
 type User struct{
@@ -90,38 +95,26 @@ func (u *User)PopulateAchievements() error{
 	return nil
 }
 func (u *User)PopulateStats() error{
-	rows, err := _db.Query("SELECT * FROM neb_users_stats WHERE userid = ?", u.id)
+	rows, err := _db.Query("SELECT name, value FROM neb_users_stats WHERE userid = ?", u.id)
 	if err != nil {
 		log.Println("Could not get user stats :", err)
 		return err
 	}
 	defer rows.Close()
 
-	cols, err := rows.Columns()
 	if err != nil {
 		log.Println("Could not get columns:", err)
 		return err
 	}
-	vals := make([]interface{}, len(cols))
-	for i, _ := range cols {
-		vals[i] = new(int64)
-	}
-
+	
 	for rows.Next() {
 		var st Stat
-		err := rows.Scan(vals...)
+		err := rows.Scan(&st.Name, &st.Name)
 		if err != nil {
 			log.Println("Could not get user Stats :", err)
 			return err
 		}
-		for i, _ := range cols {
-			if i == 0 { //First column is userid
-				continue
-			}
-			st.Name = cols[i]
-			st.Value = *vals[i].(*int64)
-			u.Stats = append(u.Stats, st)
-		}
+		u.Stats = append(u.Stats, st)
 	}
 
 	err = rows.Err()
@@ -133,13 +126,18 @@ func (u *User)PopulateStats() error{
 }
 func (u *User)Heartbeat(){
 	stmt, err := _db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
-	res, err := stmt.Exec(u.id)
+	_, err = stmt.Exec(u.id)
 	if err != nil {
 		log.Println("Could not Heartbeat :", err)
 	}
 }
 func (u *User)UpdateAchievementProgress(aid int, value int) error{
 	stmt, err := _db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")
+	if err != nil {
+		log.Println("Could not create statement : ", err)
+		return err
+	}
+
 	res, err := stmt.Exec(value, u.id, aid)
 	if err != nil {
 		log.Println("Could not update achievement :", err)
@@ -155,5 +153,40 @@ func (u *User)UpdateAchievementProgress(aid int, value int) error{
 		return errors.New("no rows affected by update")
 	}
 
+	return nil
+}
+func (u *User)UpdateStats(stats []Stat) error{
+	stmt, err := _db.Prepare("UPDATE neb_users_stats SET value = ? WHERE userid = ? AND name = ? LIMIT 1")
+	if err != nil {
+		log.Println("Could not create statement : ", err)
+		return err
+	}
+
+	for _, stat := range stats {
+		if stat.Name == "userid" {
+			log.Println("Could not update user stats, userid present in stat list")
+			return errors.New("Could not update user stats, userid present in stat list")
+		}
+		_, err := stmt.Exec(stat.Value, u.id, stat.Name)
+		if err != nil {
+			log.Println("Could not update user stats : ", err)
+			return err
+		}
+	}
+	return nil
+}
+func (u *User)InsertKills(kills []Kill, mapName string) error{
+	stmt, err := _db.Prepare("INSERT INTO neb_users_stats_kills VALUES (?,?,?,?,?,?)")
+	if err != nil {
+		log.Println("Could not create statement : ", err)
+		return err
+	}
+	for _, kill := range kills {
+		_, err := stmt.Exec(u.id, kill.X, kill.Y, kill.Z, kill.Weapon, mapName)
+		if err != nil {
+			log.Println("Could not insert kill : ", err)
+			return err
+		}
+	}
 	return nil
 }

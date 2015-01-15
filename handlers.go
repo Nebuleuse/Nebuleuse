@@ -15,6 +15,7 @@ func registerHandlers(){
     r.HandleFunc("/status", status).Methods("GET")
     r.HandleFunc("/connect", connectUser).Methods("POST")
     r.HandleFunc("/updateAchievement", updateAchievement).Methods("POST")
+    r.HandleFunc("/updateStats", updateStats).Methods("POST")
     http.Handle("/", r)
 }
 
@@ -111,7 +112,7 @@ func updateAchievement(w http.ResponseWriter, r *http.Request) {
 
 	user,err := GetUser(r.PostForm["sessionid"][0])
 	if(err != nil){
-		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
+		fmt.Fprint(w, EasyResponse(NebErrorDisconnected, err.Error()))
 		return
 	}
 
@@ -135,5 +136,38 @@ func updateAchievement(w http.ResponseWriter, r *http.Request) {
 	
 	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Achievement"))
 
+	go user.Heartbeat()
+}
+type updateStatsRequest struct {
+	Map string
+	Stats []Stat
+	Kills []Kill
+}
+func updateStats(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	if(r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil ){
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
+		return
+	}
+
+	user,err := GetUser(r.PostForm["sessionid"][0])
+	if(err != nil){
+		fmt.Fprint(w, EasyResponse(NebErrorDisconnected, err.Error()))
+		return
+	}
+
+	data := r.PostForm["data"][0]
+	var req updateStatsRequest
+	err = json.Unmarshal([]byte(data), &req)
+	if err != nil{
+		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
+		return
+	}
+
+	user.UpdateStats(req.Stats)
+	user.InsertKills(req.Kills, req.Map)
+	
+	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Stats"))
+	
 	go user.Heartbeat()
 }

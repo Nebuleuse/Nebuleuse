@@ -33,8 +33,9 @@ type User struct{
 	Username string
 	SessionId string
 	Rank int
-	Achievements[] Achievement
-	Stats[] Stat
+	Avatar string
+	Achievements []Achievement
+	Stats []Stat
 }
 func GetUser(SessionId string) (*User, error){
 	var user User
@@ -47,9 +48,12 @@ func GetUser(SessionId string) (*User, error){
 	}
 	user.id = id
 
-	err = _db.QueryRow("SELECT username, rank FROM neb_users WHERE id = ?", id).Scan(&user.Username, &user.Rank)
+	err = _db.QueryRow("SELECT username, rank, avatars FROM neb_users WHERE id = ?", id).Scan(&user.Username, &user.Rank, &user.Avatar)
 	if err != nil {
 		return nil, err
+	}
+	if user.Avatar == "" {
+		user.Avatar = _cfg["defaultAvatar"]
 	}
 
 	user.PopulateAchievements()

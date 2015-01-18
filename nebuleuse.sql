@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Client :  127.0.0.1
--- Généré le :  Ven 16 Janvier 2015 à 23:56
+-- Généré le :  Lun 19 Janvier 2015 à 00:04
 -- Version du serveur :  5.6.21
 -- Version de PHP :  5.6.3
 
@@ -44,7 +44,8 @@ INSERT INTO `neb_config` (`name`, `value`) VALUES
 ('gameKey', ''),
 ('gameName', ''),
 ('updaterVersion', '1'),
-('autoRegister', 'true');
+('autoRegister', 'true'),
+('defaultAvatar', 'http://i.imgur.com/oyrwt3a.png');
 
 -- --------------------------------------------------------
 
@@ -94,17 +95,17 @@ CREATE TABLE IF NOT EXISTS `neb_users` (
 `id` int(11) NOT NULL,
   `username` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `rank` tinyint(3) NOT NULL
+  `rank` tinyint(3) NOT NULL,
+  `avatars` varchar(255) NOT NULL,
+  `hash` varchar(255) NOT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 
 --
 -- Contenu de la table `neb_users`
 --
 
-INSERT INTO `neb_users` (`id`, `username`, `password`, `rank`) VALUES
-(1, 'test', 'test', 1),
-(4, 'bite', 'test', 1),
-(5, '', '', 1);
+INSERT INTO `neb_users` (`id`, `username`, `password`, `rank`, `avatars`, `hash`) VALUES
+(1, 'test', 'test', 1, '', '0');
 
 -- --------------------------------------------------------
 

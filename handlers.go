@@ -14,6 +14,7 @@ func registerHandlers(){
     r.HandleFunc("/", homeHandler)
     r.HandleFunc("/status", status).Methods("GET")
     r.HandleFunc("/connect", connectUser).Methods("POST")
+    r.HandleFunc("/getUserInfos", updateStats).Methods("POST")
     r.HandleFunc("/updateAchievement", updateAchievement).Methods("POST")
     r.HandleFunc("/updateStats", updateStats).Methods("POST")
     http.Handle("/", r)
@@ -85,12 +86,9 @@ func connectUser(w http.ResponseWriter, r *http.Request){
 	username := r.PostForm["username"][0] // For some reason r.PostForm[i] is String[]
 	password := r.PostForm["password"][0]
 	id, err := CreateSession(username, password)
-
-	if err != nil && err.Error() == "" {
-		fmt.Fprint(w, EasyResponse(NebErrorLogin, "Wrong login information"))
-		return
-	} else if err != nil {
-		fmt.Fprint(w, EasyResponse(NebError, err.Error()))
+	
+	if err != nil {
+		fmt.Fprint(w, EasyResponse(NebErrorLogin, err.Error()))
 		return
 	}
 
@@ -169,5 +167,24 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 	
 	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Stats"))
 	
+	go user.Heartbeat()
+}
+
+func getUserInfos(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	if(r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil ){
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
+		return
+	}
+
+	user,err := GetUser(r.PostForm["sessionid"][0])
+	if(err != nil){
+		fmt.Fprint(w, EasyResponse(NebErrorDisconnected, err.Error()))
+		return
+	}
+
+	res, err := json.Marshal(user)
+	fmt.Fprint(w, string(res))
+
 	go user.Heartbeat()
 }

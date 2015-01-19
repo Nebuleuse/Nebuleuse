@@ -1,19 +1,28 @@
 package main
 
 import (
-	"time"
 	"log"
 	"net/http"
+	"time"
 )
 
-const (  
-	NebErrorNone = iota
-	NebError = iota
+const (
+	NebErrorNone         = iota
+	NebError             = iota
 	NebErrorDisconnected = iota
-	NebErrorLogin = iota
+	NebErrorLogin        = iota
 )
 
-func createServer(){
+type NebuleuseError struct {
+	code int
+	msg  string
+}
+
+func (e NebuleuseError) Error() string {
+	return e.msg
+}
+
+func createServer() {
 	registerHandlers()
 
 	go SessionsPurgeTimer()
@@ -21,12 +30,12 @@ func createServer(){
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-func SessionsPurgeTimer(){
+func SessionsPurgeTimer() {
 	PurgeSessions()
 
 	timer := time.NewTimer(time.Minute)
-    <- timer.C
-    go SessionsPurgeTimer()
+	<-timer.C
+	go SessionsPurgeTimer()
 }
 func PurgeSessions() {
 	stmt, err := _db.Prepare("DELETE FROM neb_sessions WHERE NOW() > Date_Add( lastAlive, INTERVAL ? SECOND )")
@@ -37,7 +46,7 @@ func PurgeSessions() {
 	res, err := stmt.Exec(_cfg["sessionTimeout"])
 	if err != nil {
 		log.Println("Failed to purge sessions: ", err)
-		return	
+		return
 	}
 	af, err := res.RowsAffected()
 	if err != nil {

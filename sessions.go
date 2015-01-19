@@ -1,45 +1,46 @@
 package main
 
 import (
-	"errors"
 	"crypto/rand"
 	"crypto/sha512"
 	"database/sql"
-	"log"
+	"encoding/base64"
 	"github.com/nu7hatch/gouuid"
+	"log"
 )
 
 func CreateSession(username string, password string) (string, error) {
 	var id int
 	var serverPassword, hash string
 
-	err := _db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username, password).Scan(&id, &serverPassword, &hash)
+	err := _db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username).Scan(&id, &serverPassword, &hash)
 
 	if err != nil && err == sql.ErrNoRows && _cfg["autoRegister"] == "true" { //If user are registered on connection
 		c := sha512.Size
-		hash := make([]byte, c)
-		_, err := rand.Read(hash)
+		bhash := make([]byte, c)
+		_, err := rand.Read(bhash)
 		if err != nil {
 			log.Println("Error generating crytpo hash:", err)
 			return "", err
 		}
+		hash := base64.URLEncoding.EncodeToString(bhash)
 		hashedPassword := HashPassword(password, string(hash))
-		err = RegisterUser(username, hashedPassword)
+		err = RegisterUser(username, hashedPassword, string(hash))
 
-		if err != nil{
+		if err != nil {
 			return "", err
 		}
 
 		return CreateSession(username, password)
 	} else if err != nil && err == sql.ErrNoRows {
-		return "", errors.New("Unknown username")
+		return "", &NebuleuseError{NebErrorLogin, "Unknown username"}
 	} else if err != nil {
 		log.Println("Could not Query DB for user", username, " : ", err)
 		return "", err
 	}
 
 	if HashPassword(password, hash) != serverPassword {
-		return "", errors.New("Wrong password")
+		return "", &NebuleuseError{NebErrorLogin, "Wrong password"}
 	}
 
 	sessionid := GenerateSessionId(username)
@@ -53,19 +54,20 @@ func CreateSession(username string, password string) (string, error) {
 
 	return sessionid, nil
 }
-func HashPassword(password string, hash string) string{
+func HashPassword(password string, hash string) string {
 	bhash := []byte(hash)
 	bpass := []byte(password)
 	b := append(bhash, bpass...)
 
 	hashed := sha512.Sum512(b)
-	return string(hashed[:64])
+	return base64.URLEncoding.EncodeToString(hashed[:64])
+	//return string(hashed[:64])
 }
-func GenerateSessionId(username string) string{
+func GenerateSessionId(username string) string {
 	u4, err := uuid.NewV4()
 	if err != nil {
-	    log.Println("Failed to generate uuid:", err)
-	    return ""
+		log.Println("Failed to generate uuid:", err)
+		return ""
 	}
 	return u4.String()
 }

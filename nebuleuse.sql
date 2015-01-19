@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Client :  127.0.0.1
--- Généré le :  Lun 19 Janvier 2015 à 00:04
+-- Généré le :  Lun 19 Janvier 2015 à 15:36
 -- Version du serveur :  5.6.21
 -- Version de PHP :  5.6.3
 
@@ -19,6 +19,27 @@ SET time_zone = "+00:00";
 --
 -- Base de données :  `nebuleuse`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `neb_achievements`
+--
+
+CREATE TABLE IF NOT EXISTS `neb_achievements` (
+`id` int(10) unsigned NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `max` int(10) unsigned NOT NULL,
+  `fullName` varchar(255) NOT NULL,
+  `fullDesc` varchar(255) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Contenu de la table `neb_achievements`
+--
+
+INSERT INTO `neb_achievements` (`id`, `name`, `max`, `fullName`, `fullDesc`) VALUES
+(1, 'test', 10, 'test', 'test');
 
 -- --------------------------------------------------------
 
@@ -72,6 +93,13 @@ CREATE TABLE IF NOT EXISTS `neb_sessions` (
   `sessionStart` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
+--
+-- Contenu de la table `neb_sessions`
+--
+
+INSERT INTO `neb_sessions` (`userid`, `lastAlive`, `sessionId`, `sessionStart`) VALUES
+(1, '2015-01-19 14:26:17', '20a61a0b-051f-4d5c-484d-77a14885a64a', '2015-01-19 13:57:51');
+
 -- --------------------------------------------------------
 
 --
@@ -98,14 +126,14 @@ CREATE TABLE IF NOT EXISTS `neb_users` (
   `rank` tinyint(3) NOT NULL,
   `avatars` varchar(255) NOT NULL,
   `hash` varchar(255) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 
 --
 -- Contenu de la table `neb_users`
 --
 
 INSERT INTO `neb_users` (`id`, `username`, `password`, `rank`, `avatars`, `hash`) VALUES
-(1, 'test', 'test', 1, '', '0');
+(1, 'test', 'q4F_1BnvOQERMAtuwNHoocjO6DiHvt15ol2krqZ60v-NW-tb0_IooASPuZq6iv1tjjT60JIIhA1MZvjTcGhDqA==', 1, '', 'O-z_gcTHzvgoM3ndhFnKVbM-tUcnGZDz_o6mhkWFiL0VTnvCvHFVOBYnvBp23pbz1ZIafCoH_JO51gXlVkmf8w==');
 
 -- --------------------------------------------------------
 
@@ -118,6 +146,13 @@ CREATE TABLE IF NOT EXISTS `neb_users_achievements` (
   `achievementid` int(10) unsigned NOT NULL,
   `progress` int(10) unsigned NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Contenu de la table `neb_users_achievements`
+--
+
+INSERT INTO `neb_users_achievements` (`userid`, `achievementid`, `progress`) VALUES
+(1, 1, 5);
 
 -- --------------------------------------------------------
 
@@ -166,6 +201,12 @@ INSERT INTO `neb_users_stats_kills` (`userid`, `x`, `y`, `z`, `weapon`, `map`) V
 --
 
 --
+-- Index pour la table `neb_achievements`
+--
+ALTER TABLE `neb_achievements`
+ ADD PRIMARY KEY (`id`);
+
+--
 -- Index pour la table `neb_mirrors`
 --
 ALTER TABLE `neb_mirrors`
@@ -200,6 +241,11 @@ ALTER TABLE `neb_users_stats_kills`
 --
 
 --
+-- AUTO_INCREMENT pour la table `neb_achievements`
+--
+ALTER TABLE `neb_achievements`
+MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+--
 -- AUTO_INCREMENT pour la table `neb_mirrors`
 --
 ALTER TABLE `neb_mirrors`
@@ -208,7 +254,7 @@ MODIFY `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT;
 -- AUTO_INCREMENT pour la table `neb_users`
 --
 ALTER TABLE `neb_users`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=6;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -17,6 +17,7 @@ func registerHandlers() {
 	r.HandleFunc("/getUserInfos", getUserInfos).Methods("POST")
 	r.HandleFunc("/updateAchievement", updateAchievement).Methods("POST")
 	r.HandleFunc("/updateStats", updateStats).Methods("POST")
+	r.HandleFunc("/updateComplexStats", updateComplexStats).Methods("POST")
 	http.Handle("/", r)
 }
 
@@ -205,6 +206,34 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(user)
 	fmt.Fprint(w, string(res))
+
+	go user.Heartbeat()
+}
+type updateComplexStatsRequest struct{
+	Stats []ComplexStat
+}
+func updateComplexStats(w http.ResponseWriter, r *http.Request){
+	r.ParseForm()
+	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
+		return
+	}
+
+	user, err := GetUser(r.PostForm["sessionid"][0])
+	if err != nil {
+		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		return
+	}
+
+	data := r.PostForm["data"][0]
+	var req updateComplexStatsRequest
+	err = json.Unmarshal([]byte(data), &req)
+	if err != nil {
+		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		return
+	}
+	
+	user.updateComplexStats(req.Stats)
 
 	go user.Heartbeat()
 }

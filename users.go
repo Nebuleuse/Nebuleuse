@@ -22,7 +22,10 @@ type Stat struct {
 	Name  string
 	Value int64
 }
-
+type ComplexStat struct{
+	Name string
+	Values []Stat
+}
 // Kills
 type Kill struct {
 	Weapon  string
@@ -200,4 +203,26 @@ func (u *User) InsertKills(kills []Kill, mapName string) error {
 		}
 	}
 	return nil
+}
+func (u *User) updateComplexStats(stats []ComplexStat) error{
+	for _, stat := range stats {
+		cmd := "INSER INTO neb_users_stats_"
+		cmd = cmd.append(stat.Name)
+		cmd = cmd.append(" VALUES (")
+		for i := 0; i < stat.Values.length; i++ {
+			if(i == stat.Values.length - 1){
+				cmd = cmd.append("?")
+			} else {
+				cmd = cmd.append("?,")
+			}
+		}
+		stmt, err := _db.Prepare(cmd)
+		if err != nil {
+			log.Println("Could not prepare statement : ", err)
+			continue
+		}
+		for _, value := range stat.Values {
+			
+		}
+	}
 }

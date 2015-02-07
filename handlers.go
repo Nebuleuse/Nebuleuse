@@ -159,7 +159,6 @@ func updateAchievement(w http.ResponseWriter, r *http.Request) {
 type updateStatsRequest struct {
 	Map   string
 	Stats []Stat
-	Kills []Kill
 }
 
 func updateStats(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +183,6 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user.UpdateStats(req.Stats)
-	user.InsertKills(req.Kills, req.Map)
 
 	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Stats"))
 
@@ -209,10 +207,12 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 
 	go user.Heartbeat()
 }
-type updateComplexStatsRequest struct{
+
+type updateComplexStatsRequest struct {
 	Stats []ComplexStat
 }
-func updateComplexStats(w http.ResponseWriter, r *http.Request){
+
+func updateComplexStats(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
 		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
@@ -232,7 +232,7 @@ func updateComplexStats(w http.ResponseWriter, r *http.Request){
 		fmt.Fprint(w, EasyErrorResponse(NebError, err))
 		return
 	}
-	
+
 	user.updateComplexStats(req.Stats)
 
 	go user.Heartbeat()

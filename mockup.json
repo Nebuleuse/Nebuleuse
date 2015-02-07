@@ -1,0 +1,84 @@
+updateComplexStats
+{
+	"stats": [
+		{
+			"Name": "kills",
+			"Values": [
+				{
+					"Name": "userid",
+					"Value": "1"
+				},
+				{
+					"Name": "x",
+					"Value": "1"
+				},
+				{
+					"Name": "y",
+					"Value": "1"
+				},
+				{
+					"Name": "z",
+					"Value": "1"
+				},
+				{
+					"Name": "weapon",
+					"Value": "b"
+				},
+				{
+					"Name": "map",
+					"Value": "c"
+				}
+			]
+		},
+		{
+			"Name": "kills",
+			"Values": [
+				{
+					"Name": "userid",
+					"Value": "1"
+				},
+				{
+					"Name": "z",
+					"Value": "1"
+				},
+				{
+					"Name": "weapon",
+					"Value": "b"
+				},
+				{
+					"Name": "x",
+					"Value": "1"
+				},
+				{
+					"Name": "y",
+					"Value": "1"
+				},
+				{
+					"Name": "map",
+					"Value": "c"
+				}
+			]
+		},
+		{
+			"Name": "kills",
+			"Values": [
+				{
+					"Name": "userid",
+					"Value": "1"
+				},
+				{
+					"Name": "x",
+					"Value": "1"
+				},
+				{
+					"Name": "y",
+					"Value": "1"
+				},
+				{
+					"Name": "z",
+					"Value": "1"
+				}
+			]
+		}
+	]
+}

@@ -61,7 +61,6 @@ func HashPassword(password string, hash string) string {
 
 	hashed := sha512.Sum512(b)
 	return base64.URLEncoding.EncodeToString(hashed[:64])
-	//return string(hashed[:64])
 }
 func GenerateSessionId(username string) string {
 	u4, err := uuid.NewV4()

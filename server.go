@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -56,4 +57,12 @@ func PurgeSessions() {
 	if af > 0 {
 		log.Println("Purged ", af, " sessions")
 	}
+}
+func getFieldListForStatTable(table string) ([]string, error) {
+	var values string
+	err := _db.QueryRow("SELECT fields FROM neb_stats_tables WHERE tableName = ?", table).Scan(&values)
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(values, ","), nil
 }

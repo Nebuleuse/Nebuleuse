@@ -1,6 +1,6 @@
 updateComplexStats
 {
-	"stats": [
+	"Stats": [
 		{
 			"Name": "kills",
 			"Values": [

@@ -18,18 +18,17 @@ func (a *Achievement) isComplete() bool {
 }
 
 // Stats
-type Stat struct {
+type PlayerStat struct {
 	Name  string
 	Value int64
 }
-type ComplexStat struct{
-	Name string
-	Values []Stat
+type Stat struct {
+	Name  string
+	Value string
 }
-// Kills
-type Kill struct {
-	Weapon  string
-	X, Y, Z int
+type ComplexStat struct {
+	Name   string
+	Values []Stat
 }
 
 // User
@@ -40,7 +39,7 @@ type User struct {
 	Rank         int
 	Avatar       string
 	Achievements []Achievement
-	Stats        []Stat
+	Stats        []PlayerStat
 }
 
 func GetUser(SessionId string) (*User, error) {
@@ -122,8 +121,8 @@ func (u *User) PopulateStats() error {
 	}
 
 	for rows.Next() {
-		var st Stat
-		err := rows.Scan(&st.Name, &st.Name)
+		var st PlayerStat
+		err := rows.Scan(&st.Name, &st.Value)
 		if err != nil {
 			log.Println("Could not get user Stats :", err)
 			return err
@@ -189,40 +188,55 @@ func (u *User) UpdateStats(stats []Stat) error {
 	}
 	return nil
 }
-func (u *User) InsertKills(kills []Kill, mapName string) error {
-	stmt, err := _db.Prepare("INSERT INTO neb_users_stats_kills VALUES (?,?,?,?,?,?)")
-	if err != nil {
-		log.Println("Could not create statement : ", err)
-		return err
-	}
-	for _, kill := range kills {
-		_, err := stmt.Exec(u.id, kill.X, kill.Y, kill.Z, kill.Weapon, mapName)
-		if err != nil {
-			log.Println("Could not insert kill : ", err)
-			return err
-		}
-	}
-	return nil
-}
-func (u *User) updateComplexStats(stats []ComplexStat) error{
+func (u *User) updateComplexStats(stats []ComplexStat) error {
 	for _, stat := range stats {
-		cmd := "INSER INTO neb_users_stats_"
-		cmd = cmd.append(stat.Name)
-		cmd = cmd.append(" VALUES (")
-		for i := 0; i < stat.Values.length; i++ {
-			if(i == stat.Values.length - 1){
-				cmd = cmd.append("?")
+		fields, err := getFieldListForStatTable(stat.Name)
+		if err != nil {
+			log.Println("Could not get fields for table : ", stat.Name, err)
+			continue
+		}
+		//Prepare SQL request
+		cmd := "INSERT INTO neb_users_stats_"
+		cmd += stat.Name
+		cmd += " VALUES ("
+		for i := 0; i < len(fields); i++ {
+			if i == len(fields)-1 {
+				cmd += "?"
 			} else {
-				cmd = cmd.append("?,")
+				cmd += "?,"
 			}
 		}
+		cmd += ")"
+
 		stmt, err := _db.Prepare(cmd)
 		if err != nil {
 			log.Println("Could not prepare statement : ", err)
 			continue
 		}
-		for _, value := range stat.Values {
-			
+		//Sort values so they match the table definition
+		var sortedValues []interface{}
+		for _, field := range fields {
+			if field == "userid" {
+				sortedValues = append(sortedValues, u.id)
+				continue
+			}
+			for _, value := range stat.Values {
+				if value.Name != field {
+					continue
+				}
+				sortedValues = append(sortedValues, value.Value)
+			}
+		}
+
+		if len(sortedValues) == 0 {
+			log.Println("No correct values to insert into stat table: ", stat.Name)
+			continue
+		}
+		_, err = stmt.Exec(sortedValues...)
+		if err != nil {
+			log.Println("Could not insert data into stat table : ", err)
+			continue
 		}
 	}
+	return nil
 }

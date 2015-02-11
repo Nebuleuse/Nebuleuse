@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"strconv"
 )
 
 func registerHandlers() {
@@ -15,9 +14,9 @@ func registerHandlers() {
 	r.HandleFunc("/status", status).Methods("GET")
 	r.HandleFunc("/connect", connectUser).Methods("POST")
 	r.HandleFunc("/getUserInfos", getUserInfos).Methods("POST")
-	r.HandleFunc("/updateAchievement", updateAchievement).Methods("POST")
+	r.HandleFunc("/updateAchievements", updateAchievements).Methods("POST")
 	r.HandleFunc("/updateStats", updateStats).Methods("POST")
-	r.HandleFunc("/updateComplexStats", updateComplexStats).Methods("POST")
+	r.HandleFunc("/addComplexStats", addComplexStats).Methods("POST")
 	http.Handle("/", r)
 }
 
@@ -120,10 +119,19 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(res))
 	}
 }
-func updateAchievement(w http.ResponseWriter, r *http.Request) {
+
+type achievementRequest struct {
+	Id    int
+	Value int
+}
+type updateAchievementsRequest struct {
+	Achievements []achievementRequest
+}
+
+func updateAchievements(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	if r.PostForm["sessionid"] == nil || r.PostForm["achievementid"] == nil || r.PostForm["value"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid, achievementid or value"))
+	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
 		return
 	}
 
@@ -133,27 +141,28 @@ func updateAchievement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	aid, err := strconv.Atoi(r.PostForm["achievementid"][0])
+	data := r.PostForm["data"][0]
+	var req updateAchievementsRequest
+	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebError, err))
 		return
 	}
 
-	value, err := strconv.Atoi(r.PostForm["value"][0])
-	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+	count := len(req.Achievements)
+	for _, ach := range req.Achievements {
+		err = user.UpdateAchievementProgress(ach.Id, ach.Value)
+		if err != nil {
+			count--
+			continue
+		}
+	}
+	if count != len(req.Achievements) {
+		fmt.Fprint(w, EasyResponse(NebErrorPartialFail, "Updated "+string(count)+" Achievements"))
 		return
 	}
 
-	err = user.UpdateAchievementProgress(aid, value)
-	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
-		return
-	}
-
-	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Achievement"))
-
-	go user.Heartbeat()
+	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Achievements"))
 }
 
 type updateStatsRequest struct {
@@ -185,8 +194,6 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 	user.UpdateStats(req.Stats)
 
 	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Stats"))
-
-	go user.Heartbeat()
 }
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
@@ -204,15 +211,13 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(user)
 	fmt.Fprint(w, string(res))
-
-	go user.Heartbeat()
 }
 
 type updateComplexStatsRequest struct {
 	Stats []ComplexStat
 }
 
-func updateComplexStats(w http.ResponseWriter, r *http.Request) {
+func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
 		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
@@ -233,7 +238,11 @@ func updateComplexStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.updateComplexStats(req.Stats)
+	err = user.updateComplexStats(req.Stats)
+	if err != nil {
+		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		return
+	}
 
-	go user.Heartbeat()
+	fmt.Fprint(w, EasyResponse(NebErrorNone, "Inserted complex stat"))
 }

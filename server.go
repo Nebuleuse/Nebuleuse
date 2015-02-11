@@ -12,6 +12,7 @@ const (
 	NebError             = iota
 	NebErrorDisconnected = iota
 	NebErrorLogin        = iota
+	NebErrorPartialFail  = iota
 )
 
 type NebuleuseError struct {

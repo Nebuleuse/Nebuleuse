@@ -7,7 +7,7 @@ import (
 
 //Achievements
 type Achievement struct {
-	id       int
+	Id       int
 	Name     string
 	Progress uint
 	Value    uint
@@ -68,6 +68,8 @@ func GetUser(SessionId string) (*User, error) {
 	user.PopulateAchievements()
 	user.PopulateStats()
 
+	go user.Heartbeat()
+
 	return &user, nil
 }
 
@@ -92,7 +94,7 @@ func (u *User) PopulateAchievements() error {
 
 	for rows.Next() {
 		var ach Achievement
-		err := rows.Scan(&ach.id, &ach.Progress, &ach.Name, &ach.Value)
+		err := rows.Scan(&ach.Id, &ach.Progress, &ach.Name, &ach.Value)
 		if err != nil {
 			log.Println("Could not get user achievements :", err)
 			return err
@@ -189,6 +191,7 @@ func (u *User) UpdateStats(stats []Stat) error {
 	return nil
 }
 func (u *User) updateComplexStats(stats []ComplexStat) error {
+	var count = 0
 	for _, stat := range stats {
 		fields, err := getFieldListForStatTable(stat.Name)
 		if err != nil {
@@ -237,6 +240,10 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 			log.Println("Could not insert data into stat table : ", err)
 			continue
 		}
+		count++
+	}
+	if count < len(stats) {
+		return &NebuleuseError{NebErrorPartialFail, "Inserted " + string(count) + " stats out of " + string(len(stats))}
 	}
 	return nil
 }

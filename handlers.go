@@ -167,7 +167,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 
 type updateStatsRequest struct {
 	Map   string
-	Stats []Stat
+	Stats []UserStat
 }
 
 func updateStats(w http.ResponseWriter, r *http.Request) {

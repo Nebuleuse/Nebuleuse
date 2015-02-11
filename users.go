@@ -18,7 +18,7 @@ func (a *Achievement) isComplete() bool {
 }
 
 // Stats
-type PlayerStat struct {
+type UserStat struct {
 	Name  string
 	Value int64
 }
@@ -39,7 +39,7 @@ type User struct {
 	Rank         int
 	Avatar       string
 	Achievements []Achievement
-	Stats        []PlayerStat
+	Stats        []UserStat
 }
 
 func GetUser(SessionId string) (*User, error) {
@@ -123,7 +123,7 @@ func (u *User) PopulateStats() error {
 	}
 
 	for rows.Next() {
-		var st PlayerStat
+		var st UserStat
 		err := rows.Scan(&st.Name, &st.Value)
 		if err != nil {
 			log.Println("Could not get user Stats :", err)
@@ -170,7 +170,7 @@ func (u *User) UpdateAchievementProgress(aid int, value int) error {
 
 	return nil
 }
-func (u *User) UpdateStats(stats []Stat) error {
+func (u *User) UpdateStats(stats []UserStat) error {
 	stmt, err := _db.Prepare("UPDATE neb_users_stats SET value = ? WHERE userid = ? AND name = ? LIMIT 1")
 	if err != nil {
 		log.Println("Could not create statement : ", err)

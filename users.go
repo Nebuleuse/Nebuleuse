@@ -193,7 +193,7 @@ func (u *User) UpdateStats(stats []UserStat) error {
 func (u *User) updateComplexStats(stats []ComplexStat) error {
 	var count = 0
 	for _, stat := range stats {
-		fields, err := getFieldListForStatTable(stat.Name)
+		tableInfo, err := getStatTableInfos(stat.Name)
 		if err != nil {
 			log.Println("Could not get fields for table : ", stat.Name, err)
 			continue
@@ -202,8 +202,8 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 		cmd := "INSERT INTO neb_users_stats_"
 		cmd += stat.Name
 		cmd += " VALUES ("
-		for i := 0; i < len(fields); i++ {
-			if i == len(fields)-1 {
+		for i := 0; i < len(tableInfo.Fields); i++ {
+			if i == len(tableInfo.Fields)-1 {
 				cmd += "?"
 			} else {
 				cmd += "?,"
@@ -218,7 +218,7 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 		}
 		//Sort values so they match the table definition
 		var sortedValues []interface{}
-		for _, field := range fields {
+		for _, field := range tableInfo.Fields {
 			if field == "userid" {
 				sortedValues = append(sortedValues, u.id)
 				continue
@@ -241,6 +241,20 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 			continue
 		}
 		count++
+
+		if tableInfo.AutoCount { // Do we need to update the player stat associated ?
+			var stt []UserStat
+			var st UserStat
+			for _, s := range u.Stats {
+				if s.Name == stat.Name {
+					st = s
+					break
+				}
+			}
+			st.Value = st.Value + 1
+			stt = append(stt, st)
+			u.UpdateStats(stt)
+		}
 	}
 	if count < len(stats) {
 		return &NebuleuseError{NebErrorPartialFail, "Inserted " + string(count) + " stats out of " + string(len(stats))}

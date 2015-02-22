@@ -59,11 +59,19 @@ func PurgeSessions() {
 		log.Println("Purged ", af, " sessions")
 	}
 }
-func getFieldListForStatTable(table string) ([]string, error) {
+
+type StatTableInfo struct {
+	Fields    []string
+	AutoCount bool
+}
+
+func getStatTableInfos(table string) (StatTableInfo, error) {
 	var values string
-	err := _db.QueryRow("SELECT fields FROM neb_stats_tables WHERE tableName = ?", table).Scan(&values)
+	var info StatTableInfo
+	err := _db.QueryRow("SELECT fields, autoCount FROM neb_stats_tables WHERE tableName = ?", table).Scan(&values, &info.AutoCount)
 	if err != nil {
-		return nil, err
+		return info, err
 	}
-	return strings.Split(values, ","), nil
+	info.Fields = strings.Split(values, ",")
+	return info, nil
 }

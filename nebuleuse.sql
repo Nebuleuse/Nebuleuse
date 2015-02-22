@@ -50,11 +50,12 @@ CREATE TABLE IF NOT EXISTS `neb_sessions` (
 
 CREATE TABLE IF NOT EXISTS `neb_stats_tables` (
   `tableName` varchar(255) NOT NULL,
-  `fields` text NOT NULL
+  `fields` text NOT NULL,
+  `autoCount` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-INSERT INTO `neb_stats_tables` (`tableName`, `fields`) VALUES
-('kills', 'userid,x,y,z,weapon,map');
+INSERT INTO `neb_stats_tables` (`tableName`, `fields`, `autoCount`) VALUES
+('kills', 'userid,x,y,z,weapon,map', 1);
 
 CREATE TABLE IF NOT EXISTS `neb_updates` (
   `version` int(11) NOT NULL,
@@ -70,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `neb_users` (
   `rank` tinyint(3) NOT NULL,
   `avatars` varchar(255) NOT NULL,
   `hash` varchar(255) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
 INSERT INTO `neb_users` (`id`, `username`, `password`, `rank`, `avatars`, `hash`) VALUES
 (1, 'test', 'q4F_1BnvOQERMAtuwNHoocjO6DiHvt15ol2krqZ60v-NW-tb0_IooASPuZq6iv1tjjT60JIIhA1MZvjTcGhDqA==', 1, '', 'O-z_gcTHzvgoM3ndhFnKVbM-tUcnGZDz_o6mhkWFiL0VTnvCvHFVOBYnvBp23pbz1ZIafCoH_JO51gXlVkmf8w==');
@@ -81,18 +82,11 @@ CREATE TABLE IF NOT EXISTS `neb_users_achievements` (
   `progress` int(10) unsigned NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
-INSERT INTO `neb_users_achievements` (`userid`, `achievementid`, `progress`) VALUES
-(1, 1, 5);
-
 CREATE TABLE IF NOT EXISTS `neb_users_stats` (
   `userid` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `value` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-INSERT INTO `neb_users_stats` (`userid`, `name`, `value`) VALUES
-(1, 'kills', 1),
-(1, 'timePlayed', 10);
 
 CREATE TABLE IF NOT EXISTS `neb_users_stats_kills` (
   `userid` bigint(20) NOT NULL,
@@ -128,7 +122,7 @@ MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
 ALTER TABLE `neb_mirrors`
 MODIFY `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT;
 ALTER TABLE `neb_users`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

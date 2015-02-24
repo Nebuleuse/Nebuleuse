@@ -10,7 +10,7 @@ import (
 
 func registerHandlers() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", homeHandler)
+	r.HandleFunc("/", status)
 	r.HandleFunc("/status", status).Methods("GET")
 	r.HandleFunc("/connect", connectUser).Methods("POST")
 	r.HandleFunc("/getUserInfos", getUserInfos).Methods("POST")
@@ -18,19 +18,6 @@ func registerHandlers() {
 	r.HandleFunc("/updateStats", updateStats).Methods("POST")
 	r.HandleFunc("/addComplexStats", addComplexStats).Methods("POST")
 	http.Handle("/", r)
-}
-
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	user, err := GetUser("64dcb8cf-0820-4714-4bc2-e885566d54f9")
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	res, err := json.Marshal(user)
-	if err != nil {
-		log.Println("Could not encode error response")
-	}
-	fmt.Fprint(w, string(res))
 }
 
 type easyResponse struct {
@@ -81,15 +68,12 @@ func status(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(response)
 	if err != nil {
 		log.Println("Could not encode status response")
+		fmt.Fprint(w, EasyErrorResponse(NebError, err))
 	} else {
 		fmt.Fprint(w, string(res))
 	}
 }
 
-type connectRequest struct {
-	Username string
-	Password string
-}
 type connectResponse struct {
 	SessionId string
 }
@@ -118,6 +102,23 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Fprint(w, string(res))
 	}
+}
+
+func getUserInfos(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	if r.PostForm["sessionid"] == nil {
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid"))
+		return
+	}
+
+	user, err := GetUser(r.PostForm["sessionid"][0])
+	if err != nil {
+		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		return
+	}
+
+	res, err := json.Marshal(user)
+	fmt.Fprint(w, string(res))
 }
 
 type achievementRequest struct {
@@ -166,7 +167,6 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 }
 
 type updateStatsRequest struct {
-	Map   string
 	Stats []UserStat
 }
 
@@ -194,23 +194,6 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 	user.UpdateStats(req.Stats)
 
 	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Stats"))
-}
-
-func getUserInfos(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid"))
-		return
-	}
-
-	user, err := GetUser(r.PostForm["sessionid"][0])
-	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
-		return
-	}
-
-	res, err := json.Marshal(user)
-	fmt.Fprint(w, string(res))
 }
 
 type updateComplexStatsRequest struct {

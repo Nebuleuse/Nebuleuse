@@ -42,7 +42,14 @@ type User struct {
 	Stats        []UserStat
 }
 
-func GetUser(SessionId string) (*User, error) {
+const (
+	UserMaskNone         = 0
+	UserMaskOnlyId       = 1
+	UserMaskAchievements = 2
+	UserMaskStats        = 4
+)
+
+func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 	var user User
 	user.SessionId = SessionId
 
@@ -55,6 +62,10 @@ func GetUser(SessionId string) (*User, error) {
 	}
 	user.id = id
 
+	if BitMask & UserMaskOnlyId {
+		return &user, nil
+	}
+
 	err = _db.QueryRow("SELECT username, rank, avatars FROM neb_users WHERE id = ?", id).Scan(&user.Username, &user.Rank, &user.Avatar)
 	if err != nil && err == sql.ErrNoRows {
 		return nil, &NebuleuseError{NebErrorDisconnected, "No user found"}
@@ -65,8 +76,12 @@ func GetUser(SessionId string) (*User, error) {
 		user.Avatar = _cfg["defaultAvatar"]
 	}
 
-	user.PopulateAchievements()
-	user.PopulateStats()
+	if BitMask & UserMaskAchievements {
+		user.PopulateAchievements()
+	}
+	if BitMask & UserMaskStats {
+		user.PopulateStats()
+	}
 
 	go user.Heartbeat()
 
@@ -145,6 +160,13 @@ func (u *User) Heartbeat() {
 	if err != nil {
 		log.Println("Could not Heartbeat :", err)
 	}
+}
+func (u *User) Disconnect(){
+	stmt, err := _db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
+	_, err = stmt.Exec(u.id)
+	if err != nil {
+		log.Println("Could not delete user session :", err)
+	}	
 }
 func (u *User) UpdateAchievementProgress(aid int, value int) error {
 	stmt, err := _db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")

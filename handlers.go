@@ -13,6 +13,7 @@ func registerHandlers() {
 	r.HandleFunc("/", status)
 	r.HandleFunc("/status", status).Methods("GET")
 	r.HandleFunc("/connect", connectUser).Methods("POST")
+	r.HandleFunc("/disconnect", disconnectUser).Methods("POST")
 	r.HandleFunc("/getUserInfos", getUserInfos).Methods("POST")
 	r.HandleFunc("/updateAchievements", updateAchievements).Methods("POST")
 	r.HandleFunc("/updateStats", updateStats).Methods("POST")
@@ -104,6 +105,23 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func disconnectUser(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	if r.PostForm["sessionid"] == nil {
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid"))
+		return
+	}
+
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
+	if err != nil {
+		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		return
+	}
+
+	user.Disconnect()
+	fmt.Fprint(w, EasyResponse(NebErrorNone, "User disconnected"))
+}
+
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil {
@@ -111,7 +129,7 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUser(r.PostForm["sessionid"][0])
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskStats | UserMaskAchievements)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return
@@ -136,7 +154,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUser(r.PostForm["sessionid"][0])
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return
@@ -177,7 +195,7 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUser(r.PostForm["sessionid"][0])
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return
@@ -207,7 +225,7 @@ func addComplexStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUser(r.PostForm["sessionid"][0])
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return

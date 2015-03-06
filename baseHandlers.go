@@ -52,8 +52,8 @@ func EasyErrorResponse(code int, err error) string {
 }
 
 type ComplexStatTableInfo struct {
-	Name string
-	Fields []string
+	Name      string
+	Fields    []string
 	AutoCount bool
 }
 type statusResponse struct {
@@ -65,7 +65,7 @@ type statusResponse struct {
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-	var CStatsInfos, err := getComplexStatsTablesInfos()
+	CStatsInfos, err := getComplexStatsTablesInfos()
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebError, err))
 	}

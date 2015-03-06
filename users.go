@@ -43,10 +43,10 @@ type User struct {
 }
 
 const (
-	UserMaskNone         = 0
-	UserMaskOnlyId       = 1
-	UserMaskAchievements = 2
-	UserMaskStats        = 4
+	UserMaskNone = 1 << iota
+	UserMaskOnlyId
+	UserMaskAchievements
+	UserMaskStats
 )
 
 func GetUserBySession(SessionId string, BitMask int) (*User, error) {
@@ -62,7 +62,7 @@ func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 	}
 	user.id = id
 
-	if BitMask & UserMaskOnlyId {
+	if BitMask&UserMaskOnlyId != 0 {
 		return &user, nil
 	}
 
@@ -76,10 +76,10 @@ func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 		user.Avatar = _cfg["defaultAvatar"]
 	}
 
-	if BitMask & UserMaskAchievements {
+	if BitMask&UserMaskAchievements != 0 {
 		user.PopulateAchievements()
 	}
-	if BitMask & UserMaskStats {
+	if BitMask&UserMaskStats != 0 {
 		user.PopulateStats()
 	}
 
@@ -161,12 +161,12 @@ func (u *User) Heartbeat() {
 		log.Println("Could not Heartbeat :", err)
 	}
 }
-func (u *User) Disconnect(){
+func (u *User) Disconnect() {
 	stmt, err := _db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
 	_, err = stmt.Exec(u.id)
 	if err != nil {
 		log.Println("Could not delete user session :", err)
-	}	
+	}
 }
 func (u *User) UpdateAchievementProgress(aid int, value int) error {
 	stmt, err := _db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")

@@ -71,8 +71,8 @@ func getComplexStatsTableInfos(table string) (ComplexStatTableInfo, error) {
 	return info, nil
 }
 
-func getComplexStatsTablesInfos() ([]ComplexStatTableInfo, error){
-	var ret := make([]ComplexStatTableInfo,0)
+func getComplexStatsTablesInfos() ([]ComplexStatTableInfo, error) {
+	var ret = make([]ComplexStatTableInfo, 0)
 
 	rows, err := _db.Query("SELECT tableName, fields, autoCount FROM neb_stats_tables")
 	defer rows.Close()
@@ -82,19 +82,20 @@ func getComplexStatsTablesInfos() ([]ComplexStatTableInfo, error){
 	}
 
 	for rows.Next() {
-	    var info ComplexStatTableInfo
-	    var fields string
-	    err = rows.Scan(&info.Name, fields, &info.AutoCount)
-	    if err != nil {
-	    	return ret, err    
-	    }
-    	info.Fields = strings.Split(fields, ",")
-    	ret = append(ret, info)
+		var info ComplexStatTableInfo
+		var fields string
+		err = rows.Scan(&info.Name, fields, &info.AutoCount)
+		if err != nil {
+			return ret, err
+		}
+		info.Fields = strings.Split(fields, ",")
+		ret = append(ret, info)
 	}
 
-	err = rows.Err();
+	err = rows.Err()
 
 	if err != nil {
-	    return ret, err
+		return ret, err
 	}
+	return ret, nil
 }

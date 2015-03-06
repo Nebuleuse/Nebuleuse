@@ -1,13 +1,14 @@
 package main
 
 import (
-	"strconv"
-	"log"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"log"
+	"strconv"
 )
 
 const nebuleuseVersion = 1
+
 var _cfg map[string]string
 var _db *sql.DB
 
@@ -20,7 +21,7 @@ func main() {
 	createServer()
 }
 
-func initDb(){
+func initDb() {
 	db, err := sql.Open("mysql", "nebuleuse:abc@tcp(127.0.0.1:3306)/nebuleuse")
 
 	if err != nil {
@@ -36,9 +37,11 @@ func initDb(){
 	_db = db
 }
 
-func readConfig(){
-	var (name string
-		value string)
+func readConfig() {
+	var (
+		name  string
+		value string
+	)
 	_cfg = make(map[string]string)
 
 	rows, err := _db.Query("select name, value from neb_config")
@@ -64,16 +67,16 @@ func readConfig(){
 	}
 }
 
-func getGameVersion() int{
+func getGameVersion() int {
 	n, e := strconv.Atoi(_cfg["gameVersion"])
-	if(e != nil){
+	if e != nil {
 		return -1
 	}
 	return n
 }
-func getUpdaterVersion() int{
+func getUpdaterVersion() int {
 	n, e := strconv.Atoi(_cfg["updaterVersion"])
-	if(e != nil){
+	if e != nil {
 		return -1
 	}
 	return n

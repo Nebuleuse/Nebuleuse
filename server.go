@@ -75,20 +75,22 @@ func getComplexStatsTablesInfos() ([]ComplexStatTableInfo, error) {
 	var ret = make([]ComplexStatTableInfo, 0)
 
 	rows, err := _db.Query("SELECT tableName, fields, autoCount FROM neb_stats_tables")
-	defer rows.Close()
 
 	if err != nil {
 		return ret, err
 	}
 
+	defer rows.Close()
+
 	for rows.Next() {
 		var info ComplexStatTableInfo
 		var fields string
-		err = rows.Scan(&info.Name, fields, &info.AutoCount)
+		err = rows.Scan(&info.Name, &fields, &info.AutoCount)
 		if err != nil {
 			return ret, err
 		}
 		info.Fields = strings.Split(fields, ",")
+
 		ret = append(ret, info)
 	}
 

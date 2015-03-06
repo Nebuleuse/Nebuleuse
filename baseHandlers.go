@@ -57,11 +57,11 @@ type ComplexStatTableInfo struct {
 	AutoCount bool
 }
 type statusResponse struct {
-	Maintenance      bool
-	NebuleuseVersion int
-	GameVersion      int
-	UpdaterVersion   int
-	ComplexStatTable []ComplexStatTableInfo
+	Maintenance       bool
+	NebuleuseVersion  int
+	GameVersion       int
+	UpdaterVersion    int
+	ComplexStatsTable []ComplexStatTableInfo
 }
 
 func status(w http.ResponseWriter, r *http.Request) {

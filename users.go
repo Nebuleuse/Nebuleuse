@@ -22,13 +22,13 @@ type UserStat struct {
 	Name  string
 	Value int64
 }
-type Stat struct {
+type KeyValue struct {
 	Name  string
 	Value string
 }
 type ComplexStat struct {
 	Name   string
-	Values []Stat
+	Values []KeyValue
 }
 
 // User
@@ -215,7 +215,7 @@ func (u *User) UpdateStats(stats []UserStat) error {
 func (u *User) updateComplexStats(stats []ComplexStat) error {
 	var count = 0
 	for _, stat := range stats {
-		tableInfo, err := getStatTableInfos(stat.Name)
+		tableInfo, err := getComplexStatsTableInfos(stat.Name)
 		if err != nil {
 			log.Println("Could not get fields for table : ", stat.Name, err)
 			continue

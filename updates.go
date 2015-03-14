@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"github.com/gogits/gogs/modules/git"
 )
 
 type Update struct {
@@ -13,12 +14,15 @@ type Update struct {
 
 func GetUpdateInfos(version int) (Update, error) {
 	var up Update
+
 	err := _db.QueryRow("SELECT version, log, size, date FROM neb_updates WHERE version = ?", version).Scan(&up.version, &up.log, &up.size, &up.date)
+
 	if err != nil && err == sql.ErrNoRows {
 		return up, &NebuleuseError{NebError, "No update found"}
 	} else if err != nil {
 		return up, err
 	}
+
 	return up, nil
 }
 func GetUpdatesInfos(start int, end int) ([]Update, error) {
@@ -46,4 +50,42 @@ func GetUpdatesInfos(start int, end int) ([]Update, error) {
 	}
 
 	return updates, nil
+}
+
+func GetCommitsSinceLastUpdate() ([]*git.Commit, error) {
+	var ret []*git.Commit
+
+	rep, err := git.OpenRepository(".")
+	actual, err := rep.GetCommitOfBranch(_cfg["productionBranch"])
+	last, err := rep.GetCommit(_cfg["latestCommit"])
+	list, err := rep.CommitsBetween(actual, last)
+
+	for e := list.Front(); e != nil; e = e.Next() {
+		ret = append(ret, e.Value.(*git.Commit))
+	}
+
+	return ret, err
+}
+
+func GetRecentCommits() ([]*git.Commit, error) {
+	var ret []*git.Commit
+
+	rep, err := git.OpenRepository(".")
+	latest, err := rep.GetCommitOfBranch(_cfg["productionBranch"])
+	list, err := latest.CommitsByRange(1)
+
+	for e := list.Front(); e != nil; e = e.Next() {
+		ret = append(ret, e.Value.(*git.Commit))
+	}
+
+	return ret, err
+}
+
+func GetFilesChangedSinceUpdate() (*Diff, error) {
+	rep, err := git.OpenRepository(".")
+	latest, err := rep.GetCommitOfBranch(_cfg["productionBranch"])
+
+	res, err := GetDiffRange(".", _cfg["latestCommit"], latest.Id.String(), 500)
+
+	return res, err
 }

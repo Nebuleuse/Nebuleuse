@@ -3,6 +3,10 @@ package main
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
 	"strconv"
 )
 

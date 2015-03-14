@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -31,7 +30,7 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(response)
 	if err != nil {
-		log.Println("Could not encode status response")
+		Warning.Println("Could not encode status response")
 	} else {
 		fmt.Fprint(w, string(res))
 	}
@@ -61,7 +60,7 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskStats | UserMaskAchievements)
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskStats|UserMaskAchievements)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return

@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	"log"
 	"strconv"
 )
 
@@ -12,7 +11,33 @@ const nebuleuseVersion = 1
 var _cfg map[string]string
 var _db *sql.DB
 
+var (
+	Trace   *log.Logger
+	Info    *log.Logger
+	Warning *log.Logger
+	Error   *log.Logger
+)
+
+func InitLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
+	Trace = log.New(traceHandle,
+		"TRACE: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
+
+	Info = log.New(infoHandle,
+		"INFO: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
+
+	Warning = log.New(warningHandle,
+		"WARNING: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
+
+	Error = log.New(errorHandle,
+		"ERROR: ",
+		log.Ldate|log.Ltime|log.Lshortfile)
+}
+
 func main() {
+	InitLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	initDb()
 	defer _db.Close()
 
@@ -25,14 +50,14 @@ func initDb() {
 	db, err := sql.Open("mysql", "nebuleuse:abc@tcp(127.0.0.1:3306)/nebuleuse")
 
 	if err != nil {
-		log.Fatal(err)
+		Error.Fatal(err)
 	}
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatal(err)
+		Error.Fatal(err)
 	} else {
-		log.Println("Successfully connected to db")
+		Info.Println("Successfully connected to db")
 	}
 	_db = db
 }
@@ -46,7 +71,7 @@ func readConfig() {
 
 	rows, err := _db.Query("select name, value from neb_config")
 	if err != nil {
-		log.Fatal(err)
+		Error.Fatal(err)
 	}
 
 	defer rows.Close()
@@ -54,16 +79,16 @@ func readConfig() {
 	for rows.Next() {
 		err := rows.Scan(&name, &value)
 		if err != nil {
-			log.Fatal(err)
+			Error.Fatal(err)
 		}
 		_cfg[name] = value
 	}
 
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		Error.Fatal(err)
 	} else {
-		log.Println("Successfully read configuration")
+		Info.Println("Successfully read configuration")
 	}
 }
 

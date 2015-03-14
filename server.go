@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -29,7 +28,7 @@ func createServer() {
 
 	go SessionsPurgeTimer()
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	Info.Fatal(http.ListenAndServe(":8080", nil))
 }
 
 func SessionsPurgeTimer() {
@@ -42,21 +41,21 @@ func SessionsPurgeTimer() {
 func PurgeSessions() {
 	stmt, err := _db.Prepare("DELETE FROM neb_sessions WHERE NOW() > Date_Add( lastAlive, INTERVAL ? SECOND )")
 	if err != nil {
-		log.Println("Failed to prepare statement : ", err)
+		Warning.Println("Failed to prepare statement : ", err)
 		return
 	}
 	res, err := stmt.Exec(_cfg["sessionTimeout"])
 	if err != nil {
-		log.Println("Failed to purge sessions: ", err)
+		Warning.Println("Failed to purge sessions: ", err)
 		return
 	}
 	af, err := res.RowsAffected()
 	if err != nil {
-		log.Println("Failed to get sessions affected rows :", err)
+		Warning.Println("Failed to get sessions affected rows :", err)
 		return
 	}
 	if af > 0 {
-		log.Println("Purged ", af, " sessions")
+		Info.Println("Purged ", af, " sessions")
 	}
 }
 

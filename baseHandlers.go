@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
@@ -30,7 +29,7 @@ func EasyResponse(code int, message string) string {
 	e := easyResponse{code, message}
 	res, err := json.Marshal(e)
 	if err != nil {
-		log.Println("Could not encode easy response")
+		Warning.Println("Could not encode easy response")
 	}
 
 	return string(res)
@@ -45,7 +44,7 @@ func EasyErrorResponse(code int, err error) string {
 	}
 	res, err := json.Marshal(e)
 	if err != nil {
-		log.Println("Could not encode easy response")
+		Warning.Println("Could not encode easy response")
 	}
 
 	return string(res)
@@ -77,7 +76,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(response)
 	if err != nil {
-		log.Println("Could not encode status response")
+		Warning.Println("Could not encode status response")
 		fmt.Fprint(w, EasyErrorResponse(NebError, err))
 	} else {
 		fmt.Fprint(w, string(res))

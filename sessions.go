@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"github.com/nu7hatch/gouuid"
-	"log"
 )
 
 func CreateSession(username string, password string) (string, error) {
@@ -20,7 +19,7 @@ func CreateSession(username string, password string) (string, error) {
 		bhash := make([]byte, c)
 		_, err := rand.Read(bhash)
 		if err != nil {
-			log.Println("Error generating crytpo hash:", err)
+			Warning.Println("Error generating crytpo hash:", err)
 			return "", err
 		}
 		hash := base64.URLEncoding.EncodeToString(bhash)
@@ -35,7 +34,7 @@ func CreateSession(username string, password string) (string, error) {
 	} else if err != nil && err == sql.ErrNoRows {
 		return "", &NebuleuseError{NebErrorLogin, "Unknown username"}
 	} else if err != nil {
-		log.Println("Could not Query DB for user", username, " : ", err)
+		Warning.Println("Could not Query DB for user", username, " : ", err)
 		return "", err
 	}
 
@@ -48,7 +47,7 @@ func CreateSession(username string, password string) (string, error) {
 	stmt, err := _db.Prepare("REPLACE INTO neb_sessions (userid,lastAlive,sessionId,sessionStart) VALUES (?,NOW(),?,NOW())")
 	_, err = stmt.Exec(id, sessionid)
 	if err != nil {
-		log.Println("Could not insert session :", err)
+		Warning.Println("Could not insert session :", err)
 		return "", err
 	}
 
@@ -65,7 +64,7 @@ func HashPassword(password string, hash string) string {
 func GenerateSessionId(username string) string {
 	u4, err := uuid.NewV4()
 	if err != nil {
-		log.Println("Failed to generate uuid:", err)
+		Warning.Println("Failed to generate uuid:", err)
 		return ""
 	}
 	return u4.String()

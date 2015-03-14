@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"log"
 )
 
 //Achievements
@@ -92,7 +91,7 @@ func RegisterUser(username string, password string, hash string) error {
 	stmt, err := _db.Prepare("INSERT INTO neb_users (username,password,rank,hash) VALUES (?,?,1,?)")
 	_, err = stmt.Exec(username, password, hash)
 	if err != nil {
-		log.Println("Could not register new user :", err)
+		Warning.Println("Could not register new user :", err)
 		return err
 	}
 
@@ -102,7 +101,7 @@ func RegisterUser(username string, password string, hash string) error {
 func (u *User) PopulateAchievements() error {
 	rows, err := _db.Query("SELECT achievementid, progress, name, max FROM neb_users_achievements LEFT JOIN neb_achievements ON (neb_achievements.id = neb_users_achievements.achievementid) WHERE neb_users_achievements.userid = ?", u.id)
 	if err != nil {
-		log.Println("Could not get user achievements :", err)
+		Warning.Println("Could not get user achievements :", err)
 		return err
 	}
 	defer rows.Close()
@@ -111,7 +110,7 @@ func (u *User) PopulateAchievements() error {
 		var ach Achievement
 		err := rows.Scan(&ach.Id, &ach.Progress, &ach.Name, &ach.Value)
 		if err != nil {
-			log.Println("Could not get user achievements :", err)
+			Warning.Println("Could not get user achievements :", err)
 			return err
 		}
 		u.Achievements = append(u.Achievements, ach)
@@ -119,7 +118,7 @@ func (u *User) PopulateAchievements() error {
 
 	err = rows.Err()
 	if err != nil {
-		log.Println("Could not get user achievements :", err)
+		Warning.Println("Could not get user achievements :", err)
 		return err
 	}
 	return nil
@@ -127,13 +126,13 @@ func (u *User) PopulateAchievements() error {
 func (u *User) PopulateStats() error {
 	rows, err := _db.Query("SELECT name, value FROM neb_users_stats WHERE userid = ?", u.id)
 	if err != nil {
-		log.Println("Could not get user stats :", err)
+		Warning.Println("Could not get user stats :", err)
 		return err
 	}
 	defer rows.Close()
 
 	if err != nil {
-		log.Println("Could not get columns:", err)
+		Warning.Println("Could not get columns:", err)
 		return err
 	}
 
@@ -141,7 +140,7 @@ func (u *User) PopulateStats() error {
 		var st UserStat
 		err := rows.Scan(&st.Name, &st.Value)
 		if err != nil {
-			log.Println("Could not get user Stats :", err)
+			Warning.Println("Could not get user Stats :", err)
 			return err
 		}
 		u.Stats = append(u.Stats, st)
@@ -149,7 +148,7 @@ func (u *User) PopulateStats() error {
 
 	err = rows.Err()
 	if err != nil {
-		log.Println("Could not get user Stats :", err)
+		Warning.Println("Could not get user Stats :", err)
 		return err
 	}
 	return nil
@@ -158,35 +157,35 @@ func (u *User) Heartbeat() {
 	stmt, err := _db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
 	_, err = stmt.Exec(u.id)
 	if err != nil {
-		log.Println("Could not Heartbeat :", err)
+		Warning.Println("Could not Heartbeat :", err)
 	}
 }
 func (u *User) Disconnect() {
 	stmt, err := _db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
 	_, err = stmt.Exec(u.id)
 	if err != nil {
-		log.Println("Could not delete user session :", err)
+		Warning.Println("Could not delete user session :", err)
 	}
 }
 func (u *User) UpdateAchievementProgress(aid int, value int) error {
 	stmt, err := _db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")
 	if err != nil {
-		log.Println("Could not create statement : ", err)
+		Warning.Println("Could not create statement : ", err)
 		return err
 	}
 
 	res, err := stmt.Exec(value, u.id, aid)
 	if err != nil {
-		log.Println("Could not update achievement :", err)
+		Warning.Println("Could not update achievement :", err)
 		return err
 	}
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
-		log.Println("Could not get update rowcount :", err)
+		Warning.Println("Could not get update rowcount :", err)
 		return err
 	}
 	if rowCnt == 0 {
-		log.Println("Tried to update achievementid : ", aid, " but no rows affected")
+		Warning.Println("Tried to update achievementid : ", aid, " but no rows affected")
 		return &NebuleuseError{NebError, "No rows affected by operation"}
 	}
 
@@ -195,18 +194,18 @@ func (u *User) UpdateAchievementProgress(aid int, value int) error {
 func (u *User) UpdateStats(stats []UserStat) error {
 	stmt, err := _db.Prepare("UPDATE neb_users_stats SET value = ? WHERE userid = ? AND name = ? LIMIT 1")
 	if err != nil {
-		log.Println("Could not create statement : ", err)
+		Warning.Println("Could not create statement : ", err)
 		return err
 	}
 
 	for _, stat := range stats {
 		if stat.Name == "userid" {
-			log.Println("Could not update user stats, userid present in stat list")
+			Warning.Println("Could not update user stats, userid present in stat list")
 			return &NebuleuseError{NebErrorLogin, "Could not update user stats, userid present in stat list"}
 		}
 		_, err := stmt.Exec(stat.Value, u.id, stat.Name)
 		if err != nil {
-			log.Println("Could not update user stats : ", err)
+			Warning.Println("Could not update user stats : ", err)
 			return err
 		}
 	}
@@ -217,7 +216,7 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 	for _, stat := range stats {
 		tableInfo, err := getComplexStatsTableInfos(stat.Name)
 		if err != nil {
-			log.Println("Could not get fields for table : ", stat.Name, err)
+			Warning.Println("Could not get fields for table : ", stat.Name, err)
 			continue
 		}
 		//Prepare SQL request
@@ -235,7 +234,7 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 
 		stmt, err := _db.Prepare(cmd)
 		if err != nil {
-			log.Println("Could not prepare statement : ", err)
+			Warning.Println("Could not prepare statement : ", err)
 			continue
 		}
 		//Sort values so they match the table definition
@@ -254,12 +253,12 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 		}
 
 		if len(sortedValues) == 0 {
-			log.Println("No correct values to insert into stat table: ", stat.Name)
+			Warning.Println("No correct values to insert into stat table: ", stat.Name)
 			continue
 		}
 		_, err = stmt.Exec(sortedValues...)
 		if err != nil {
-			log.Println("Could not insert data into stat table : ", err)
+			Warning.Println("Could not insert data into stat table : ", err)
 			continue
 		}
 		count++

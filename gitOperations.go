@@ -1,6 +1,7 @@
 // Copyright 2014 The Gogs Authors. All rights reserved.
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
+//Original file from GOGS (https://github.com/gogits/gogs), improved for our uses
 package main
 
 import (
@@ -50,12 +51,11 @@ func (diff *Diff) NumFiles() int {
 
 const DIFF_HEAD = "diff --git "
 
-func ParsePatch(pid int64, maxlines int, cmd *exec.Cmd, reader io.Reader) (*Diff, error) {
+func ParsePatch(pid int64, cmd *exec.Cmd, reader io.Reader) (*Diff, error) {
 	scanner := bufio.NewScanner(reader)
 	var (
 		curFile             *DiffFile
 		leftLine, rightLine int
-		isTooLong           bool
 		// FIXME: use first 30 lines to detect file encoding. Should use cache in the future.
 		buf bytes.Buffer
 	)
@@ -75,21 +75,13 @@ func ParsePatch(pid int64, maxlines int, cmd *exec.Cmd, reader io.Reader) (*Diff
 		if i <= 30 {
 			buf.WriteString(line)
 		}
-		// Diff data too large, we only show the first about maxlines lines
-		if i == maxlines {
-			isTooLong = true
-			Warning.Println("Diff data too large")
-			//return &Diff{}, nil
-		}
+
 		switch {
 		case line[0] == ' ':
 			leftLine++
 			rightLine++
 			continue
 		case line[0] == '@':
-			if isTooLong {
-				return diff, nil
-			}
 			ss := strings.Split(line, "@@")
 			// Parse line number.
 			ranges := strings.Split(ss[len(ss)-2][1:], " ")
@@ -113,9 +105,6 @@ func ParsePatch(pid int64, maxlines int, cmd *exec.Cmd, reader io.Reader) (*Diff
 		}
 		// Get new file.
 		if strings.HasPrefix(line, DIFF_HEAD) {
-			if isTooLong {
-				return diff, nil
-			}
 			fs := strings.Split(line[len(DIFF_HEAD):], " ")
 			a := fs[0]
 			curFile = &DiffFile{
@@ -146,27 +135,11 @@ func ParsePatch(pid int64, maxlines int, cmd *exec.Cmd, reader io.Reader) (*Diff
 			}
 		}
 	}
-	// FIXME: use first 30 lines to detect file encoding.
-	/*charsetLabel, err := base.DetectEncoding(buf.Bytes())
-	if charsetLabel != "utf8" && err == nil {
-		encoding, _ := charset.Lookup(charsetLabel)
-		if encoding != nil {
-			d := encoding.NewDecoder()
-			for _, f := range diff.Files {
-				for _, sec := range f.Sections {
-					for _, l := range sec.Lines {
-						if c, _, err := transform.String(d, l.Content); err == nil {
-							l.Content = c
-						}
-					}
-				}
-			}
-		}
-	}*/
+
 	return diff, nil
 }
-func GetDiffRange(repoPath, beforeCommitId string, afterCommitId string, maxlines int) (*Diff, error) {
-	repo, err := git.OpenRepository(repoPath)
+func (r *git.Repository) GetDiffRange(beforeCommitId string, afterCommitId string) (*Diff, error) {
+	repo, err := git.OpenRepository(r.Path)
 	if err != nil {
 		return nil, err
 	}
@@ -188,7 +161,7 @@ func GetDiffRange(repoPath, beforeCommitId string, afterCommitId string, maxline
 	} else {
 		cmd = exec.Command("git", "diff", beforeCommitId, afterCommitId)
 	}
-	cmd.Dir = repoPath
+	cmd.Dir = r.Path
 	cmd.Stdout = wr
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
@@ -199,7 +172,7 @@ func GetDiffRange(repoPath, beforeCommitId string, afterCommitId string, maxline
 		wr.Close()
 	}()
 	defer rd.Close()
-	desc := fmt.Sprintf("GetDiffRange(%s)", repoPath)
+	desc := fmt.Sprintf("GetDiffRange(%s)", r.Path)
 	pid := process.Add(desc, cmd)
 	go func() {
 		// In case process became zombie.
@@ -214,8 +187,17 @@ func GetDiffRange(repoPath, beforeCommitId string, afterCommitId string, maxline
 			process.Remove(pid)
 		}
 	}()
-	return ParsePatch(pid, maxlines, cmd, rd)
+	return ParsePatch(pid, cmd, rd)
 }
-func GetDiffCommit(repoPath, commitId string, maxlines int) (*Diff, error) {
-	return GetDiffRange(repoPath, "", commitId, maxlines)
+func (r *git.Repository) GetDiffCommit(commitId string) (*Diff, error) {
+	return r.GetDiffRange("", commitId)
+}
+
+func (r *git.Repository) UpdateGitRepo() {
+	cmd := exec.Command("git", "pull", "origin", _cfg["productionBranch"])
+	cmd.Dir = r.Path
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Start()
+	cmd.Wait()
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gogits/gogs/modules/git"
 	"io"
 	"io/ioutil"
 	"log"
@@ -14,6 +15,7 @@ const nebuleuseVersion = 1
 
 var _cfg map[string]string
 var _db *sql.DB
+var _repo *git.Repository
 
 var (
 	Trace   *log.Logger
@@ -21,6 +23,17 @@ var (
 	Warning *log.Logger
 	Error   *log.Logger
 )
+
+func main() {
+	InitLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+	initDb()
+	defer _db.Close()
+	InitGit()
+
+	readConfig()
+
+	createServer()
+}
 
 func InitLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
 	Trace = log.New(traceHandle,
@@ -40,16 +53,6 @@ func InitLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.W
 		log.Ldate|log.Ltime|log.Lshortfile)
 }
 
-func main() {
-	InitLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
-	initDb()
-	defer _db.Close()
-
-	readConfig()
-
-	createServer()
-}
-
 func initDb() {
 	db, err := sql.Open("mysql", "nebuleuse:abc@tcp(127.0.0.1:3306)/nebuleuse")
 
@@ -65,7 +68,9 @@ func initDb() {
 	}
 	_db = db
 }
-
+func InitGit() {
+	_repo = git.OpenRepository(".")
+}
 func readConfig() {
 	var (
 		name  string

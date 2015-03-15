@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"github.com/gogits/gogs/modules/git"
 )
 
 type Update struct {
@@ -50,43 +49,4 @@ func GetUpdatesInfos(start int, end int) ([]Update, error) {
 	}
 
 	return updates, nil
-}
-
-func GetCommitsSinceLastUpdate() ([]*git.Commit, error) {
-	var ret []*git.Commit
-
-	actual, err := _repo.GetCommitOfBranch(_cfg["productionBranch"])
-	last, err := _repo.GetCommit(_cfg["latestCommit"])
-	list, err := _repo.CommitsBetween(actual, last)
-
-	for e := list.Front(); e != nil; e = e.Next() {
-		ret = append(ret, e.Value.(*git.Commit))
-	}
-
-	return ret, err
-}
-
-func GetRecentCommits() ([]*git.Commit, error) {
-	var ret []*git.Commit
-
-	latest, err := _repo.GetCommitOfBranch(_cfg["productionBranch"])
-	list, err := latest.CommitsByRange(1)
-
-	for e := list.Front(); e != nil; e = e.Next() {
-		ret = append(ret, e.Value.(*git.Commit))
-	}
-
-	return ret, err
-}
-
-func GetFilesChangedSinceUpdate() (*Diff, error) {
-	latest, err := _repo.GetCommitOfBranch(_cfg["productionBranch"])
-
-	res, err := _repo.GetDiffRange(".", _cfg["latestCommit"], latest.Id.String())
-
-	return res, err
-}
-
-func PreparePatch() error {
-	//Todo
 }

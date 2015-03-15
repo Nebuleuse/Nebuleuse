@@ -1,9 +1,9 @@
 package main
 
 import (
+	"Nebuleuse/gitUpdater"
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gogits/gogs/modules/git"
 	"io"
 	"io/ioutil"
 	"log"
@@ -15,7 +15,6 @@ const nebuleuseVersion = 1
 
 var _cfg map[string]string
 var _db *sql.DB
-var _repo *git.Repository
 
 var (
 	Trace   *log.Logger
@@ -28,7 +27,7 @@ func main() {
 	InitLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	initDb()
 	defer _db.Close()
-	InitGit()
+	gitUpdater.InitGit(".")
 
 	readConfig()
 
@@ -67,9 +66,6 @@ func initDb() {
 		Info.Println("Successfully connected to db")
 	}
 	_db = db
-}
-func InitGit() {
-	_repo = git.OpenRepository(".")
 }
 func readConfig() {
 	var (

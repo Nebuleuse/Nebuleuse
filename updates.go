@@ -1,20 +1,22 @@
 package main
 
 import (
+	"Nebuleuse/gitUpdater"
 	"database/sql"
 )
 
 type Update struct {
-	version int
-	log     string
-	size    int
-	date    int
+	Version int
+	Log     string
+	Size    int
+	Date    int
+	Commit  string
 }
 
 func GetUpdateInfos(version int) (Update, error) {
 	var up Update
 
-	err := _db.QueryRow("SELECT version, log, size, date FROM neb_updates WHERE version = ?", version).Scan(&up.version, &up.log, &up.size, &up.date)
+	err := _db.QueryRow("SELECT version, log, size, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.version, &up.log, &up.size, &up.date, &up.commit)
 
 	if err != nil && err == sql.ErrNoRows {
 		return up, &NebuleuseError{NebError, "No update found"}
@@ -49,4 +51,18 @@ func GetUpdatesInfos(start int, end int) ([]Update, error) {
 	}
 
 	return updates, nil
+}
+func SetActiveUpdate(version int) {
+	//Todo
+}
+func AddUpdate(info Update) {
+	_db.Query("INSERT INTO neb_updates VALUES(?,?,?,?,?)", info.Version, info.Log, info.Size, info.Date, info.Commit)
+}
+func PublishNewUpdate(info Update) {
+	//WIP
+	var info Update
+	info.Commit = commit
+	if _cfg["updateSystem"] == "GitPatch" {
+		gitUpdater.PreparePatch(commit)
+	}
 }

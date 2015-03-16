@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"crypto/rand"
@@ -12,9 +12,9 @@ func CreateSession(username string, password string) (string, error) {
 	var id int
 	var serverPassword, hash string
 
-	err := _db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username).Scan(&id, &serverPassword, &hash)
+	err := Db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username).Scan(&id, &serverPassword, &hash)
 
-	if err != nil && err == sql.ErrNoRows && _cfg["autoRegister"] == "true" { //If user are registered on connection
+	if err != nil && err == sql.ErrNoRows && Cfg["autoRegister"] == "true" { //If user are registered on connection
 		c := sha512.Size
 		bhash := make([]byte, c)
 		_, err := rand.Read(bhash)
@@ -44,7 +44,7 @@ func CreateSession(username string, password string) (string, error) {
 
 	sessionid := GenerateSessionId(username)
 
-	stmt, err := _db.Prepare("REPLACE INTO neb_sessions (userid,lastAlive,sessionId,sessionStart) VALUES (?,NOW(),?,NOW())")
+	stmt, err := Db.Prepare("REPLACE INTO neb_sessions (userid,lastAlive,sessionId,sessionStart) VALUES (?,NOW(),?,NOW())")
 	_, err = stmt.Exec(id, sessionid)
 	if err != nil {
 		Warning.Println("Could not insert session :", err)

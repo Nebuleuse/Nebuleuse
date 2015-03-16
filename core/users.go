@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"database/sql"
@@ -53,7 +53,7 @@ func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 	user.SessionId = SessionId
 
 	var id int
-	err := _db.QueryRow("SELECT userid FROM neb_sessions WHERE sessionid = ?", SessionId).Scan(&id)
+	err := Db.QueryRow("SELECT userid FROM neb_sessions WHERE sessionid = ?", SessionId).Scan(&id)
 	if err != nil && err == sql.ErrNoRows {
 		return nil, &NebuleuseError{NebErrorDisconnected, "No session found"}
 	} else if err != nil {
@@ -65,14 +65,14 @@ func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 		return &user, nil
 	}
 
-	err = _db.QueryRow("SELECT username, rank, avatars FROM neb_users WHERE id = ?", id).Scan(&user.Username, &user.Rank, &user.Avatar)
+	err = Db.QueryRow("SELECT username, rank, avatars FROM neb_users WHERE id = ?", id).Scan(&user.Username, &user.Rank, &user.Avatar)
 	if err != nil && err == sql.ErrNoRows {
 		return nil, &NebuleuseError{NebErrorDisconnected, "No user found"}
 	} else if err != nil {
 		return nil, err
 	}
 	if user.Avatar == "" {
-		user.Avatar = _cfg["defaultAvatar"]
+		user.Avatar = Cfg["defaultAvatar"]
 	}
 
 	if BitMask&UserMaskAchievements != 0 {
@@ -88,7 +88,7 @@ func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 }
 
 func RegisterUser(username string, password string, hash string) error {
-	stmt, err := _db.Prepare("INSERT INTO neb_users (username,password,rank,hash) VALUES (?,?,1,?)")
+	stmt, err := Db.Prepare("INSERT INTO neb_users (username,password,rank,hash) VALUES (?,?,1,?)")
 	_, err = stmt.Exec(username, password, hash)
 	if err != nil {
 		Warning.Println("Could not register new user :", err)
@@ -99,7 +99,7 @@ func RegisterUser(username string, password string, hash string) error {
 }
 
 func (u *User) PopulateAchievements() error {
-	rows, err := _db.Query("SELECT achievementid, progress, name, max FROM neb_users_achievements LEFT JOIN neb_achievements ON (neb_achievements.id = neb_users_achievements.achievementid) WHERE neb_users_achievements.userid = ?", u.id)
+	rows, err := Db.Query("SELECT achievementid, progress, name, max FROM neb_users_achievements LEFT JOIN neb_achievements ON (neb_achievements.id = neb_users_achievements.achievementid) WHERE neb_users_achievements.userid = ?", u.id)
 	if err != nil {
 		Warning.Println("Could not get user achievements :", err)
 		return err
@@ -124,7 +124,7 @@ func (u *User) PopulateAchievements() error {
 	return nil
 }
 func (u *User) PopulateStats() error {
-	rows, err := _db.Query("SELECT name, value FROM neb_users_stats WHERE userid = ?", u.id)
+	rows, err := Db.Query("SELECT name, value FROM neb_users_stats WHERE userid = ?", u.id)
 	if err != nil {
 		Warning.Println("Could not get user stats :", err)
 		return err
@@ -154,21 +154,21 @@ func (u *User) PopulateStats() error {
 	return nil
 }
 func (u *User) Heartbeat() {
-	stmt, err := _db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
+	stmt, err := Db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
 	_, err = stmt.Exec(u.id)
 	if err != nil {
 		Warning.Println("Could not Heartbeat :", err)
 	}
 }
 func (u *User) Disconnect() {
-	stmt, err := _db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
+	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
 	_, err = stmt.Exec(u.id)
 	if err != nil {
 		Warning.Println("Could not delete user session :", err)
 	}
 }
 func (u *User) UpdateAchievementProgress(aid int, value int) error {
-	stmt, err := _db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")
+	stmt, err := Db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")
 	if err != nil {
 		Warning.Println("Could not create statement : ", err)
 		return err
@@ -192,7 +192,7 @@ func (u *User) UpdateAchievementProgress(aid int, value int) error {
 	return nil
 }
 func (u *User) UpdateStats(stats []UserStat) error {
-	stmt, err := _db.Prepare("UPDATE neb_users_stats SET value = ? WHERE userid = ? AND name = ? LIMIT 1")
+	stmt, err := Db.Prepare("UPDATE neb_users_stats SET value = ? WHERE userid = ? AND name = ? LIMIT 1")
 	if err != nil {
 		Warning.Println("Could not create statement : ", err)
 		return err
@@ -211,10 +211,10 @@ func (u *User) UpdateStats(stats []UserStat) error {
 	}
 	return nil
 }
-func (u *User) updateComplexStats(stats []ComplexStat) error {
+func (u *User) UpdateComplexStats(stats []ComplexStat) error {
 	var count = 0
 	for _, stat := range stats {
-		tableInfo, err := getComplexStatsTableInfos(stat.Name)
+		tableInfo, err := GetComplexStatsTableInfos(stat.Name)
 		if err != nil {
 			Warning.Println("Could not get fields for table : ", stat.Name, err)
 			continue
@@ -232,7 +232,7 @@ func (u *User) updateComplexStats(stats []ComplexStat) error {
 		}
 		cmd += ")"
 
-		stmt, err := _db.Prepare(cmd)
+		stmt, err := Db.Prepare(cmd)
 		if err != nil {
 			Warning.Println("Could not prepare statement : ", err)
 			continue

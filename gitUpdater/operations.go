@@ -8,12 +8,11 @@ import (
 	"Nebuleuse/gitUpdater/git"
 )
 
-type Repository git.Repository
+var Repo *git.Repository
 
-var _repo *Repository
-
-func InitGit(path string) error {
-	_repo, err := git.OpenRepository(path)
+func Init(path string) error {
+	var err error
+	Repo, err = git.OpenRepository(path)
 	return err
 }
 

@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"Nebuleuse/gitUpdater"
@@ -16,7 +16,7 @@ type Update struct {
 func GetUpdateInfos(version int) (Update, error) {
 	var up Update
 
-	err := _db.QueryRow("SELECT version, log, size, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.version, &up.log, &up.size, &up.date, &up.commit)
+	err := Db.QueryRow("SELECT version, log, size, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.Version, &up.Log, &up.Size, &up.Date, &up.Commit)
 
 	if err != nil && err == sql.ErrNoRows {
 		return up, &NebuleuseError{NebError, "No update found"}
@@ -28,7 +28,7 @@ func GetUpdateInfos(version int) (Update, error) {
 }
 func GetUpdatesInfos(start int, end int) ([]Update, error) {
 	var updates []Update
-	rows, err := _db.Query("SELECT version, log, size, date FROM neb_updates WHERE version >= ? AND version <= ?", start, end)
+	rows, err := Db.Query("SELECT version, log, size, date, commit FROM neb_updates WHERE version >= ? AND version <= ?", start, end)
 	if err != nil {
 		return updates, err
 	}
@@ -36,7 +36,7 @@ func GetUpdatesInfos(start int, end int) ([]Update, error) {
 
 	for rows.Next() {
 		var update Update
-		err := rows.Scan(&update.version, &update.log, &update.size, &update.date)
+		err := rows.Scan(&update.Version, &update.Log, &update.Size, &update.Date, &update.Commit)
 		if err != nil {
 			Warning.Println("Could not get update infos :", err)
 			return updates, err
@@ -56,13 +56,11 @@ func SetActiveUpdate(version int) {
 	//Todo
 }
 func AddUpdate(info Update) {
-	_db.Query("INSERT INTO neb_updates VALUES(?,?,?,?,?)", info.Version, info.Log, info.Size, info.Date, info.Commit)
+	Db.Query("INSERT INTO neb_updates VALUES(?,?,?,?,?)", info.Version, info.Log, info.Size, info.Date, info.Commit)
 }
 func PublishNewUpdate(info Update) {
 	//WIP
-	var info Update
-	info.Commit = commit
-	if _cfg["updateSystem"] == "GitPatch" {
-		gitUpdater.PreparePatch(commit)
+	if Cfg["updateSystem"] == "GitPatch" {
+		gitUpdater.PreparePatch()
 	}
 }

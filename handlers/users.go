@@ -1,9 +1,9 @@
-package main
+package handlers
 
 import (
+	"Nebuleuse/core"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -15,16 +15,16 @@ type connectResponse struct {
 func connectUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["username"] == nil || r.PostForm["password"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing username and/or password"))
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing username and/or password"))
 		return
 	}
 
 	username := r.PostForm["username"][0] // For some reason r.PostForm[i] is String[]
 	password := r.PostForm["password"][0]
-	id, err := CreateSession(username, password)
+	id, err := core.CreateSession(username, password)
 
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebErrorLogin, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebErrorLogin, err))
 		return
 	}
 
@@ -32,7 +32,7 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 
 	res, err := json.Marshal(response)
 	if err != nil {
-		log.Println("Could not encode status response")
+		core.Warning.Println("Could not encode status response")
 	} else {
 		fmt.Fprint(w, string(res))
 	}
@@ -41,26 +41,27 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 func disconnectUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid"))
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid"))
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
 
 	user.Disconnect()
-	fmt.Fprint(w, EasyResponse(NebErrorNone, "User disconnected"))
+	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "User disconnected"))
 }
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	var user *User
+	var user *core.User
 	var err error
 	if r.PostForm["sessionid"] != nil {
-		user, err = GetUserBySession(r.PostForm["sessionid"][0], UserMaskAll)
+		user, err = core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskAll)
 
 	} else if r.PostForm["userid"] != nil && r.PostForm["infomask"] != nil {
 		id, err := strconv.ParseInt(r.PostForm["userid"][0], 10, 8)
@@ -68,17 +69,17 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 		mask, err := strconv.ParseInt(r.PostForm["infomask"][0], 10, 8)
 
 		if err != nil {
-			fmt.Fprint(w, EasyErrorResponse(NebError, err))
+			fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 			return
 		}
 
 		err = user.FetchUserInfos(int(mask))
 	} else {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or userid and infomask"))
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or userid and infomask"))
 		return
 	}
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
 
@@ -97,13 +98,14 @@ type updateAchievementsRequest struct {
 func updateAchievements(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
 
@@ -111,7 +113,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 	var req updateAchievementsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
 
@@ -124,27 +126,27 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if count != len(req.Achievements) {
-		fmt.Fprint(w, EasyResponse(NebErrorPartialFail, "Updated "+string(count)+" Achievements"))
+		fmt.Fprint(w, EasyResponse(core.NebErrorPartialFail, "Updated "+string(count)+" Achievements"))
 		return
 	}
 
-	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Achievements"))
+	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "Updated Achievements"))
 }
 
 type updateStatsRequest struct {
-	Stats []UserStat
+	Stats []core.UserStat
 }
 
 func updateStats(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
 
@@ -152,29 +154,30 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 	var req updateStatsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
 
 	user.UpdateStats(req.Stats)
 
-	fmt.Fprint(w, EasyResponse(NebErrorNone, "Updated Stats"))
+	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "Updated Stats"))
 }
 
 type updateComplexStatsRequest struct {
-	Stats []ComplexStat
+	Stats []core.ComplexStat
 }
 
 func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or data"))
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
 
@@ -182,15 +185,15 @@ func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	var req updateComplexStatsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
 
-	err = user.updateComplexStats(req.Stats)
+	err = user.UpdateComplexStats(req.Stats)
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
 
-	fmt.Fprint(w, EasyResponse(NebErrorNone, "Inserted complex stat"))
+	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "Inserted complex stat"))
 }

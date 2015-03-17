@@ -1,4 +1,4 @@
-package main
+package core
 
 import (
 	"crypto/rand"
@@ -6,21 +6,20 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"github.com/nu7hatch/gouuid"
-	"log"
 )
 
 func CreateSession(username string, password string) (string, error) {
 	var id int
 	var serverPassword, hash string
 
-	err := _db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username).Scan(&id, &serverPassword, &hash)
+	err := Db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username).Scan(&id, &serverPassword, &hash)
 
-	if err != nil && err == sql.ErrNoRows && _cfg["autoRegister"] == "true" { //If user are registered on connection
+	if err != nil && err == sql.ErrNoRows && Cfg["autoRegister"] == "true" { //If user are registered on connection
 		c := sha512.Size
 		bhash := make([]byte, c)
 		_, err := rand.Read(bhash)
 		if err != nil {
-			log.Println("Error generating crytpo hash:", err)
+			Warning.Println("Error generating crytpo hash:", err)
 			return "", err
 		}
 		hash := base64.URLEncoding.EncodeToString(bhash)
@@ -35,7 +34,7 @@ func CreateSession(username string, password string) (string, error) {
 	} else if err != nil && err == sql.ErrNoRows {
 		return "", &NebuleuseError{NebErrorLogin, "Unknown username"}
 	} else if err != nil {
-		log.Println("Could not Query DB for user", username, " : ", err)
+		Warning.Println("Could not Query DB for user", username, " : ", err)
 		return "", err
 	}
 
@@ -45,14 +44,34 @@ func CreateSession(username string, password string) (string, error) {
 
 	sessionid := GenerateSessionId(username)
 
-	stmt, err := _db.Prepare("REPLACE INTO neb_sessions (userid,lastAlive,sessionId,sessionStart) VALUES (?,NOW(),?,NOW())")
+	stmt, err := Db.Prepare("REPLACE INTO neb_sessions (userid,lastAlive,sessionId,sessionStart) VALUES (?,NOW(),?,NOW())")
 	_, err = stmt.Exec(id, sessionid)
 	if err != nil {
-		log.Println("Could not insert session :", err)
+		Warning.Println("Could not insert session :", err)
 		return "", err
 	}
 
 	return sessionid, nil
+}
+func PurgeSessions() {
+	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE NOW() > Date_Add( lastAlive, INTERVAL ? SECOND )")
+	if err != nil {
+		Warning.Println("Failed to prepare statement : ", err)
+		return
+	}
+	res, err := stmt.Exec(Cfg["sessionTimeout"])
+	if err != nil {
+		Warning.Println("Failed to purge sessions: ", err)
+		return
+	}
+	af, err := res.RowsAffected()
+	if err != nil {
+		Warning.Println("Failed to get sessions affected rows :", err)
+		return
+	}
+	if af > 0 {
+		Info.Println("Purged ", af, " sessions")
+	}
 }
 func HashPassword(password string, hash string) string {
 	bhash := []byte(hash)
@@ -65,7 +84,7 @@ func HashPassword(password string, hash string) string {
 func GenerateSessionId(username string) string {
 	u4, err := uuid.NewV4()
 	if err != nil {
-		log.Println("Failed to generate uuid:", err)
+		Warning.Println("Failed to generate uuid:", err)
 		return ""
 	}
 	return u4.String()

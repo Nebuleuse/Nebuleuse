@@ -1,14 +1,14 @@
-package main
+package handlers
 
 import (
+	"Nebuleuse/core"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
-func registerHandlers() {
+func RegisterHandlers() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", status)
 	r.HandleFunc("/status", status).Methods("GET")
@@ -30,55 +30,50 @@ func EasyResponse(code int, message string) string {
 	e := easyResponse{code, message}
 	res, err := json.Marshal(e)
 	if err != nil {
-		log.Println("Could not encode easy response")
+		core.Warning.Println("Could not encode easy response")
 	}
 
 	return string(res)
 }
 func EasyErrorResponse(code int, err error) string {
-	v, ok := err.(NebuleuseError)
+	v, ok := err.(core.NebuleuseError)
 	var e easyResponse
 	if ok {
-		e = easyResponse{v.code, v.msg}
+		e = easyResponse{v.Code, v.Msg}
 	} else {
 		e = easyResponse{code, err.Error()}
 	}
 	res, err := json.Marshal(e)
 	if err != nil {
-		log.Println("Could not encode easy response")
+		core.Warning.Println("Could not encode easy response")
 	}
 
 	return string(res)
 }
 
-type ComplexStatTableInfo struct {
-	Name      string
-	Fields    []string
-	AutoCount bool
-}
 type statusResponse struct {
-	Maintenance       bool
-	NebuleuseVersion  int
-	GameVersion       int
-	UpdaterVersion    int
-	ComplexStatsTable []ComplexStatTableInfo
+	Maintenance      bool
+	NebuleuseVersion int
+	GameVersion      int
+	UpdaterVersion   int
+	ComplexStatTable []core.ComplexStatTableInfo
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
-	CStatsInfos, err := getComplexStatsTablesInfos()
+	CStatsInfos, err := core.GetComplexStatsTablesInfos()
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 	}
-	response := statusResponse{false, nebuleuseVersion, getGameVersion(), getUpdaterVersion(), CStatsInfos}
+	response := statusResponse{false, core.NebuleuseVersion, core.GetGameVersion(), core.GetUpdaterVersion(), CStatsInfos}
 
-	if _cfg["maintenance"] != "0" {
+	if core.Cfg["maintenance"] != "0" {
 		response.Maintenance = true
 	}
 
 	res, err := json.Marshal(response)
 	if err != nil {
-		log.Println("Could not encode status response")
-		fmt.Fprint(w, EasyErrorResponse(NebError, err))
+		core.Warning.Println("Could not encode status response")
+		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 	} else {
 		fmt.Fprint(w, string(res))
 	}

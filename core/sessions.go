@@ -53,6 +53,26 @@ func CreateSession(username string, password string) (string, error) {
 
 	return sessionid, nil
 }
+func PurgeSessions() {
+	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE NOW() > Date_Add( lastAlive, INTERVAL ? SECOND )")
+	if err != nil {
+		Warning.Println("Failed to prepare statement : ", err)
+		return
+	}
+	res, err := stmt.Exec(Cfg["sessionTimeout"])
+	if err != nil {
+		Warning.Println("Failed to purge sessions: ", err)
+		return
+	}
+	af, err := res.RowsAffected()
+	if err != nil {
+		Warning.Println("Failed to get sessions affected rows :", err)
+		return
+	}
+	if af > 0 {
+		Info.Println("Purged ", af, " sessions")
+	}
+}
 func HashPassword(password string, hash string) string {
 	bhash := []byte(hash)
 	bpass := []byte(password)

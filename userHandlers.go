@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type connectResponse struct {
@@ -44,7 +45,7 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return
@@ -56,14 +57,28 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	if r.PostForm["sessionid"] == nil {
-		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid"))
+	var user *User
+	var err error
+	if r.PostForm["sessionid"] != nil {
+		user, err = GetUserBySession(r.PostForm["sessionid"][0], UserMaskAll)
+
+	} else if r.PostForm["userid"] != nil && r.PostForm["infomask"] != nil {
+		id, err := strconv.ParseInt(r.PostForm["userid"][0], 10, 8)
+		user.Id = int(id)
+		mask, err := strconv.ParseInt(r.PostForm["infomask"][0], 10, 8)
+
+		if err != nil {
+			fmt.Fprint(w, EasyErrorResponse(NebError, err))
+			return
+		}
+
+		err = user.FetchUserInfos(int(mask))
+	} else {
+		fmt.Fprint(w, EasyResponse(NebError, "Missing sessionid or userid and infomask"))
 		return
 	}
-
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskStats | UserMaskAchievements)
 	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
+		fmt.Fprint(w, EasyErrorResponse(NebError, err))
 		return
 	}
 
@@ -86,7 +101,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return
@@ -127,7 +142,7 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return
@@ -157,7 +172,7 @@ func addComplexStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskNone)
+	user, err := GetUserBySession(r.PostForm["sessionid"][0], UserMaskOnlyId)
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(NebErrorDisconnected, err))
 		return

@@ -43,6 +43,9 @@ func Init() {
 	initLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	initDb()
 	readConfig()
+
+	//Todo: if update system is Git
+	InitGitUpdater(".")
 }
 func Die() {
 	Db.Close()

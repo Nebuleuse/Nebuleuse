@@ -1,7 +1,6 @@
 package core
 
 import (
-	"Nebuleuse/gitUpdater"
 	"database/sql"
 )
 
@@ -61,6 +60,6 @@ func AddUpdate(info Update) {
 func PublishNewUpdate(info Update) {
 	//WIP
 	if Cfg["updateSystem"] == "GitPatch" {
-		gitUpdater.PreparePatch()
+		GitPreparePatch()
 	}
 }

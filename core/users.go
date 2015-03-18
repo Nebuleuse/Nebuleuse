@@ -32,7 +32,7 @@ type ComplexStat struct {
 
 // User
 type User struct {
-	id           int
+	Id           int
 	Username     string
 	SessionId    string
 	Rank         int
@@ -42,10 +42,11 @@ type User struct {
 }
 
 const (
-	UserMaskNone = 1 << iota
+	UserMaskBase = 1 << iota
 	UserMaskOnlyId
 	UserMaskAchievements
 	UserMaskStats
+	UserMaskAll = UserMaskStats | UserMaskAchievements
 )
 
 func GetUserBySession(SessionId string, BitMask int) (*User, error) {
@@ -59,32 +60,38 @@ func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	user.id = id
+	user.Id = id
 
-	if BitMask&UserMaskOnlyId != 0 {
-		return &user, nil
-	}
-
-	err = Db.QueryRow("SELECT username, rank, avatars FROM neb_users WHERE id = ?", id).Scan(&user.Username, &user.Rank, &user.Avatar)
-	if err != nil && err == sql.ErrNoRows {
-		return nil, &NebuleuseError{NebErrorDisconnected, "No user found"}
-	} else if err != nil {
-		return nil, err
-	}
-	if user.Avatar == "" {
-		user.Avatar = Cfg["defaultAvatar"]
-	}
-
-	if BitMask&UserMaskAchievements != 0 {
-		user.PopulateAchievements()
-	}
-	if BitMask&UserMaskStats != 0 {
-		user.PopulateStats()
-	}
+	user.FetchUserInfos(BitMask)
 
 	go user.Heartbeat()
 
 	return &user, nil
+}
+
+func (u *User) FetchUserInfos(Bitmask int) error {
+	if Bitmask&UserMaskOnlyId != 0 {
+		return nil
+	}
+
+	err := Db.QueryRow("SELECT username, rank, avatars FROM neb_users WHERE id = ?", u.Id).Scan(&u.Username, &u.Rank, &u.Avatar)
+	if err != nil && err == sql.ErrNoRows {
+		return &NebuleuseError{NebErrorDisconnected, "No user found"}
+	} else if err != nil {
+		return err
+	}
+	if u.Avatar == "" {
+		u.Avatar = Cfg["defaultAvatar"]
+	}
+
+	if Bitmask&UserMaskAchievements != 0 {
+		u.PopulateAchievements()
+	}
+	if Bitmask&UserMaskStats != 0 {
+		u.PopulateStats()
+	}
+
+	return nil
 }
 
 func RegisterUser(username string, password string, hash string) error {
@@ -99,7 +106,7 @@ func RegisterUser(username string, password string, hash string) error {
 }
 
 func (u *User) PopulateAchievements() error {
-	rows, err := Db.Query("SELECT achievementid, progress, name, max FROM neb_users_achievements LEFT JOIN neb_achievements ON (neb_achievements.id = neb_users_achievements.achievementid) WHERE neb_users_achievements.userid = ?", u.id)
+	rows, err := Db.Query("SELECT achievementid, progress, name, max FROM neb_users_achievements LEFT JOIN neb_achievements ON (neb_achievements.id = neb_users_achievements.achievementid) WHERE neb_users_achievements.userid = ?", u.Id)
 	if err != nil {
 		Warning.Println("Could not get user achievements :", err)
 		return err
@@ -124,7 +131,7 @@ func (u *User) PopulateAchievements() error {
 	return nil
 }
 func (u *User) PopulateStats() error {
-	rows, err := Db.Query("SELECT name, value FROM neb_users_stats WHERE userid = ?", u.id)
+	rows, err := Db.Query("SELECT name, value FROM neb_users_stats WHERE userid = ?", u.Id)
 	if err != nil {
 		Warning.Println("Could not get user stats :", err)
 		return err
@@ -155,14 +162,14 @@ func (u *User) PopulateStats() error {
 }
 func (u *User) Heartbeat() {
 	stmt, err := Db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
-	_, err = stmt.Exec(u.id)
+	_, err = stmt.Exec(u.Id)
 	if err != nil {
 		Warning.Println("Could not Heartbeat :", err)
 	}
 }
 func (u *User) Disconnect() {
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
-	_, err = stmt.Exec(u.id)
+	_, err = stmt.Exec(u.Id)
 	if err != nil {
 		Warning.Println("Could not delete user session :", err)
 	}
@@ -174,7 +181,7 @@ func (u *User) UpdateAchievementProgress(aid int, value int) error {
 		return err
 	}
 
-	res, err := stmt.Exec(value, u.id, aid)
+	res, err := stmt.Exec(value, u.Id, aid)
 	if err != nil {
 		Warning.Println("Could not update achievement :", err)
 		return err
@@ -203,7 +210,7 @@ func (u *User) UpdateStats(stats []UserStat) error {
 			Warning.Println("Could not update user stats, userid present in stat list")
 			return &NebuleuseError{NebErrorLogin, "Could not update user stats, userid present in stat list"}
 		}
-		_, err := stmt.Exec(stat.Value, u.id, stat.Name)
+		_, err := stmt.Exec(stat.Value, u.Id, stat.Name)
 		if err != nil {
 			Warning.Println("Could not update user stats : ", err)
 			return err
@@ -241,7 +248,7 @@ func (u *User) UpdateComplexStats(stats []ComplexStat) error {
 		var sortedValues []interface{}
 		for _, field := range tableInfo.Fields {
 			if field == "userid" {
-				sortedValues = append(sortedValues, u.id)
+				sortedValues = append(sortedValues, u.Id)
 				continue
 			}
 			for _, value := range stat.Values {

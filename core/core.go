@@ -30,6 +30,7 @@ func (e NebuleuseError) Error() string {
 }
 
 var Cfg map[string]string
+var SysCfg map[string]string
 var Db *sql.DB
 
 var (
@@ -41,11 +42,12 @@ var (
 
 func Init() {
 	initLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+	initConfig()
 	initDb()
-	readConfig()
+	loadConfig()
 
 	//Todo: if update system is Git
-	InitGitUpdater(".")
+	InitGitUpdater(SysCfg["gitPath"])
 }
 func Die() {
 	Db.Close()
@@ -70,7 +72,8 @@ func initLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.W
 }
 
 func initDb() {
-	db, err := sql.Open("mysql", "nebuleuse:abc@tcp(127.0.0.1:3306)/nebuleuse")
+	con := SysCfg["dbUser"] + ":" + SysCfg["dbPass"] + "@tcp(" + SysCfg["dbAddress"] + ")/" + SysCfg["dbBase"]
+	db, err := sql.Open(SysCfg["dbType"], con)
 
 	if err != nil {
 		Error.Fatal(err)
@@ -84,36 +87,6 @@ func initDb() {
 	}
 	Db = db
 }
-func readConfig() {
-	var (
-		name  string
-		value string
-	)
-	Cfg = make(map[string]string)
-
-	rows, err := Db.Query("select name, value from neb_config")
-	if err != nil {
-		Error.Fatal(err)
-	}
-
-	defer rows.Close()
-
-	for rows.Next() {
-		err := rows.Scan(&name, &value)
-		if err != nil {
-			Error.Fatal(err)
-		}
-		Cfg[name] = value
-	}
-
-	err = rows.Err()
-	if err != nil {
-		Error.Fatal(err)
-	} else {
-		Info.Println("Successfully read configuration")
-	}
-}
-
 func GetGameVersion() int {
 	n, e := strconv.Atoi(Cfg["gameVersion"])
 	if e != nil {

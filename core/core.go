@@ -29,7 +29,9 @@ func (e NebuleuseError) Error() string {
 	return e.Msg
 }
 
-var Cfg map[string]string
+type ConfigMgr map[string]string
+
+var Cfg ConfigMgr
 var SysCfg map[string]string
 var Db *sql.DB
 

@@ -49,3 +49,12 @@ func loadConfig() {
 		Info.Println("Successfully read configuration")
 	}
 }
+
+func (c *ConfigMgr) SetConfig(name, value string) error {
+	_, err := Db.Query("UPDATE neb_config SET value=? WHERE name=?", value, name)
+	if err != nil {
+		return err
+	}
+	(*c)[name] = value
+	return nil
+}

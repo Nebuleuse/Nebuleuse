@@ -1,8 +1,8 @@
 package main
 
 import (
-	"Nebuleuse/core"
-	"Nebuleuse/handlers"
+	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/Nebuleuse/Nebuleuse/handlers"
 	"net/http"
 	"time"
 )

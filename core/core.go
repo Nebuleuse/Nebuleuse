@@ -49,7 +49,9 @@ func Init() {
 	loadConfig()
 
 	//Todo: if update system is Git
-	InitGitUpdater(SysCfg["gitPath"])
+	if Cfg["updateSystem"] == "GitPatch" || Cfg["updateSystem"] == "FullGit" {
+		InitGitUpdater(SysCfg["gitPath"])
+	}
 }
 func Die() {
 	Db.Close()

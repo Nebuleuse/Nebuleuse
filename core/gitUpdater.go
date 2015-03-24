@@ -1,7 +1,7 @@
 package core
 
 import (
-	"Nebuleuse/git"
+	"github.com/Nebuleuse/Nebuleuse/git"
 )
 
 var Repo *git.Repository

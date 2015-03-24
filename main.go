@@ -1,7 +1,7 @@
 package main
 
 import (
-	"Nebuleuse/core"
+	"github.com/Nebuleuse/Nebuleuse/core"
 )
 
 func main() {

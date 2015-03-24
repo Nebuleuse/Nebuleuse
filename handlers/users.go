@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"Nebuleuse/core"
 	"encoding/json"
 	"fmt"
+	"github.com/Nebuleuse/Nebuleuse/core"
 	"net/http"
 	"strconv"
 )

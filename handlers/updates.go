@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/Nebuleuse/Nebuleuse/core"
+	"net/http"
 )
 
 type getUpdateListRequest struct {
@@ -16,5 +16,5 @@ func getUpdateList(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+	//user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
 }

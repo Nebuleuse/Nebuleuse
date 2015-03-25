@@ -15,6 +15,7 @@ func GetComplexStatsTableInfos(table string) (ComplexStatTableInfo, error) {
 	var info ComplexStatTableInfo
 	err := Db.QueryRow("SELECT fields, autoCount FROM neb_stats_tables WHERE tableName = ?", table).Scan(&values, &info.AutoCount)
 	if err != nil {
+		Info.Println("Could not read ComplexStatsTableInfos: ", err)
 		return info, err
 	}
 	info.Fields = strings.Split(values, ",")
@@ -34,7 +35,7 @@ func GetComplexStatsTablesInfos() ([]ComplexStatTableInfo, error) {
 	for rows.Next() {
 		var info ComplexStatTableInfo
 		var fields string
-		err = rows.Scan(&info.Name, fields, &info.AutoCount)
+		err = rows.Scan(&info.Name, &fields, &info.AutoCount)
 		if err != nil {
 			return ret, err
 		}

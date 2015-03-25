@@ -18,6 +18,8 @@ func RegisterHandlers() {
 	r.HandleFunc("/updateAchievements", updateAchievements).Methods("POST")
 	r.HandleFunc("/updateStats", updateStats).Methods("POST")
 	r.HandleFunc("/addComplexStats", addComplexStats).Methods("POST")
+	r.HandleFunc("/longpoll", longPollRequest).Methods("POST")
+	r.HandleFunc("/sendMessage", sendMessage).Methods("POST")
 	http.Handle("/", r)
 }
 
@@ -52,17 +54,18 @@ func EasyErrorResponse(code int, err error) string {
 }
 
 type statusResponse struct {
-	Maintenance      bool
-	NebuleuseVersion int
-	GameVersion      int
-	UpdaterVersion   int
-	ComplexStatTable []core.ComplexStatTableInfo
+	Maintenance       bool
+	NebuleuseVersion  int
+	GameVersion       int
+	UpdaterVersion    int
+	ComplexStatsTable []core.ComplexStatTableInfo
 }
 
 func status(w http.ResponseWriter, r *http.Request) {
 	CStatsInfos, err := core.GetComplexStatsTablesInfos()
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		return
 	}
 	response := statusResponse{false, core.NebuleuseVersion, core.GetGameVersion(), core.GetUpdaterVersion(), CStatsInfos}
 

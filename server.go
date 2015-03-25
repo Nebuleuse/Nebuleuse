@@ -8,6 +8,7 @@ import (
 )
 
 func CreateServer() {
+	handlers.InitLongPoll()
 	handlers.RegisterHandlers()
 
 	go SessionsPurgeTimer()

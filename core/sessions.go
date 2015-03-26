@@ -6,7 +6,32 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"github.com/nu7hatch/gouuid"
+	"time"
 )
+
+type UserSession struct {
+	LongPolling bool
+	LastAlive   time.Time
+	SessionId   string
+	UserId      int
+	Messages    chan string
+}
+
+var ConnectedUsers map[int]UserSession
+
+func IsUserLongPolling(userid int) bool {
+	return ConnectedUsers[userid].LongPolling
+}
+
+func (s *UserSession) Heartbeat() {
+	s.LastAlive = time.Now()
+
+	stmt, err := Db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
+	_, err = stmt.Exec(s.UserId)
+	if err != nil {
+		Warning.Println("Could not Heartbeat user ", s.UserId, ": ", err)
+	}
+}
 
 func CreateSession(username string, password string) (string, error) {
 	var id int
@@ -51,9 +76,23 @@ func CreateSession(username string, password string) (string, error) {
 		return "", err
 	}
 
+	//Create entry in ConnectedUsers
+	var session UserSession
+	session.SessionId = sessionid
+	session.Messages = make(chan string)
+	session.LastAlive = time.Now()
+	session.LongPolling = false
+	ConnectedUsers[id] = session
+
 	return sessionid, nil
 }
 func PurgeSessions() {
+	for id, sess := range ConnectedUsers {
+		delta := time.Since(sess.LastAlive).Minutes()
+		if delta > 3600 {
+			delete(ConnectedUsers, id)
+		}
+	}
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE NOW() > Date_Add( lastAlive, INTERVAL ? SECOND )")
 	if err != nil {
 		Warning.Println("Failed to prepare statement : ", err)
@@ -73,6 +112,7 @@ func PurgeSessions() {
 		Info.Println("Purged ", af, " sessions")
 	}
 }
+
 func HashPassword(password string, hash string) string {
 	bhash := []byte(hash)
 	bpass := []byte(password)

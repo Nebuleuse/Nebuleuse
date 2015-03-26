@@ -161,10 +161,8 @@ func (u *User) PopulateStats() error {
 	return nil
 }
 func (u *User) Heartbeat() {
-	stmt, err := Db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
-	_, err = stmt.Exec(u.Id)
-	if err != nil {
-		Warning.Println("Could not Heartbeat :", err)
+	if sess, ok := ConnectedUsers[u.Id]; ok {
+		sess.Heartbeat()
 	}
 }
 func (u *User) Disconnect() {

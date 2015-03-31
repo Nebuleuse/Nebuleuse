@@ -82,18 +82,3 @@ func status(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(res))
 	}
 }
-
-func subscribeTo(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil && r.PostForm["channel"] == nil {
-		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or channel"))
-		return
-	}
-
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
-	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
-	}
-
-	core.Listen(r.FormValue("channel"), user.Id)
-}

@@ -2,6 +2,7 @@ package core
 
 import (
 	"github.com/robfig/config"
+	"strconv"
 )
 
 func initConfig() error {
@@ -9,18 +10,22 @@ func initConfig() error {
 	Cfg = make(map[string]string)
 	SysCfg = make(map[string]string)
 
-	cfgNames := [...]string{"serverAddress", "serverPort", "dbType", "dbAddress", "dbUser", "dbPass", "dbBase", "gitPath"}
 	c, err := config.ReadDefault(".config")
-	for _, v := range cfgNames {
-		SysCfg[v], err = c.String("default", v)
-		if err != nil {
-			Error.Fatal("Could not read config: " + v)
-			return err
-		}
+	configs, err := c.Options("default")
+	if err != nil {
+		return err
 	}
-	return nil
-}
 
+	for _, value := range configs {
+		SysCfg[value], err = c.String("default", value)
+	}
+
+	return err
+}
+func GetConfigInt(name string) int {
+	res, _ := strconv.Atoi(SysCfg["MaxSessionsChannelBuffer"])
+	return res
+}
 func loadConfig() {
 	var (
 		name  string

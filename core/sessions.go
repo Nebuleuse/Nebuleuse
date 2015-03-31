@@ -15,12 +15,28 @@ type UserSession struct {
 	SessionId   string
 	UserId      int
 	Messages    chan string
+	TimedOut    chan int
 }
 
 var connectedUsers map[int]UserSession
 
 func IsUserLongPolling(userid int) bool {
 	return connectedUsers[userid].LongPolling
+}
+func GetSessionByUserId(userid int) *UserSession {
+	session, ok := connectedUsers[userid]
+	if ok {
+		return &session
+	}
+	return nil
+}
+func GetSessionBySessionId(sessionid string) *UserSession {
+	for _, session := range connectedUsers {
+		if session.SessionId == sessionid {
+			return &session
+		}
+	}
+	return nil
 }
 
 func SendMessageToUserId(userid int, message string) bool {
@@ -90,9 +106,10 @@ func CreateSession(username string, password string) (string, error) {
 	//Create entry in connectedUsers
 	var session UserSession
 	session.SessionId = sessionid
-	session.Messages = make(chan string)
+	session.Messages = make(chan string, GetConfigInt("MaxSessionsChannelBuffer"))
 	session.LastAlive = time.Now()
 	session.LongPolling = false
+	session.UserId = id
 	connectedUsers[id] = session
 
 	return sessionid, nil

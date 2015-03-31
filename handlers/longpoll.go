@@ -4,7 +4,23 @@ import (
 	"fmt"
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"net/http"
+	"time"
 )
+
+func subscribeTo(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	if r.PostForm["sessionid"] == nil && r.PostForm["channel"] == nil {
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or channel"))
+		return
+	}
+
+	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+	if err != nil {
+		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
+	}
+
+	core.Listen(r.FormValue("channel"), user.Id)
+}
 
 func sendMessage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
@@ -29,13 +45,19 @@ func longPollRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
-
-	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
+	session := core.GetSessionBySessionId(r.FormValue("sessionid"))
+	if session == nil {
+		fmt.Fprint(w, EasyResponse(core.NebErrorDisconnected, "Could not get session data using session Id: "+r.FormValue("sessionid")))
 		return
 	}
+	session.LongPolling = true
+	session.Heartbeat()
+	select {
+	case msg := <-session.Messages:
+		fmt.Fprint(w, msg)
 
-	fmt.Fprint(w, <-core.GetMessages(user.Id))
-	//io.WriteString(w, <-messages)
+	case <-time.After(time.Second * time.Duration(core.GetConfigInt("LongpollingTimeout"))):
+		return
+	}
+	session.LongPolling = false
 }

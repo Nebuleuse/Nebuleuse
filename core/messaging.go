@@ -6,6 +6,7 @@ func initMessaging() {
 	messagePipeline = make(map[string][]int)
 }
 func Listen(name string, userid int) {
+
 	messagePipeline[name] = append(messagePipeline[name], userid)
 }
 func StopListen(name string, userid int) {
@@ -15,11 +16,13 @@ func StopListen(name string, userid int) {
 	}
 }
 func Dispatch(name, message string) {
-	for val := range messagePipeline[name] {
-		ok := SendMessageToUserId(val, message)
+	Info.Println(messagePipeline[name])
+	for id := range messagePipeline[name] {
+		Info.Println("Sending message to " + string(id) + " : " + message)
+		ok := SendMessageToUserId(id, message)
 		if !ok {
-			Warning.Println("Inexistant userid in connectedUser still present in Messaging pipepline: " + name + " : " + string(val))
-			StopListen(name, val)
+			Warning.Println("Inexistant userid in connectedUser still present in Messaging pipepline: " + name + " : " + string(id))
+			StopListen(name, id)
 		}
 	}
 }

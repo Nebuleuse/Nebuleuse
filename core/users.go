@@ -161,7 +161,7 @@ func (u *User) PopulateStats() error {
 	return nil
 }
 func (u *User) Heartbeat() {
-	if sess, ok := ConnectedUsers[u.Id]; ok {
+	if sess, ok := connectedUsers[u.Id]; ok {
 		sess.Heartbeat()
 	}
 }

@@ -47,6 +47,7 @@ func Init() {
 	initConfig()
 	initDb()
 	loadConfig()
+	initMessaging()
 
 	//Todo: if update system is Git
 	if Cfg["updateSystem"] == "GitPatch" || Cfg["updateSystem"] == "FullGit" {

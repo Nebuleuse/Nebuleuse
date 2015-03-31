@@ -17,10 +17,19 @@ type UserSession struct {
 	Messages    chan string
 }
 
-var ConnectedUsers map[int]UserSession
+var connectedUsers map[int]UserSession
 
 func IsUserLongPolling(userid int) bool {
-	return ConnectedUsers[userid].LongPolling
+	return connectedUsers[userid].LongPolling
+}
+
+func SendMessageToUserId(userid int, message string) bool {
+	session, ok := connectedUsers[userid]
+	if ok {
+		session.Messages <- message
+		return true
+	}
+	return false
 }
 
 func (s *UserSession) Heartbeat() {
@@ -39,25 +48,27 @@ func CreateSession(username string, password string) (string, error) {
 
 	err := Db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username).Scan(&id, &serverPassword, &hash)
 
-	if err != nil && err == sql.ErrNoRows && Cfg["autoRegister"] == "true" { //If user are registered on connection
-		c := sha512.Size
-		bhash := make([]byte, c)
-		_, err := rand.Read(bhash)
-		if err != nil {
-			Warning.Println("Error generating crytpo hash:", err)
-			return "", err
-		}
-		hash := base64.URLEncoding.EncodeToString(bhash)
-		hashedPassword := HashPassword(password, string(hash))
-		err = RegisterUser(username, hashedPassword, string(hash))
+	if err != nil && err == sql.ErrNoRows { //If user are registered on connection
+		if Cfg["autoRegister"] == "true" {
+			c := sha512.Size
+			bhash := make([]byte, c)
+			_, err := rand.Read(bhash)
+			if err != nil {
+				Warning.Println("Error generating crytpo hash:", err)
+				return "", err
+			}
+			hash := base64.URLEncoding.EncodeToString(bhash)
+			hashedPassword := HashPassword(password, string(hash))
+			err = RegisterUser(username, hashedPassword, string(hash))
 
-		if err != nil {
-			return "", err
-		}
+			if err != nil {
+				return "", err
+			}
 
-		return CreateSession(username, password)
-	} else if err != nil && err == sql.ErrNoRows {
-		return "", &NebuleuseError{NebErrorLogin, "Unknown username"}
+			return CreateSession(username, password)
+		} else {
+			return "", &NebuleuseError{NebErrorLogin, "Unknown username"}
+		}
 	} else if err != nil {
 		Warning.Println("Could not Query DB for user", username, " : ", err)
 		return "", err
@@ -76,21 +87,21 @@ func CreateSession(username string, password string) (string, error) {
 		return "", err
 	}
 
-	//Create entry in ConnectedUsers
+	//Create entry in connectedUsers
 	var session UserSession
 	session.SessionId = sessionid
 	session.Messages = make(chan string)
 	session.LastAlive = time.Now()
 	session.LongPolling = false
-	ConnectedUsers[id] = session
+	connectedUsers[id] = session
 
 	return sessionid, nil
 }
 func PurgeSessions() {
-	for id, sess := range ConnectedUsers {
+	for id, sess := range connectedUsers {
 		delta := time.Since(sess.LastAlive).Minutes()
 		if delta > 3600 {
-			delete(ConnectedUsers, id)
+			delete(connectedUsers, id)
 		}
 	}
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE NOW() > Date_Add( lastAlive, INTERVAL ? SECOND )")

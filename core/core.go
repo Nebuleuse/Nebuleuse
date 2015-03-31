@@ -47,6 +47,7 @@ func Init() {
 	initConfig()
 	initDb()
 	loadConfig()
+	initSessions()
 	initMessaging()
 
 	//Todo: if update system is Git
@@ -77,7 +78,7 @@ func initLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.W
 }
 
 func initDb() {
-	con := SysCfg["dbUser"] + ":" + SysCfg["dbPass"] + "@tcp(" + SysCfg["dbAddress"] + ")/" + SysCfg["dbBase"]
+	con := SysCfg["dbUser"] + ":" + SysCfg["dbPass"] + "@tcp(" + SysCfg["dbAddress"] + ")/" + SysCfg["dbBase"] + "?parseTime=true"
 	db, err := sql.Open(SysCfg["dbType"], con)
 
 	if err != nil {

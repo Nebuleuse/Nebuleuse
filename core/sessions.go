@@ -20,6 +20,33 @@ type UserSession struct {
 
 var connectedUsers map[int]UserSession
 
+func initSessions() error {
+	connectedUsers = make(map[int]UserSession)
+	rows, err := Db.Query("SELECT userid, lastAlive, sessionId FROM neb_sessions")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var userid int
+		var lastAlive time.Time
+		var sessionId string
+		err := rows.Scan(&userid, &lastAlive, &sessionId)
+		if err != nil {
+			Error.Println("Could not read sessions from db: " + err.Error())
+			return err
+		}
+
+		var session UserSession
+		session.SessionId = sessionId
+		session.Messages = make(chan string, GetConfigInt("MaxSessionsChannelBuffer"))
+		session.LastAlive = lastAlive
+		session.LongPolling = false
+		session.UserId = userid
+		connectedUsers[userid] = session
+	}
+	return nil
+}
 func IsUserLongPolling(userid int) bool {
 	return connectedUsers[userid].LongPolling
 }

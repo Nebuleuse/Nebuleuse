@@ -1,5 +1,9 @@
 package core
 
+import (
+	"strconv"
+)
+
 var messagePipeline map[string][]int
 
 func initMessaging() {
@@ -16,9 +20,8 @@ func StopListen(name string, userid int) {
 	}
 }
 func Dispatch(name, message string) {
-	Info.Println(messagePipeline[name])
-	for id := range messagePipeline[name] {
-		Info.Println("Sending message to " + string(id) + " : " + message)
+	for _, id := range messagePipeline[name] {
+		Info.Println("Sending message to " + strconv.Itoa(id) + " : " + message)
 		ok := SendMessageToUserId(id, message)
 		if !ok {
 			Warning.Println("Inexistant userid in connectedUser still present in Messaging pipepline: " + name + " : " + string(id))

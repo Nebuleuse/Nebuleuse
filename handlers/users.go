@@ -59,24 +59,36 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	var user *core.User
+	user = new(core.User)
 	var err error
-	if r.PostForm["sessionid"] != nil {
-		user, err = core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskAll)
-
-	} else if r.PostForm["userid"] != nil && r.PostForm["infomask"] != nil {
-		id, err := strconv.ParseInt(r.PostForm["userid"][0], 10, 8)
-		user.Id = int(id)
-		mask, err := strconv.ParseInt(r.PostForm["infomask"][0], 10, 8)
+	if r.PostForm["infomask"] != nil {
+		mask, err := strconv.ParseInt(r.PostForm["infomask"][0], 10, 0)
 
 		if err != nil {
 			fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 			return
-		}
+		} else if r.PostForm["sessionid"] != nil && r.PostForm["infomask"] != nil {
+			user, err = core.GetUserBySession(r.FormValue("sessionid"), int(mask))
 
-		err = user.FetchUserInfos(int(mask))
-	} else {
-		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or userid and infomask"))
-		return
+		} else if r.PostForm["userid"] != nil && r.PostForm["infomask"] != nil {
+			var id int64
+			id, err = strconv.ParseInt(r.FormValue("userid"), 10, 0)
+			if err != nil {
+				fmt.Fprint(w, EasyResponse(core.NebError, "Invalid userid"))
+				return
+			}
+
+			user.Id = int(id)
+
+			err = user.FetchUserInfos(int(mask))
+			if err != nil {
+				fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+				return
+			}
+		} else {
+			fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or userid and infomask"))
+			return
+		}
 	}
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))

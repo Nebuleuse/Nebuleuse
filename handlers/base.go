@@ -66,6 +66,7 @@ type statusResponse struct {
 func status(w http.ResponseWriter, r *http.Request) {
 	CStatsInfos, err := core.GetComplexStatsTablesInfos()
 	if err != nil {
+		w.WriteHeader(500)
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
@@ -78,6 +79,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(response)
 	if err != nil {
 		core.Warning.Println("Could not encode status response")
+		w.WriteHeader(500)
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 	} else {
 		fmt.Fprint(w, string(res))

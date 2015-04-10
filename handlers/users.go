@@ -15,6 +15,7 @@ type connectResponse struct {
 func connectUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["username"] == nil || r.PostForm["password"] == nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing username and/or password"))
 		return
 	}
@@ -24,6 +25,7 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 	id, err := core.CreateSession(username, password)
 
 	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, EasyErrorResponse(core.NebErrorLogin, err))
 		return
 	}
@@ -41,6 +43,7 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 func disconnectUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid"))
 		return
 	}
@@ -65,6 +68,7 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 		mask, err := strconv.ParseInt(r.PostForm["infomask"][0], 10, 0)
 
 		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 			return
 		} else if r.PostForm["sessionid"] != nil && r.PostForm["infomask"] != nil {
@@ -74,6 +78,7 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 			var id int64
 			id, err = strconv.ParseInt(r.FormValue("userid"), 10, 0)
 			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
 				fmt.Fprint(w, EasyResponse(core.NebError, "Invalid userid"))
 				return
 			}
@@ -82,15 +87,18 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 
 			err = user.FetchUserInfos(int(mask))
 			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
 				fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 				return
 			}
 		} else {
+			w.WriteHeader(http.StatusBadRequest)
 			fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or userid and infomask"))
 			return
 		}
 	}
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
@@ -110,6 +118,7 @@ type updateAchievementsRequest struct {
 func updateAchievements(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
@@ -117,6 +126,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
 
 	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
@@ -125,6 +135,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 	var req updateAchievementsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
@@ -152,12 +163,14 @@ type updateStatsRequest struct {
 func updateStats(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
 
 	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
 	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
@@ -166,6 +179,7 @@ func updateStats(w http.ResponseWriter, r *http.Request) {
 	var req updateStatsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
@@ -182,6 +196,7 @@ type updateComplexStatsRequest struct {
 func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
@@ -189,6 +204,7 @@ func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
 
 	if err != nil {
+		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
@@ -197,12 +213,14 @@ func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	var req updateComplexStatsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}
 
 	err = user.UpdateComplexStats(req.Stats)
 	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 		return
 	}

@@ -22,7 +22,20 @@ func subscribeTo(w http.ResponseWriter, r *http.Request) {
 	core.Listen(channel, user.Id)
 	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "subscribed to "+channel))
 }
-
+func unSubscribeTo(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	if r.PostForm["sessionid"] == nil && r.PostForm["channel"] == nil {
+		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or channel"))
+		return
+	}
+	channel := r.FormValue("channel")
+	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+	if err != nil {
+		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
+	}
+	core.StopListen(channel, user.Id)
+	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "unSubscribed from "+channel))
+}
 func sendMessage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil && r.PostForm["channel"] == nil && r.PostForm["message"] == nil {

@@ -21,6 +21,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/longpoll", longPollRequest).Methods("POST")
 	r.HandleFunc("/sendMessage", sendMessage).Methods("POST")
 	r.HandleFunc("/subscribeTo", subscribeTo).Methods("POST")
+	r.HandleFunc("/unSubscribeTo", unSubscribeTo).Methods("POST")
 	http.Handle("/", r)
 }
 

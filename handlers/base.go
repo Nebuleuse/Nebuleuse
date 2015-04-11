@@ -10,20 +10,24 @@ import (
 
 func RegisterHandlers() {
 	r := mux.NewRouter()
+
 	r.HandleFunc("/", status)
 	r.HandleFunc("/status", status).Methods("GET")
 	r.HandleFunc("/connect", connectUser).Methods("POST")
-	r.HandleFunc("/disconnect", disconnectUser).Methods("POST")
+	r.HandleFunc("/disconnect", userBySession(disconnectUser)).Methods("POST")
 	r.HandleFunc("/getUserInfos", getUserInfos).Methods("POST")
-	r.HandleFunc("/updateAchievements", updateAchievements).Methods("POST")
-	r.HandleFunc("/updateStats", updateStats).Methods("POST")
-	r.HandleFunc("/addComplexStats", addComplexStats).Methods("POST")
+
+	r.HandleFunc("/updateAchievements", userBySession(verifyFormDataExist(updateAchievements))).Methods("POST")
+	r.HandleFunc("/updateStats", userBySession(verifyFormDataExist(updateStats))).Methods("POST")
+	r.HandleFunc("/addComplexStats", userBySession(verifyFormDataExist(addComplexStats))).Methods("POST")
+
 	r.HandleFunc("/longpoll", longPollRequest).Methods("POST")
 	r.HandleFunc("/sendMessage", sendMessage).Methods("POST")
 	r.HandleFunc("/subscribeTo", subscribeTo).Methods("POST")
 	r.HandleFunc("/unSubscribeTo", unSubscribeTo).Methods("POST")
 
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
+	r.HandleFunc("/getDashboardInfos", userBySession(mustBeAdmin(getDashboardInfos)))
 	http.Handle("/", r)
 }
 
@@ -32,29 +36,43 @@ type easyResponse struct {
 	Message string
 }
 
-func EasyResponse(code int, message string) string {
+func EasyResponse(w http.ResponseWriter, code int, message string) {
 	e := easyResponse{code, message}
 	res, err := json.Marshal(e)
 	if err != nil {
 		core.Warning.Println("Could not encode easy response")
 	}
 
-	return string(res)
+	switch code {
+	case core.NebErrorLogin:
+		w.WriteHeader(http.StatusUnauthorized)
+	case core.NebErrorAuthFail:
+		w.WriteHeader(http.StatusUnauthorized)
+	case core.NebErrorPartialFail, core.NebError:
+		w.WriteHeader(http.StatusBadRequest)
+	case core.NebErrorNone:
+		w.WriteHeader(http.StatusOK)
+	}
+
+	fmt.Fprint(w, res)
 }
-func EasyErrorResponse(code int, err error) string {
+func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 	v, ok := err.(core.NebuleuseError)
 	var e easyResponse
+
 	if ok {
 		e = easyResponse{v.Code, v.Msg}
 	} else {
 		e = easyResponse{code, err.Error()}
 	}
+
 	res, err := json.Marshal(e)
 	if err != nil {
 		core.Warning.Println("Could not encode easy response")
 	}
 
-	return string(res)
+	w.WriteHeader(http.StatusInternalServerError)
+	fmt.Fprint(w, res)
 }
 
 type statusResponse struct {
@@ -68,8 +86,7 @@ type statusResponse struct {
 func status(w http.ResponseWriter, r *http.Request) {
 	CStatsInfos, err := core.GetComplexStatsTablesInfos()
 	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 	response := statusResponse{false, core.NebuleuseVersion, core.GetGameVersion(), core.GetUpdaterVersion(), CStatsInfos}
@@ -81,8 +98,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(response)
 	if err != nil {
 		core.Warning.Println("Could not encode status response")
-		w.WriteHeader(500)
-		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		EasyErrorResponse(w, core.NebError, err)
 	} else {
 		fmt.Fprint(w, string(res))
 	}

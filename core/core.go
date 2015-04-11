@@ -13,11 +13,17 @@ import (
 const NebuleuseVersion = 1
 
 const (
-	NebErrorNone         = iota
-	NebError             = iota
+	NebErrorNone = iota
+	// Generic error
+	NebError = iota
+	// Session is dead, you were disconnected
 	NebErrorDisconnected = iota
-	NebErrorLogin        = iota
-	NebErrorPartialFail  = iota
+	// Login failed
+	NebErrorLogin = iota
+	// There were errors during multiple operations
+	NebErrorPartialFail = iota
+	// User is not authorized to do that
+	NebErrorAuthFail = iota
 )
 
 type NebuleuseError struct {

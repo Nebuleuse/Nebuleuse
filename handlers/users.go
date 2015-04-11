@@ -4,9 +4,53 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/gorilla/context"
 	"net/http"
 	"strconv"
 )
+
+func userBySession(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.FormValue("sessionid") == "" {
+			EasyResponse(w, core.NebError, "Missing sessionid")
+			return
+		}
+
+		user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
+
+		if err != nil {
+			EasyErrorResponse(w, core.NebErrorDisconnected, err)
+			return
+		}
+		context.Set(r, "user", user)
+		next(w, r)
+	}
+}
+func verifyFormDataExist(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.FormValue("data") == "" {
+			EasyResponse(w, core.NebError, "Missing data")
+			return
+		}
+		context.Set(r, "data", r.FormValue("data"))
+		next(w, r)
+	}
+}
+func mustBeAdmin(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		iusr, ok := context.GetOk(r, "user")
+		if !ok {
+			EasyResponse(w, core.NebError, "No User to verify admin rights on")
+			return
+		}
+		usr := iusr.(*core.User)
+		if usr.Rank < 2 {
+			EasyResponse(w, core.NebError, "Unauthorized")
+			return
+		}
+		next(w, r)
+	}
+}
 
 type connectResponse struct {
 	SessionId string
@@ -14,8 +58,7 @@ type connectResponse struct {
 
 func connectUser(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("username") == "" || r.FormValue("password") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, EasyResponse(core.NebError, "Missing username and/or password"))
+		EasyResponse(w, core.NebError, "Missing username and/or password")
 		return
 	}
 
@@ -24,8 +67,7 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 	id, err := core.CreateSession(username, password)
 
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, EasyErrorResponse(core.NebErrorLogin, err))
+		EasyErrorResponse(w, core.NebErrorLogin, err)
 		return
 	}
 
@@ -34,27 +76,16 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 	res, err := json.Marshal(response)
 	if err != nil {
 		core.Warning.Println("Could not encode status response")
+		EasyErrorResponse(w, core.NebError, err)
 	} else {
 		fmt.Fprint(w, string(res))
 	}
 }
 
 func disconnectUser(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("sessionid") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid"))
-		return
-	}
-
-	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
-
-	if err != nil {
-		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
-		return
-	}
-
+	user := context.Get(r, "user").(*core.User)
 	user.Disconnect()
-	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "User disconnected"))
+	EasyResponse(w, core.NebErrorNone, "User disconnected")
 }
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
@@ -65,22 +96,19 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 		mask, err := strconv.ParseInt(r.FormValue("infomask"), 10, 0)
 
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+			EasyErrorResponse(w, core.NebError, err)
 			return
 		} else if r.FormValue("sessionid") != "" && r.FormValue("infomask") != "" {
 			user, err = core.GetUserBySession(r.FormValue("sessionid"), int(mask))
 			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				fmt.Fprint(w, EasyResponse(core.NebError, "Invalid sessionid"))
+				EasyResponse(w, core.NebError, "Invalid sessionid")
 				return
 			}
 		} else if r.FormValue("userid") != "" && r.FormValue("infomask") != "" {
 			var id int64
 			id, err = strconv.ParseInt(r.FormValue("userid"), 10, 0)
 			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				fmt.Fprint(w, EasyResponse(core.NebError, "Invalid userid"))
+				EasyResponse(w, core.NebError, "Invalid userid")
 				return
 			}
 
@@ -88,19 +116,16 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 
 			err = user.FetchUserInfos(int(mask))
 			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+				EasyErrorResponse(w, core.NebError, err)
 				return
 			}
 		} else {
-			w.WriteHeader(http.StatusBadRequest)
-			fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or userid and infomask"))
+			EasyResponse(w, core.NebError, "Missing sessionid or userid and infomask")
 			return
 		}
 	}
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
@@ -117,26 +142,13 @@ type updateAchievementsRequest struct {
 }
 
 func updateAchievements(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("sessionid") == "" || r.FormValue("data") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
-		return
-	}
+	user := context.Get(r, "user").(*core.User)
 
-	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
-
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
-		return
-	}
-
-	data := r.FormValue("data")
+	data := context.Get(r, "data").([]byte)
 	var req updateAchievementsRequest
-	err = json.Unmarshal([]byte(data), &req)
+	err := json.Unmarshal([]byte(data), &req)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
@@ -149,11 +161,11 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if count != len(req.Achievements) {
-		fmt.Fprint(w, EasyResponse(core.NebErrorPartialFail, "Updated "+string(count)+" Achievements"))
+		EasyResponse(w, core.NebErrorPartialFail, "Updated "+string(count)+" Achievements")
 		return
 	}
 
-	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "Updated Achievements"))
+	EasyResponse(w, core.NebErrorNone, "Updated Achievements")
 }
 
 type updateStatsRequest struct {
@@ -161,31 +173,18 @@ type updateStatsRequest struct {
 }
 
 func updateStats(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("sessionid") == "" || r.FormValue("data") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
-		return
-	}
+	user := context.Get(r, "user").(*core.User)
 
-	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
-		return
-	}
-
-	data := r.FormValue("data")
+	data := context.Get(r, "data").([]byte)
 	var req updateStatsRequest
-	err = json.Unmarshal([]byte(data), &req)
+	err := json.Unmarshal([]byte(data), &req)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
 	user.UpdateStats(req.Stats)
-
-	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "Updated Stats"))
+	EasyResponse(w, core.NebErrorNone, "Updated Stats")
 }
 
 type updateComplexStatsRequest struct {
@@ -193,35 +192,21 @@ type updateComplexStatsRequest struct {
 }
 
 func addComplexStats(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("sessionid") == "" || r.FormValue("data") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
-		return
-	}
+	user := context.Get(r, "user").(*core.User)
 
-	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
-
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
-		return
-	}
-
-	data := r.FormValue("data")
+	data := context.Get(r, "data").([]byte)
 	var req updateComplexStatsRequest
-	err = json.Unmarshal([]byte(data), &req)
+	err := json.Unmarshal([]byte(data), &req)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
 	err = user.UpdateComplexStats(req.Stats)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
+		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
-	fmt.Fprint(w, EasyResponse(core.NebErrorNone, "Inserted complex stat"))
+	EasyResponse(w, core.NebErrorNone, "Inserted complex stat")
 }

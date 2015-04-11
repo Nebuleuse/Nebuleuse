@@ -3,5 +3,16 @@ angular.module('RDash')
 
 function DashboardCtrl($scope, $cookieStore, $http, $location) {
 	$scope.setPageTitle("Dashboard");
-	$scope.checkAccess();
+	if(!$scope.checkAccess())
+		return;
+
+	$scope.infos = {};
+
+	$http.post(APIURL + '/getDashboardInfos', {sessionid: $scope.Self.SessionId})
+	.success(function (data) {
+		$scope.infos = data;
+		console.log(data);
+	}).error(function (data) {
+		console.log(data);
+	});
 }

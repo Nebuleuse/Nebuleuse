@@ -38,6 +38,21 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         $rootScope.PageTitle = title + " - Nebuleuse";
         $scope.PageTitle = title;
     }
+    $scope.setConnected = function(connected) {
+        if(!connected) {
+            $scope.Self = {};
+            $cookieStore.remove('sessionId');
+            $location.path('/login');
+        }
+        $scope.isConnected = connected;
+    };
+    $scope.checkAccess = function() {
+        if(!$scope.isConnected || $scope.Self.Rank < 2){
+            $location.path('/login');
+            return false;
+        }
+        return true;
+    };
 
     $scope.Menus = [    {name: "Home", icon: "fa-home", link:"/"},
                         {name: "Live", icon: "fa-cloud", link:"live"},
@@ -51,28 +66,17 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     $scope.isConnected = false;
     $scope.Self = {};
     
-    $scope.setConnected = function(connected) {
-        if(!connected) {
-            $scope.Self = {};
-            $cookieStore.put('sessionId', "");
-            $location.path('/login');
-        }
-        $scope.isConnected = connected;
-    };
-    $scope.checkAccess = function() {
-        console.log($scope.isConnected);
-        if(!$scope.isConnected || $scope.Self.Rank < 2)
-            $location.path('/login');
-    };
-
     if(angular.isDefined($cookieStore.get('sessionId'))){
         $scope.Self.SessionId = $cookieStore.get('sessionId');
         $scope.getUserInfos();
     } else if ($location.path() != '/login') {
         $scope.setConnected(false);
     }
+    
+
     $scope.logout = function () {
-      $scope.setConnected(false);
+        $http.post(APIURL + '/disconnect', {sessionid: $scope.Self.SessionId});
+        $scope.setConnected(false);
     };
     
     var mobileView = 992;

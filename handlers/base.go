@@ -27,7 +27,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/unSubscribeTo", unSubscribeTo).Methods("POST")
 
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
-	r.HandleFunc("/getDashboardInfos", userBySession(mustBeAdmin(getDashboardInfos)))
+	r.HandleFunc("/getDashboardInfos", userBySession(mustBeAdmin(getDashboardInfos))).Methods("POST")
 	http.Handle("/", r)
 }
 

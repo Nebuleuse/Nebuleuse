@@ -287,3 +287,6 @@ func (u *User) UpdateComplexStats(stats []ComplexStat) error {
 	}
 	return nil
 }
+func CountTotalUsersRegistred() int {
+	return 1
+}

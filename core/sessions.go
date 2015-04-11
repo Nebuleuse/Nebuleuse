@@ -75,6 +75,10 @@ func SendMessageToUserId(userid int, message string) bool {
 	return false
 }
 
+func CountOnlineUsers() int {
+	return len(connectedUsers)
+}
+
 func (s *UserSession) Heartbeat() {
 	s.LastAlive = time.Now()
 

@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+//Populates the context with the user struct using the request sessionId
 func userBySession(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("sessionid") == "" {
@@ -22,10 +23,13 @@ func userBySession(next func(http.ResponseWriter, *http.Request)) func(http.Resp
 			EasyErrorResponse(w, core.NebErrorDisconnected, err)
 			return
 		}
+
 		context.Set(r, "user", user)
 		next(w, r)
 	}
 }
+
+// Verifies there is data being sent
 func verifyFormDataExist(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("data") == "" {
@@ -36,6 +40,8 @@ func verifyFormDataExist(next func(http.ResponseWriter, *http.Request)) func(htt
 		next(w, r)
 	}
 }
+
+// Verifies context's user rank for auth level
 func mustBeAdmin(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		iusr, ok := context.GetOk(r, "user")
@@ -44,6 +50,7 @@ func mustBeAdmin(next func(http.ResponseWriter, *http.Request)) func(http.Respon
 			return
 		}
 		usr := iusr.(*core.User)
+		usr.FetchUserInfos(core.UserMaskBase)
 		if usr.Rank < 2 {
 			EasyResponse(w, core.NebError, "Unauthorized")
 			return

@@ -22,6 +22,8 @@ func RegisterHandlers() {
 	r.HandleFunc("/sendMessage", sendMessage).Methods("POST")
 	r.HandleFunc("/subscribeTo", subscribeTo).Methods("POST")
 	r.HandleFunc("/unSubscribeTo", unSubscribeTo).Methods("POST")
+
+	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
 	http.Handle("/", r)
 }
 

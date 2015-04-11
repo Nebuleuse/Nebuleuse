@@ -13,15 +13,14 @@ type connectResponse struct {
 }
 
 func connectUser(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["username"] == nil || r.PostForm["password"] == nil {
+	if r.FormValue("username") == "" || r.FormValue("password") == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing username and/or password"))
 		return
 	}
 
-	username := r.PostForm["username"][0] // For some reason r.PostForm[i] is String[]
-	password := r.PostForm["password"][0]
+	username := r.FormValue("username")
+	password := r.FormValue("password")
 	id, err := core.CreateSession(username, password)
 
 	if err != nil {
@@ -41,14 +40,13 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func disconnectUser(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil {
+	if r.FormValue("sessionid") == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid"))
 		return
 	}
 
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
 
 	if err != nil {
 		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
@@ -60,21 +58,24 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
 	var user *core.User
 	user = new(core.User)
 	var err error
-	if r.PostForm["infomask"] != nil {
-		mask, err := strconv.ParseInt(r.PostForm["infomask"][0], 10, 0)
+	if r.FormValue("infomask") != "" {
+		mask, err := strconv.ParseInt(r.FormValue("infomask"), 10, 0)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprint(w, EasyErrorResponse(core.NebError, err))
 			return
-		} else if r.PostForm["sessionid"] != nil && r.PostForm["infomask"] != nil {
+		} else if r.FormValue("sessionid") != "" && r.FormValue("infomask") != "" {
 			user, err = core.GetUserBySession(r.FormValue("sessionid"), int(mask))
-
-		} else if r.PostForm["userid"] != nil && r.PostForm["infomask"] != nil {
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprint(w, EasyResponse(core.NebError, "Invalid sessionid"))
+				return
+			}
+		} else if r.FormValue("userid") != "" && r.FormValue("infomask") != "" {
 			var id int64
 			id, err = strconv.ParseInt(r.FormValue("userid"), 10, 0)
 			if err != nil {
@@ -116,14 +117,13 @@ type updateAchievementsRequest struct {
 }
 
 func updateAchievements(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+	if r.FormValue("sessionid") == "" || r.FormValue("data") == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
 
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -131,7 +131,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := r.PostForm["data"][0]
+	data := r.FormValue("data")
 	var req updateAchievementsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
@@ -161,21 +161,20 @@ type updateStatsRequest struct {
 }
 
 func updateStats(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+	if r.FormValue("sessionid") == "" || r.FormValue("data") == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
 
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		fmt.Fprint(w, EasyErrorResponse(core.NebErrorDisconnected, err))
 		return
 	}
 
-	data := r.PostForm["data"][0]
+	data := r.FormValue("data")
 	var req updateStatsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {
@@ -194,14 +193,13 @@ type updateComplexStatsRequest struct {
 }
 
 func addComplexStats(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
+	if r.FormValue("sessionid") == "" || r.FormValue("data") == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, EasyResponse(core.NebError, "Missing sessionid or data"))
 		return
 	}
 
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+	user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
 
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -209,7 +207,7 @@ func addComplexStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := r.PostForm["data"][0]
+	data := r.FormValue("data")
 	var req updateComplexStatsRequest
 	err = json.Unmarshal([]byte(data), &req)
 	if err != nil {

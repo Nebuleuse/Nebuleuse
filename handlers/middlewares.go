@@ -25,6 +25,7 @@ func userBySession(allowTarget bool, next middleWare) middleWare {
 		}
 
 		context.Set(r, "requester", requester)
+		context.Set(r, "session", core.GetSessionBySessionId(r.FormValue("sessionid")))
 
 		if r.FormValue("userid") == "" {
 			context.Set(r, "user", requester)
@@ -35,7 +36,10 @@ func userBySession(allowTarget bool, next middleWare) middleWare {
 			context.Set(r, "user", user)
 			if !allowTarget {
 				// If we don't allow targeting other users, only devs can target
-				mustBeAdmin(next)
+				n := mustBeAdmin(next)
+				n(w, r)
+			} else {
+				next(w, r)
 			}
 		}
 	}

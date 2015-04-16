@@ -13,7 +13,6 @@ type dashboardInfosResponse struct {
 }
 
 func getDashboardInfos(w http.ResponseWriter, r *http.Request) {
-	//usr := context.Get(r, "user").(*core.User)
 	var dashRes dashboardInfosResponse
 	dashRes.OnlineUsers = core.CountOnlineUsers()
 	dashRes.TotalUsers = core.CountTotalUsersRegistred()

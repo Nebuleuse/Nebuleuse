@@ -3,70 +3,40 @@ package handlers
 import (
 	"fmt"
 	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/gorilla/context"
 	"net/http"
 	"time"
 )
 
 func subscribeTo(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil && r.PostForm["channel"] == nil {
-		EasyResponse(w, core.NebError, "Missing sessionid or channel")
-		return
-	}
-	channel := r.FormValue("channel")
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
-	if err != nil {
-		EasyErrorResponse(w, core.NebErrorDisconnected, err)
-	}
+	channel := context.Get(r, "channel").(string)
+	user := context.Get(r, "user").(*core.User)
 
 	core.Listen(channel, user.Id)
 	EasyResponse(w, core.NebErrorNone, "subscribed to "+channel)
 }
 func unSubscribeTo(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil && r.PostForm["channel"] == nil {
-		EasyResponse(w, core.NebError, "Missing sessionid or channel")
-		return
-	}
-	channel := r.FormValue("channel")
-	user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
-	if err != nil {
-		EasyErrorResponse(w, core.NebErrorDisconnected, err)
-	}
+	channel := context.Get(r, "channel").(string)
+	user := context.Get(r, "user").(*core.User)
+
 	core.StopListen(channel, user.Id)
 	EasyResponse(w, core.NebErrorNone, "unSubscribed from "+channel)
 }
 func sendMessage(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil && r.PostForm["channel"] == nil && r.PostForm["message"] == nil {
-		EasyResponse(w, core.NebError, "Missing sessionid or channel or message")
-		return
-	}
+	channel := context.Get(r, "channel").(string)
+	message := context.Get(r, "message").(string)
 
-	_, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
-
-	if err != nil {
-		EasyErrorResponse(w, core.NebErrorDisconnected, err)
-		return
-	}
-
-	channel := r.FormValue("channel")
-	message := r.FormValue("message")
 	core.Dispatch(channel, message)
 	EasyResponse(w, core.NebErrorNone, "Sent message ("+channel+")"+message)
 }
-func longPollRequest(w http.ResponseWriter, r *http.Request) {
+func fetchMessage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	if r.PostForm["sessionid"] == nil {
 		EasyResponse(w, core.NebError, "Missing sessionid")
 		return
 	}
 
-	session := core.GetSessionBySessionId(r.FormValue("sessionid"))
-	if session == nil {
-		EasyResponse(w, core.NebErrorDisconnected, "Could not get session data using session Id: "+r.FormValue("sessionid"))
-		return
-	}
+	session := context.Get(r, "session").(*core.UserSession)
 
 	session.LongPolling = true
 	session.Heartbeat()

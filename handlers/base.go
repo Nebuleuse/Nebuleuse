@@ -21,10 +21,10 @@ func RegisterHandlers() {
 	r.HandleFunc("/seStats", userBySession(false, verifyFormValuesExist([]string{"data"}, setStats))).Methods("POST")
 	r.HandleFunc("/addComplexStats", userBySession(false, verifyFormValuesExist([]string{"data"}, addComplexStats))).Methods("POST")
 
-	r.HandleFunc("/longpoll", longPollRequest).Methods("POST")
-	r.HandleFunc("/sendMessage", sendMessage).Methods("POST")
-	r.HandleFunc("/subscribeTo", subscribeTo).Methods("POST")
-	r.HandleFunc("/unSubscribeTo", unSubscribeTo).Methods("POST")
+	r.HandleFunc("/fetchMessage", userBySession(false, fetchMessage)).Methods("POST")
+	r.HandleFunc("/sendMessage", userBySession(false, verifyFormValuesExist([]string{"channel", "message"}, sendMessage))).Methods("POST")
+	r.HandleFunc("/subscribeTo", userBySession(false, verifyFormValuesExist([]string{"channel"}, subscribeTo))).Methods("POST")
+	r.HandleFunc("/unSubscribeTo", userBySession(false, verifyFormValuesExist([]string{"channel"}, unSubscribeTo))).Methods("POST")
 
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
 	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")

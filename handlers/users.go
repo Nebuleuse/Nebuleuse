@@ -6,6 +6,7 @@ import (
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"github.com/gorilla/context"
 	"net/http"
+	"strconv"
 )
 
 type connectResponse struct {
@@ -45,10 +46,15 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
-	mask := context.Get(r, "infomask").(int)
+	smask := context.Get(r, "infomask").(string)
+	mask, err := strconv.Atoi(smask)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
 	user := context.Get(r, "user").(*core.User)
 
-	err := user.FetchUserInfos(int(mask))
+	err = user.FetchUserInfos(int(mask))
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 		return

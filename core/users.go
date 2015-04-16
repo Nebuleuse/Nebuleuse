@@ -172,7 +172,7 @@ func (u *User) Disconnect() {
 		Warning.Println("Could not delete user session :", err)
 	}
 }
-func (u *User) UpdateAchievementProgress(aid int, value int) error {
+func (u *User) SetAchievementProgress(aid int, value int) error {
 	stmt, err := Db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")
 	if err != nil {
 		Warning.Println("Could not create statement : ", err)
@@ -196,7 +196,7 @@ func (u *User) UpdateAchievementProgress(aid int, value int) error {
 
 	return nil
 }
-func (u *User) UpdateStats(stats []UserStat) error {
+func (u *User) SetStats(stats []UserStat) error {
 	stmt, err := Db.Prepare("UPDATE neb_users_stats SET value = ? WHERE userid = ? AND name = ? LIMIT 1")
 	if err != nil {
 		Warning.Println("Could not create statement : ", err)
@@ -216,7 +216,7 @@ func (u *User) UpdateStats(stats []UserStat) error {
 	}
 	return nil
 }
-func (u *User) UpdateComplexStats(stats []ComplexStat) error {
+func (u *User) SetComplexStats(stats []ComplexStat) error {
 	var count = 0
 	for _, stat := range stats {
 		tableInfo, err := GetComplexStatsTableInfos(stat.Name)
@@ -279,7 +279,7 @@ func (u *User) UpdateComplexStats(stats []ComplexStat) error {
 			}
 			st.Value = st.Value + 1
 			stt = append(stt, st)
-			u.UpdateStats(stt)
+			u.SetStats(stt)
 		}
 	}
 	if count < len(stats) {

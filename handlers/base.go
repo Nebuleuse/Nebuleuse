@@ -17,8 +17,8 @@ func RegisterHandlers() {
 	r.HandleFunc("/disconnect", userBySession(disconnectUser)).Methods("POST")
 	r.HandleFunc("/getUserInfos", getUserInfos).Methods("POST")
 
-	r.HandleFunc("/updateAchievements", userBySession(verifyFormDataExist(updateAchievements))).Methods("POST")
-	r.HandleFunc("/updateStats", userBySession(verifyFormDataExist(updateStats))).Methods("POST")
+	r.HandleFunc("/setAchievements", userBySession(verifyFormDataExist(setAchievements))).Methods("POST")
+	r.HandleFunc("/setStats", userBySession(verifyFormDataExist(setStats))).Methods("POST")
 	r.HandleFunc("/addComplexStats", userBySession(verifyFormDataExist(addComplexStats))).Methods("POST")
 
 	r.HandleFunc("/longpoll", longPollRequest).Methods("POST")

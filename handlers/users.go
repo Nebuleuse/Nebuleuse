@@ -140,19 +140,18 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(res))
 }
 
-type achievementRequest struct {
-	Id    int
-	Value int
-}
-type updateAchievementsRequest struct {
-	Achievements []achievementRequest
+type setAchievementsRequest struct {
+	Achievements []struct {
+		Id    int
+		Value int
+	}
 }
 
-func updateAchievements(w http.ResponseWriter, r *http.Request) {
+func setAchievements(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 
 	data := context.Get(r, "data").([]byte)
-	var req updateAchievementsRequest
+	var req setAchievementsRequest
 	err := json.Unmarshal([]byte(data), &req)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
@@ -161,7 +160,7 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 
 	count := len(req.Achievements)
 	for _, ach := range req.Achievements {
-		err = user.UpdateAchievementProgress(ach.Id, ach.Value)
+		err = user.SetAchievementProgress(ach.Id, ach.Value)
 		if err != nil {
 			count--
 			continue
@@ -175,26 +174,26 @@ func updateAchievements(w http.ResponseWriter, r *http.Request) {
 	EasyResponse(w, core.NebErrorNone, "Updated Achievements")
 }
 
-type updateStatsRequest struct {
+type setStatsRequest struct {
 	Stats []core.UserStat
 }
 
-func updateStats(w http.ResponseWriter, r *http.Request) {
+func setStats(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 
 	data := context.Get(r, "data").([]byte)
-	var req updateStatsRequest
+	var req setStatsRequest
 	err := json.Unmarshal([]byte(data), &req)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
-	user.UpdateStats(req.Stats)
+	user.SetStats(req.Stats)
 	EasyResponse(w, core.NebErrorNone, "Updated Stats")
 }
 
-type updateComplexStatsRequest struct {
+type setComplexStatsRequest struct {
 	Stats []core.ComplexStat
 }
 
@@ -202,14 +201,14 @@ func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 
 	data := context.Get(r, "data").([]byte)
-	var req updateComplexStatsRequest
+	var req setComplexStatsRequest
 	err := json.Unmarshal([]byte(data), &req)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
-	err = user.UpdateComplexStats(req.Stats)
+	err = user.SetComplexStats(req.Stats)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 		return

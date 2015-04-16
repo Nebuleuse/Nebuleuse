@@ -6,58 +6,7 @@ import (
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"github.com/gorilla/context"
 	"net/http"
-	"strconv"
 )
-
-//Populates the context with the user struct using the request sessionId
-func userBySession(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.FormValue("sessionid") == "" {
-			EasyResponse(w, core.NebError, "Missing sessionid")
-			return
-		}
-
-		user, err := core.GetUserBySession(r.FormValue("sessionid"), core.UserMaskOnlyId)
-
-		if err != nil {
-			EasyErrorResponse(w, core.NebErrorDisconnected, err)
-			return
-		}
-
-		context.Set(r, "user", user)
-		next(w, r)
-	}
-}
-
-// Verifies there is data being sent
-func verifyFormDataExist(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.FormValue("data") == "" {
-			EasyResponse(w, core.NebError, "Missing data")
-			return
-		}
-		context.Set(r, "data", r.FormValue("data"))
-		next(w, r)
-	}
-}
-
-// Verifies context's user rank for auth level
-func mustBeAdmin(next func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		iusr, ok := context.GetOk(r, "user")
-		if !ok {
-			EasyResponse(w, core.NebError, "No User to verify admin rights on")
-			return
-		}
-		usr := iusr.(*core.User)
-		usr.FetchUserInfos(core.UserMaskBase)
-		if usr.Rank < 2 {
-			EasyResponse(w, core.NebError, "Unauthorized")
-			return
-		}
-		next(w, r)
-	}
-}
 
 type connectResponse struct {
 	SessionId string
@@ -96,41 +45,10 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
-	var user *core.User
-	user = new(core.User)
-	var err error
-	if r.FormValue("infomask") != "" {
-		mask, err := strconv.ParseInt(r.FormValue("infomask"), 10, 0)
+	mask := context.Get(r, "infomask").(int)
+	user := context.Get(r, "user").(*core.User)
 
-		if err != nil {
-			EasyErrorResponse(w, core.NebError, err)
-			return
-		} else if r.FormValue("sessionid") != "" && r.FormValue("infomask") != "" {
-			user, err = core.GetUserBySession(r.FormValue("sessionid"), int(mask))
-			if err != nil {
-				EasyResponse(w, core.NebError, "Invalid sessionid")
-				return
-			}
-		} else if r.FormValue("userid") != "" && r.FormValue("infomask") != "" {
-			var id int64
-			id, err = strconv.ParseInt(r.FormValue("userid"), 10, 0)
-			if err != nil {
-				EasyResponse(w, core.NebError, "Invalid userid")
-				return
-			}
-
-			user.Id = int(id)
-
-			err = user.FetchUserInfos(int(mask))
-			if err != nil {
-				EasyErrorResponse(w, core.NebError, err)
-				return
-			}
-		} else {
-			EasyResponse(w, core.NebError, "Missing sessionid or userid and infomask")
-			return
-		}
-	}
+	err := user.FetchUserInfos(int(mask))
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 		return

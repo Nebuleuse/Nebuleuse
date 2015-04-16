@@ -14,12 +14,12 @@ func RegisterHandlers() {
 	r.HandleFunc("/", status)
 	r.HandleFunc("/status", status).Methods("GET")
 	r.HandleFunc("/connect", connectUser).Methods("POST")
-	r.HandleFunc("/disconnect", userBySession(disconnectUser)).Methods("POST")
-	r.HandleFunc("/getUserInfos", getUserInfos).Methods("POST")
+	r.HandleFunc("/disconnect", userBySession(false, disconnectUser)).Methods("POST")
+	r.HandleFunc("/getUserInfos", userBySession(true, verifyFormValuesExist([]string{"infomask"}, getUserInfos))).Methods("POST")
 
-	r.HandleFunc("/setAchievements", userBySession(verifyFormDataExist(setAchievements))).Methods("POST")
-	r.HandleFunc("/setStats", userBySession(verifyFormDataExist(setStats))).Methods("POST")
-	r.HandleFunc("/addComplexStats", userBySession(verifyFormDataExist(addComplexStats))).Methods("POST")
+	r.HandleFunc("/seAchievements", userBySession(false, verifyFormValuesExist([]string{"data"}, setAchievements))).Methods("POST")
+	r.HandleFunc("/seStats", userBySession(false, verifyFormValuesExist([]string{"data"}, setStats))).Methods("POST")
+	r.HandleFunc("/addComplexStats", userBySession(false, verifyFormValuesExist([]string{"data"}, addComplexStats))).Methods("POST")
 
 	r.HandleFunc("/longpoll", longPollRequest).Methods("POST")
 	r.HandleFunc("/sendMessage", sendMessage).Methods("POST")
@@ -27,7 +27,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/unSubscribeTo", unSubscribeTo).Methods("POST")
 
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
-	r.HandleFunc("/getDashboardInfos", userBySession(mustBeAdmin(getDashboardInfos))).Methods("POST")
+	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")
 	http.Handle("/", r)
 }
 

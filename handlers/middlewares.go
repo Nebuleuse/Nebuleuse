@@ -67,7 +67,7 @@ func authRank(rank int, next middleWare) middleWare {
 	return func(w http.ResponseWriter, r *http.Request) {
 		irqst, ok := context.GetOk(r, "requester")
 		if !ok {
-			EasyResponse(w, core.NebError, "No User to verify admin rights on")
+			EasyResponse(w, core.NebErrorAuthFail, "No User to verify admin rights on")
 			return
 		}
 		rqst := irqst.(*core.User)

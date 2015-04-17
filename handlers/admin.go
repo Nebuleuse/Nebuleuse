@@ -25,3 +25,25 @@ func getDashboardInfos(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(res))
 	}
 }
+
+type getAchievementsResponse struct {
+	Achievements []core.AchievementsTable
+}
+
+func getAchievements(w http.ResponseWriter, r *http.Request) {
+	var achievements getAchievementsResponse
+	ach, err := core.GetAchievements()
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	achievements.Achievements = ach
+	res, err := json.Marshal(achievements)
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+	} else {
+		core.Info.Println(string(res))
+		fmt.Fprint(w, string(res))
+	}
+}

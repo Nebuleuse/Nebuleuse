@@ -10,7 +10,6 @@ func initMessaging() {
 	messagePipeline = make(map[string][]int)
 }
 func Listen(name string, userid int) {
-
 	messagePipeline[name] = append(messagePipeline[name], userid)
 }
 func StopListen(name string, userid int) {

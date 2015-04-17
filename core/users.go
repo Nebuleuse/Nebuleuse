@@ -106,7 +106,7 @@ func RegisterUser(username string, password string, hash string) error {
 }
 
 func (u *User) PopulateAchievements() error {
-	rows, err := Db.Query("SELECT achievementid, progress, name, max FROM neb_users_achievements LEFT JOIN neb_achievements ON (neb_achievements.id = neb_users_achievements.achievementid) WHERE neb_users_achievements.userid = ?", u.Id)
+	rows, err := Db.Query("SELECT id, name, max, progress FROM neb_achievements AS ach LEFT JOIN neb_users_achievements AS usr ON ach.id = usr.achievementid AND usr.userid = ?", u.Id)
 	if err != nil {
 		Warning.Println("Could not get user achievements :", err)
 		return err
@@ -115,11 +115,14 @@ func (u *User) PopulateAchievements() error {
 
 	for rows.Next() {
 		var ach Achievement
-		err := rows.Scan(&ach.Id, &ach.Progress, &ach.Name, &ach.Value)
+		var progress sql.NullInt64
+		progress.Int64 = 0
+		err := rows.Scan(&ach.Id, &ach.Progress, &ach.Name, &progress)
 		if err != nil {
 			Warning.Println("Could not get user achievements :", err)
 			return err
 		}
+		ach.Value = uint(progress.Int64)
 		u.Achievements = append(u.Achievements, ach)
 	}
 

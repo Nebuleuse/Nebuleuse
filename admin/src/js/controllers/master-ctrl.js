@@ -19,7 +19,13 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         $scope.alerts.splice(index, 1);
     };
 
-   $scope.getUserInfos = function () {
+    $scope.parseError = function(data, status) {
+        if(data.Code == 0)
+            return;
+        if(data.Code == 2)
+            return $scope.setConnected(false);
+    };
+    $scope.getUserInfos = function () {
         $http.post(APIURL + '/getUserInfos', {sessionid: $scope.Self.SessionId, infomask:UserMaskBase})
         .success(function (data) {
             $scope.Self = data;
@@ -30,6 +36,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
                 $scope.setConnected(true);
             }
         }).error(function (data, status) {
+            $scope.parseError(data, status);
             $scope.setConnected(false);
         });
     };
@@ -53,9 +60,23 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         }
         return true;
     };
+    $scope.subscribeTo = function (channel) {
+        $http.post(APIURL + '/subscribeTo', {sessionid: $scope.Self.SessionId, channel:channel})
+        .error(function (data, status) {
+            $scope.parseError(data, status);
+            $scope.addAlert("Could not subscribe to " + channel, "danger");
+        });
+    }
+    $scope.unSubscribeTo = function (channel) {
+        $http.post(APIURL + '/unSubscribeTo', {sessionid: $scope.Self.SessionId, channel:channel})
+        .error(function (data, status) {
+            $scope.parseError(data, status);
+            $scope.addAlert("Could not unsubscribe to " + channel, "danger");
+        });
+    }
 
     $scope.Menus = [    {name: "Home", icon: "fa-home", link:"/"},
-                        {name: "Live", icon: "fa-cloud", link:"live"},
+                        {name: "Log", icon: "fa-cloud", link:"log"},
                         {name: "Achievements", icon: "fa-trophy", link:"achievements"},
                         {name: "Stats", icon: "fa-pie-chart", link:"stats"},
                         {name: "Matchmaking", icon: "fa-globe", link:"matchmaking"},

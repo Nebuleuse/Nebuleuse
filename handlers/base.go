@@ -29,6 +29,7 @@ func RegisterHandlers() {
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
 	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")
 	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos))))
+	r.HandleFunc("/getAchievements", userBySession(false, mustBeAdmin(getAchievements)))
 	http.Handle("/", r)
 }
 
@@ -55,17 +56,17 @@ func EasyResponse(w http.ResponseWriter, code int, message string) {
 		w.WriteHeader(http.StatusOK)
 	}
 
-	fmt.Fprint(w, res)
+	fmt.Fprint(w, string(res))
 }
 func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 	v, ok := err.(core.NebuleuseError)
-	var e easyResponse
 
 	if ok {
-		e = easyResponse{v.Code, v.Msg}
-	} else {
-		e = easyResponse{code, err.Error()}
+		EasyResponse(w, v.Code, v.Msg)
+		return
 	}
+
+	e := easyResponse{code, err.Error()}
 
 	res, err := json.Marshal(e)
 	if err != nil {
@@ -73,7 +74,7 @@ func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 	}
 
 	w.WriteHeader(http.StatusInternalServerError)
-	fmt.Fprint(w, res)
+	fmt.Fprint(w, string(res))
 }
 
 type statusResponse struct {

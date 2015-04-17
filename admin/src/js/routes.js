@@ -25,12 +25,14 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
                 url: '/noauth',
                 templateUrl: 'templates/noauth.html'
             })
-            .state('live', {
-                url: '/live',
-                templateUrl: 'templates/live.html'
+            .state('log', {
+                url: '/log',
+                controller: 'LogCtrl',
+                templateUrl: 'templates/log.html'
             })
             .state('achievements', {
                 url: '/achievements',
+                controller: 'AchievementsCtrl',
                 templateUrl: 'templates/achievements.html'
             })
             .state('stats', {

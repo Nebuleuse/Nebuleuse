@@ -28,6 +28,7 @@ func RegisterHandlers() {
 
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
 	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")
+	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos))))
 	http.Handle("/", r)
 }
 

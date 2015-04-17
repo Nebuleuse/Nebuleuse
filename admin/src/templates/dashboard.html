@@ -5,7 +5,7 @@
 				<div class="widget-icon green pull-left">
 					<i class="fa fa-users"></i>
 				</div>
-				<div class="title">{{infos.TotalUsers}}</div>
+				<div class="title">{{infos.UserCount}}</div>
 				<div class="comment">Users</div>
 			</rd-widget-body>
 		</rd-widget>
@@ -27,8 +27,8 @@
 				<div class="widget-icon orange pull-left">
 					<i class="fa fa-sitemap"></i>
 				</div>
-				<div class="title">225</div>
-				<div class="comment">Documents</div>
+				<div class="title">{{infos.UpdateCount}}</div>
+				<div class="comment">Updates</div>
 			</rd-widget-body>
 		</rd-widget>
 	</div>
@@ -72,21 +72,21 @@
 			</rd-widget-body>
 		</rd-widget>
 	</div>
-	<div class="col-lg-6">
+	<div class="col-lg-6" ng-controller="UserListCtrl">
 		<rd-widget>
-			<rd-widget-header icon="fa-users" title="Users">
+			<rd-widget-header icon="fa-users" title="Users Online">
 				<input type="text" placeholder="Search" class="form-control input-sm" />
 			</rd-widget-header>
 			<rd-widget-body classes="medium no-padding">
 				<div class="table-responsive">
 					<table class="table">
 						<thead>
-							<tr><th class="text-center">ID</th><th>Username</th><th>Role</th><th>Account</th></tr>
+							<tr><th class="text-center">ID</th><th>Username</th><th>Rank</th></tr>
 						</thead>
 						<tbody>
-							<tr><td class="text-center">1</td><td>Joe Bloggs</td><td>Super Admin</td><td>AZ23045</td></tr>
-							<tr><td class="text-center">2</td><td>Timothy Hernandez</td><td>Admin</td><td>AU24783</td></tr>
-							<tr><td class="text-center">3</td><td>Joe Bickham</td><td>User</td><td>AM23781</td></tr>
+							<tr ng-repeat="user in users">
+								<td class="text-center">{{user.Id}}</td><td>{{user.Username}}</td><td>{{user.Rank}}</td>
+							</tr>
 						</tbody>
 					</table>
         		</div>

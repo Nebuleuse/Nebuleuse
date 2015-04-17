@@ -63,3 +63,11 @@ func PublishNewUpdate(info Update) {
 		GitPreparePatch()
 	}
 }
+func GetUpdateCount() int {
+	var count int
+	err := Db.QueryRow("SELECT COUNT(*) FROM neb_updates").Scan(&count)
+	if err != nil {
+		return -1
+	}
+	return count
+}

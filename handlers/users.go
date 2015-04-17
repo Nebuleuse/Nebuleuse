@@ -47,7 +47,7 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	smask := context.Get(r, "infomask").(string)
-	mask, err := strconv.Atoi(smask)
+	mask, err := strconv.ParseInt(smask, 10, 0)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 		return
@@ -61,6 +61,37 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := json.Marshal(user)
+	fmt.Fprint(w, string(res))
+}
+
+func getUsersInfos(w http.ResponseWriter, r *http.Request) {
+	smask := context.Get(r, "infomask").(string)
+	mask, err := strconv.ParseInt(smask, 10, 0)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	spage := context.Get(r, "page").(string)
+	page, err := strconv.ParseInt(spage, 10, 0)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	// Pages start at 1
+	page -= 1
+	users, err := core.GetUsersInfos(int(page)*30, 30, int(mask))
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	res, err := json.Marshal(users)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		core.Warning.Println("Unable to marshal users info")
+		return
+	}
+
 	fmt.Fprint(w, string(res))
 }
 

@@ -138,11 +138,6 @@ func (u *User) PopulateStats() error {
 	}
 	defer rows.Close()
 
-	if err != nil {
-		Warning.Println("Could not get columns:", err)
-		return err
-	}
-
 	for rows.Next() {
 		var st UserStat
 		err := rows.Scan(&st.Name, &st.Value)
@@ -287,6 +282,39 @@ func (u *User) SetComplexStats(stats []ComplexStat) error {
 	}
 	return nil
 }
-func CountTotalUsersRegistred() int {
-	return 1
+func GetUserCount() int {
+	var count int
+	err := Db.QueryRow("SELECT COUNT(*) FROM neb_users").Scan(&count)
+	if err != nil {
+		return -1
+	}
+	return count
+}
+
+func GetUsersInfos(start, count, mask int) ([]*User, error) {
+	var Users []*User
+	rows, err := Db.Query("SELECT id FROM neb_users LIMIT ?, ?", start, count)
+	if err != nil {
+		Warning.Println("Could not fetch users infos : ", err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var usr User
+		err := rows.Scan(&usr.Id)
+		if err != nil {
+			Warning.Println("Could not scan id users infos : ", err)
+			return nil, err
+		}
+		usr.FetchUserInfos(mask)
+		Users = append(Users, &usr)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		Warning.Println("Could not get Users infos (after loop) :", err)
+		return nil, err
+	}
+
+	return Users, nil
 }

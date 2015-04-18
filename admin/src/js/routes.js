@@ -37,27 +37,27 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
             })
             .state('stats', {
                 url: '/stats',
-                templateUrl: 'templates/stats.html'
+                templateUrl: 'templates/wip.html'
             })
-            .state('matchmking', {
-                url: '/matchmking',
-                templateUrl: 'templates/matchmking.html'
+            .state('matchmaking', {
+                url: '/matchmaking',
+                templateUrl: 'templates/wip.html'
             })
             .state('users', {
                 url: '/users',
-                templateUrl: 'templates/users.html'
+                templateUrl: 'templates/wip.html'
             })
             .state('servers', {
                 url: '/servers',
-                templateUrl: 'templates/servers.html'
+                templateUrl: 'templates/wip.html'
             })
             .state('items', {
                 url: '/items',
-                templateUrl: 'templates/items.html'
+                templateUrl: 'templates/wip.html'
             })
             .state('config', {
                 url: '/config',
-                templateUrl: 'templates/config.html'
+                templateUrl: 'templates/wip.html'
             });
     }
 ]);

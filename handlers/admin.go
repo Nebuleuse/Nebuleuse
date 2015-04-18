@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/gorilla/context"
 	"net/http"
+	"strconv"
 )
 
 type dashboardInfosResponse struct {
@@ -26,24 +28,75 @@ func getDashboardInfos(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type getAchievementsResponse struct {
-	Achievements []core.AchievementsTable
-}
-
 func getAchievements(w http.ResponseWriter, r *http.Request) {
-	var achievements getAchievementsResponse
-	ach, err := core.GetAchievements()
+	ach, err := core.GetAchievementsData()
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
 
-	achievements.Achievements = ach
-	res, err := json.Marshal(achievements)
+	res, err := json.Marshal(ach)
 	if err != nil {
 		core.Warning.Println("Could not encode status response")
 	} else {
-		core.Info.Println(string(res))
 		fmt.Fprint(w, string(res))
 	}
+}
+
+func setAchievement(w http.ResponseWriter, r *http.Request) {
+	data := context.Get(r, "data").(string)
+	sid := context.Get(r, "achievementid").(string)
+
+	id, err := strconv.ParseInt(sid, 10, 0)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	var ach core.AchievementsTable
+	json.Unmarshal([]byte(data), &ach)
+	err = core.SetAchievementData(int(id), ach)
+
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	EasyResponse(w, core.NebErrorNone, "Updated achievement table")
+}
+
+func addAchievement(w http.ResponseWriter, r *http.Request) {
+	data := context.Get(r, "data").(string)
+
+	var ach core.AchievementsTable
+	json.Unmarshal([]byte(data), &ach)
+	value, err := core.AddAchievementData(ach)
+
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	res, err := json.Marshal(value)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	fmt.Fprint(w, string(res))
+}
+
+func deleteAchievement(w http.ResponseWriter, r *http.Request) {
+	sid := context.Get(r, "achievementid").(string)
+
+	id, err := strconv.ParseInt(sid, 10, 0)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	err = core.DeleteAchievementData(int(id))
+
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	EasyResponse(w, core.NebErrorNone, "deleted achievement table")
 }

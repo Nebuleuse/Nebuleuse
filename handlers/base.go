@@ -17,8 +17,8 @@ func RegisterHandlers() {
 	r.HandleFunc("/disconnect", userBySession(false, disconnectUser)).Methods("POST")
 	r.HandleFunc("/getUserInfos", userBySession(true, verifyFormValuesExist([]string{"infomask"}, getUserInfos))).Methods("POST")
 
-	r.HandleFunc("/seAchievements", userBySession(false, verifyFormValuesExist([]string{"data"}, setAchievements))).Methods("POST")
-	r.HandleFunc("/seStats", userBySession(false, verifyFormValuesExist([]string{"data"}, setStats))).Methods("POST")
+	r.HandleFunc("/setUserAchievements", userBySession(false, verifyFormValuesExist([]string{"data"}, setUserAchievements))).Methods("POST")
+	r.HandleFunc("/setUserStats", userBySession(false, verifyFormValuesExist([]string{"data"}, setUserStats))).Methods("POST")
 	r.HandleFunc("/addComplexStats", userBySession(false, verifyFormValuesExist([]string{"data"}, addComplexStats))).Methods("POST")
 
 	r.HandleFunc("/fetchMessage", userBySession(false, fetchMessage)).Methods("POST")
@@ -30,6 +30,9 @@ func RegisterHandlers() {
 	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")
 	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos))))
 	r.HandleFunc("/getAchievements", userBySession(false, mustBeAdmin(getAchievements)))
+	r.HandleFunc("/setAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid", "data"}, setAchievement))))
+	r.HandleFunc("/addAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addAchievement))))
+	r.HandleFunc("/deleteAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, deleteAchievement))))
 	http.Handle("/", r)
 }
 

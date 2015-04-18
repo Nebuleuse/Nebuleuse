@@ -10,6 +10,7 @@ type Achievement struct {
 	Name     string
 	Progress uint
 	Value    uint
+	Icon     string
 }
 
 func (a *Achievement) isComplete() bool {
@@ -106,7 +107,7 @@ func RegisterUser(username string, password string, hash string) error {
 }
 
 func (u *User) PopulateAchievements() error {
-	rows, err := Db.Query("SELECT id, name, max, progress FROM neb_achievements AS ach LEFT JOIN neb_users_achievements AS usr ON ach.id = usr.achievementid AND usr.userid = ?", u.Id)
+	rows, err := Db.Query("SELECT id, name, max, icon, progress FROM neb_achievements AS ach LEFT JOIN neb_users_achievements AS usr ON ach.id = usr.achievementid AND usr.userid = ?", u.Id)
 	if err != nil {
 		Warning.Println("Could not get user achievements :", err)
 		return err
@@ -117,7 +118,7 @@ func (u *User) PopulateAchievements() error {
 		var ach Achievement
 		var progress sql.NullInt64
 		progress.Int64 = 0
-		err := rows.Scan(&ach.Id, &ach.Progress, &ach.Name, &progress)
+		err := rows.Scan(&ach.Id, &ach.Progress, &ach.Name, &ach.Icon, &progress)
 		if err != nil {
 			Warning.Println("Could not get user achievements :", err)
 			return err

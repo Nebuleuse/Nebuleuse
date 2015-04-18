@@ -102,7 +102,7 @@ type setAchievementsRequest struct {
 	}
 }
 
-func setAchievements(w http.ResponseWriter, r *http.Request) {
+func setUserAchievements(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 
 	data := context.Get(r, "data").([]byte)
@@ -133,10 +133,10 @@ type setStatsRequest struct {
 	Stats []core.UserStat
 }
 
-func setStats(w http.ResponseWriter, r *http.Request) {
+func setUserStats(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 
-	data := context.Get(r, "data").([]byte)
+	data := context.Get(r, "data").(string)
 	var req setStatsRequest
 	err := json.Unmarshal([]byte(data), &req)
 	if err != nil {

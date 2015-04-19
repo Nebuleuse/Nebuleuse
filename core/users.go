@@ -9,12 +9,12 @@ type Achievement struct {
 	Id       int
 	Name     string
 	Progress uint
-	Value    uint
+	Max      uint
 	Icon     string
 }
 
 func (a *Achievement) isComplete() bool {
-	return a.Progress == a.Value
+	return a.Progress == a.Max
 }
 
 // Stats
@@ -99,7 +99,7 @@ func RegisterUser(username string, password string, hash string) error {
 	stmt, err := Db.Prepare("INSERT INTO neb_users (username,password,rank,hash) VALUES (?,?,1,?)")
 	_, err = stmt.Exec(username, password, hash)
 	if err != nil {
-		Warning.Println("Could not register new user :", err)
+		Error.Println("Could not register new user :", err)
 		return err
 	}
 
@@ -109,7 +109,7 @@ func RegisterUser(username string, password string, hash string) error {
 func (u *User) PopulateAchievements() error {
 	rows, err := Db.Query("SELECT id, name, max, icon, progress FROM neb_achievements AS ach LEFT JOIN neb_users_achievements AS usr ON ach.id = usr.achievementid AND usr.userid = ?", u.Id)
 	if err != nil {
-		Warning.Println("Could not get user achievements :", err)
+		Error.Println("Could not get user achievements :", err)
 		return err
 	}
 	defer rows.Close()
@@ -118,44 +118,62 @@ func (u *User) PopulateAchievements() error {
 		var ach Achievement
 		var progress sql.NullInt64
 		progress.Int64 = 0
-		err := rows.Scan(&ach.Id, &ach.Progress, &ach.Name, &ach.Icon, &progress)
+		err := rows.Scan(&ach.Id, &ach.Name, &ach.Max, &ach.Icon, &progress)
 		if err != nil {
-			Warning.Println("Could not get user achievements :", err)
+			Error.Println("Could not get user achievements :", err)
 			return err
 		}
-		ach.Value = uint(progress.Int64)
+		ach.Progress = uint(progress.Int64)
 		u.Achievements = append(u.Achievements, ach)
 	}
 
 	err = rows.Err()
 	if err != nil {
-		Warning.Println("Could not get user achievements :", err)
+		Error.Println("Could not get user achievements :", err)
 		return err
 	}
 	return nil
 }
+
+// We load complex stats informations stored in neb_stats_tables
+// to make a list of stats the user has. Entry for users is the users' fields
+// and entries with AutoCount true are additional fields updated when a complex stat is added
 func (u *User) PopulateStats() error {
+	Fields := GetUserStatsFields()
+	StatFields := make(map[string]int64)
+	for _, field := range Fields {
+		StatFields[field] = 0
+	}
+
 	rows, err := Db.Query("SELECT name, value FROM neb_users_stats WHERE userid = ?", u.Id)
 	if err != nil {
-		Warning.Println("Could not get user stats :", err)
+		Error.Println("Could not get user stats :", err)
 		return err
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var st UserStat
-		err := rows.Scan(&st.Name, &st.Value)
+		var name string
+		var value int64
+		err := rows.Scan(&name, &value)
 		if err != nil {
-			Warning.Println("Could not get user Stats :", err)
+			Error.Println("Could not get user Stats :", err)
 			return err
 		}
-		u.Stats = append(u.Stats, st)
+		StatFields[name] = value
 	}
 
 	err = rows.Err()
 	if err != nil {
-		Warning.Println("Could not get user Stats :", err)
+		Error.Println("Could not get user Stats :", err)
 		return err
+	}
+
+	for field, value := range StatFields {
+		var st UserStat
+		st.Name = field
+		st.Value = value
+		u.Stats = append(u.Stats, st)
 	}
 	return nil
 }
@@ -168,28 +186,28 @@ func (u *User) Disconnect() {
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
 	_, err = stmt.Exec(u.Id)
 	if err != nil {
-		Warning.Println("Could not delete user session :", err)
+		Error.Println("Could not delete user session :", err)
 	}
 }
 func (u *User) SetAchievementProgress(aid int, value int) error {
 	stmt, err := Db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")
 	if err != nil {
-		Warning.Println("Could not create statement : ", err)
+		Error.Println("Could not create statement : ", err)
 		return err
 	}
 
 	res, err := stmt.Exec(value, u.Id, aid)
 	if err != nil {
-		Warning.Println("Could not update achievement :", err)
+		Error.Println("Could not update achievement :", err)
 		return err
 	}
 	rowCnt, err := res.RowsAffected()
 	if err != nil {
-		Warning.Println("Could not get update rowcount :", err)
+		Error.Println("Could not get update rowcount :", err)
 		return err
 	}
 	if rowCnt == 0 {
-		Warning.Println("Tried to update achievementid : ", aid, " but no rows affected")
+		Error.Println("Tried to update achievementid : ", aid, " but no rows affected")
 		return &NebuleuseError{NebError, "No rows affected by operation"}
 	}
 
@@ -198,18 +216,18 @@ func (u *User) SetAchievementProgress(aid int, value int) error {
 func (u *User) SetStats(stats []UserStat) error {
 	stmt, err := Db.Prepare("UPDATE neb_users_stats SET value = ? WHERE userid = ? AND name = ? LIMIT 1")
 	if err != nil {
-		Warning.Println("Could not create statement : ", err)
+		Error.Println("Could not create statement : ", err)
 		return err
 	}
 
 	for _, stat := range stats {
 		if stat.Name == "userid" {
-			Warning.Println("Could not update user stats, userid present in stat list")
+			Error.Println("Could not update user stats, userid present in stat list")
 			return &NebuleuseError{NebErrorLogin, "Could not update user stats, userid present in stat list"}
 		}
 		_, err := stmt.Exec(stat.Value, u.Id, stat.Name)
 		if err != nil {
-			Warning.Println("Could not update user stats : ", err)
+			Error.Println("Could not update user stats : ", err)
 			return err
 		}
 	}
@@ -220,7 +238,7 @@ func (u *User) SetComplexStats(stats []ComplexStat) error {
 	for _, stat := range stats {
 		tableInfo, err := GetComplexStatsTableInfos(stat.Name)
 		if err != nil {
-			Warning.Println("Could not get fields for table : ", stat.Name, err)
+			Error.Println("Could not get fields for table : ", stat.Name, err)
 			continue
 		}
 		//Prepare SQL request
@@ -238,7 +256,7 @@ func (u *User) SetComplexStats(stats []ComplexStat) error {
 
 		stmt, err := Db.Prepare(cmd)
 		if err != nil {
-			Warning.Println("Could not prepare statement : ", err)
+			Error.Println("Could not prepare statement : ", err)
 			continue
 		}
 		//Sort values so they match the table definition
@@ -262,7 +280,7 @@ func (u *User) SetComplexStats(stats []ComplexStat) error {
 		}
 		_, err = stmt.Exec(sortedValues...)
 		if err != nil {
-			Warning.Println("Could not insert data into stat table : ", err)
+			Error.Println("Could not insert data into stat table : ", err)
 			continue
 		}
 		count++
@@ -299,7 +317,7 @@ func GetUsersInfos(start, count, mask int) ([]*User, error) {
 	var Users []*User
 	rows, err := Db.Query("SELECT id FROM neb_users LIMIT ?, ?", start, count)
 	if err != nil {
-		Warning.Println("Could not fetch users infos : ", err)
+		Error.Println("Could not fetch users infos : ", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -307,7 +325,7 @@ func GetUsersInfos(start, count, mask int) ([]*User, error) {
 		var usr User
 		err := rows.Scan(&usr.Id)
 		if err != nil {
-			Warning.Println("Could not scan id users infos : ", err)
+			Error.Println("Could not scan id users infos : ", err)
 			return nil, err
 		}
 		usr.FetchUserInfos(mask)
@@ -316,7 +334,7 @@ func GetUsersInfos(start, count, mask int) ([]*User, error) {
 
 	err = rows.Err()
 	if err != nil {
-		Warning.Println("Could not get Users infos (after loop) :", err)
+		Error.Println("Could not get Users infos (after loop) :", err)
 		return nil, err
 	}
 

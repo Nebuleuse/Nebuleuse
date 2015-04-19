@@ -59,7 +59,7 @@ func GetPastLogs(size int64) string {
 
 	_, err = logFile.Seek(position, 0)
 	if err != nil {
-		Info.Println("Could not seek file", err)
+		Error.Println("Could not seek file", err)
 		return ""
 	}
 
@@ -68,7 +68,7 @@ func GetPastLogs(size int64) string {
 	_, err = logFile.Read(buffer)
 
 	if err != nil {
-		Info.Println(err)
+		Error.Println(err)
 		return ""
 	}
 	return string(buffer)

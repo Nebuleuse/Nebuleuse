@@ -15,7 +15,7 @@ func GetComplexStatsTableInfos(table string) (ComplexStatTableInfo, error) {
 	var info ComplexStatTableInfo
 	err := Db.QueryRow("SELECT fields, autoCount FROM neb_stats_tables WHERE tableName = ?", table).Scan(&values, &info.AutoCount)
 	if err != nil {
-		Info.Println("Could not read ComplexStatsTableInfos: ", err)
+		Error.Println("Could not read ComplexStatsTableInfos: ", err)
 		return info, err
 	}
 	info.Fields = strings.Split(values, ",")
@@ -49,4 +49,25 @@ func GetComplexStatsTablesInfos() ([]ComplexStatTableInfo, error) {
 		return ret, err
 	}
 	return ret, nil
+}
+
+func GetUserStatsFields() []string {
+	var statFields []string
+
+	tables, err := GetComplexStatsTablesInfos()
+	if err != nil {
+		Error.Println("Could not read ComplexStatsTableInfos: ", err)
+	}
+
+	for _, table := range tables {
+		if table.Name == "users" {
+			for _, field := range table.Fields {
+				statFields = append(statFields, field)
+			}
+		} else if table.AutoCount {
+			statFields = append(statFields, table.Name)
+		}
+	}
+
+	return statFields
 }

@@ -34,7 +34,7 @@ func Dispatch(name string, message interface{}) {
 	msg.Message = message
 	res, err := json.Marshal(msg)
 	if err != nil {
-		Warning.Println("Could not marshal message dispatch : ", err)
+		Error.Println("Could not marshal message dispatch : ", err)
 		return
 	}
 

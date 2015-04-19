@@ -76,7 +76,7 @@ func (s *UserSession) Heartbeat() {
 	stmt, err := Db.Prepare("UPDATE neb_sessions SET lastAlive = NOW() WHERE userid = ?")
 	_, err = stmt.Exec(s.UserId)
 	if err != nil {
-		Warning.Println("Could not Heartbeat user ", s.UserId, ": ", err)
+		Error.Println("Could not Heartbeat user ", s.UserId, ": ", err)
 	}
 }
 
@@ -92,7 +92,7 @@ func CreateSession(username string, password string) (string, error) {
 			bhash := make([]byte, c)
 			_, err := rand.Read(bhash)
 			if err != nil {
-				Warning.Println("Error generating crytpo hash:", err)
+				Error.Println("Error generating crytpo hash:", err)
 				return "", err
 			}
 			hash := base64.URLEncoding.EncodeToString(bhash)
@@ -108,7 +108,7 @@ func CreateSession(username string, password string) (string, error) {
 			return "", &NebuleuseError{NebErrorLogin, "Unknown username"}
 		}
 	} else if err != nil {
-		Warning.Println("Could not Query DB for user", username, " : ", err)
+		Error.Println("Could not Query DB for user", username, " : ", err)
 		return "", err
 	}
 
@@ -121,7 +121,7 @@ func CreateSession(username string, password string) (string, error) {
 	stmt, err := Db.Prepare("REPLACE INTO neb_sessions (userid,lastAlive,sessionId,sessionStart) VALUES (?,NOW(),?,NOW())")
 	_, err = stmt.Exec(id, sessionid)
 	if err != nil {
-		Warning.Println("Could not insert session :", err)
+		Error.Println("Could not insert session :", err)
 		return "", err
 	}
 
@@ -145,17 +145,17 @@ func PurgeSessions() {
 	}
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE NOW() > Date_Add( lastAlive, INTERVAL ? SECOND )")
 	if err != nil {
-		Warning.Println("Failed to prepare statement : ", err)
+		Error.Println("Failed to prepare statement : ", err)
 		return
 	}
 	res, err := stmt.Exec(Cfg["sessionTimeout"])
 	if err != nil {
-		Warning.Println("Failed to purge sessions: ", err)
+		Error.Println("Failed to purge sessions: ", err)
 		return
 	}
 	af, err := res.RowsAffected()
 	if err != nil {
-		Warning.Println("Failed to get sessions affected rows :", err)
+		Error.Println("Failed to get sessions affected rows :", err)
 		return
 	}
 	if af > 0 {
@@ -174,7 +174,7 @@ func HashPassword(password string, hash string) string {
 func GenerateSessionId(username string) string {
 	u4, err := uuid.NewV4()
 	if err != nil {
-		Warning.Println("Failed to generate uuid:", err)
+		Error.Println("Failed to generate uuid:", err)
 		return ""
 	}
 	return u4.String()

@@ -29,24 +29,28 @@ func sendMessage(w http.ResponseWriter, r *http.Request) {
 	core.Dispatch(channel, message)
 	EasyResponse(w, core.NebErrorNone, "Sent message ("+channel+")"+message)
 }
-func fetchMessage(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil {
-		EasyResponse(w, core.NebError, "Missing sessionid")
+func getMessages(w http.ResponseWriter, r *http.Request) {
+	session := context.Get(r, "session").(*core.UserSession)
+
+	if session == nil {
+		EasyResponse(w, core.NebErrorDisconnected, "No session found")
 		return
 	}
 
-	session := context.Get(r, "session").(*core.UserSession)
+	// If we are already polling messages, signal previous poll that they can stop
+	if session.LongPolling {
+		session.TimedOut <- 1
+	}
 
 	session.LongPolling = true
 	session.Heartbeat()
 	select {
 	case msg := <-session.Messages:
 		fmt.Fprint(w, msg)
-
+	case <-session.TimedOut:
+		return
 	case <-time.After(time.Second * time.Duration(core.GetConfigInt("LongpollingTimeout"))):
 		EasyResponse(w, core.NebErrorNone, "longpoll timedout")
-		return
 	}
 	session.LongPolling = false
 }

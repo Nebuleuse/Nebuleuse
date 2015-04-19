@@ -66,15 +66,6 @@ func GetSessionBySessionId(sessionid string) *UserSession {
 	return nil
 }
 
-func SendMessageToUserId(userid int, message string) bool {
-	session, ok := connectedUsers[userid]
-	if ok {
-		session.Messages <- message
-		return true
-	}
-	return false
-}
-
 func CountOnlineUsers() int {
 	return len(connectedUsers)
 }

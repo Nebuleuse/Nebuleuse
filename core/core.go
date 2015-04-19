@@ -3,10 +3,6 @@ package core
 import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
-	"io"
-	"io/ioutil"
-	"log"
-	"os"
 	"strconv"
 )
 
@@ -41,15 +37,8 @@ var Cfg ConfigMgr
 var SysCfg map[string]string
 var Db *sql.DB
 
-var (
-	Trace   *log.Logger
-	Info    *log.Logger
-	Warning *log.Logger
-	Error   *log.Logger
-)
-
 func Init() {
-	initLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+	initLogging()
 	initConfig()
 	initDb()
 	loadConfig()
@@ -63,24 +52,7 @@ func Init() {
 }
 func Die() {
 	Db.Close()
-}
-
-func initLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
-	Trace = log.New(traceHandle,
-		"TRACE: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-
-	Info = log.New(infoHandle,
-		"INFO: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-
-	Warning = log.New(warningHandle,
-		"WARNING: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
-
-	Error = log.New(errorHandle,
-		"ERROR: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
+	logFile.Close()
 }
 
 func initDb() {

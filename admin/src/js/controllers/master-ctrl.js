@@ -25,6 +25,12 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         if(data.Code == 2)
             return $scope.setConnected(false);
     };
+    $scope.parseMessage = function(data) {
+        if (data.Code != null && data.Code == 0)
+            return; // Longpoll timedout
+
+        $scope.$broadcast(data.Channel, data.Message);
+    };
     $scope.getUserInfos = function () {
         $http.post(APIURL + '/getUserInfos', {sessionid: $scope.Self.SessionId, infomask:UserMaskBase})
         .success(function (data) {
@@ -74,6 +80,17 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             $scope.addAlert("Could not unsubscribe to " + channel, "danger");
         });
     }
+    $scope.getMessages = function () {
+        $http.post(APIURL + '/getMessages', {sessionid: $scope.Self.SessionId})
+        .success(function (data) {
+            $scope.parseMessage(data);
+            $scope.getMessages();
+        })
+        .error(function (data, status) {
+            $scope.parseError(data, status);
+            $scope.addAlert("Could not get new messages", "danger");
+        });
+    }
 
     $scope.Menus = [    {name: "Home", icon: "fa-home", link:"/"},
                         {name: "Log", icon: "fa-cloud", link:"log"},
@@ -90,6 +107,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     if(angular.isDefined($cookieStore.get('sessionId'))){
         $scope.Self.SessionId = $cookieStore.get('sessionId');
         $scope.getUserInfos();
+        $scope.getMessages();
     } else if ($location.path() != '/login') {
         $scope.setConnected(false);
     }

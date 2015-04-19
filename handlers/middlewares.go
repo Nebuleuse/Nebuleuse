@@ -24,6 +24,7 @@ func userBySession(allowTarget bool, next middleWare) middleWare {
 			return
 		}
 
+		context.Set(r, "sessionid", r.FormValue("sessionid"))
 		context.Set(r, "requester", requester)
 		context.Set(r, "session", core.GetSessionBySessionId(r.FormValue("sessionid")))
 

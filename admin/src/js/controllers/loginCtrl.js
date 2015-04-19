@@ -16,6 +16,7 @@ function LoginCtrl($scope, $cookieStore, $http, $location) {
             $cookieStore.put('sessionId', data.SessionId);
             $scope.getUserInfos();
             $scope.setConnected(true);
+            $scope.getMessages();
             $location.path('/');
         }).error(function (data, status, headers, config) {
             $scope.parseError(data, status);

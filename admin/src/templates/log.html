@@ -1,10 +1,10 @@
 <rd-widget>
     <rd-widget-header icon="fa-tasks" title="Log">
-		<a href="#">Clear</a>
+		<a ng-click="clearLog()">Clear</a>
     </rd-widget-header>
-    <rd-widget-body classes="medium no-padding">
+    <rd-widget-body classes="no-padding">
 		<div class="table-responsive">
-			<textarea>{{infos.log}}</textarea>
+			<textarea class="form-control" rows="8" readonly>{{logLines}}</textarea>
 		</div>
 	</rd-widget-body>
 </rd-widget>

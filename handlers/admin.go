@@ -100,3 +100,8 @@ func deleteAchievement(w http.ResponseWriter, r *http.Request) {
 	}
 	EasyResponse(w, core.NebErrorNone, "deleted achievement table")
 }
+
+func getLogs(w http.ResponseWriter, r *http.Request) {
+	res := core.GetPastLogs(500)
+	fmt.Fprint(w, string(res))
+}

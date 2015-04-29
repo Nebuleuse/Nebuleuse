@@ -38,6 +38,14 @@ func GetAchievementsData() ([]AchievementsTable, error) {
 	}
 	return achs, nil
 }
+func GetAchievementData(id string) (AchievementsTable, error) {
+	var ach AchievementsTable
+	err := Db.QueryRow("SELECT id, name, max, fullName, fullDesc, icon FROM neb_achievements WHERE id=?", id).Scan(&ach.Id, &ach.Name, &ach.Max, &ach.FullName, &ach.FullDesc, &ach.Icon)
+	if err != nil {
+		return ach, err
+	}
+	return ach, nil
+}
 
 func SetAchievementData(id int, data AchievementsTable) error {
 	stmt, err := Db.Prepare("UPDATE neb_achievements SET name=?, max=?, fullName=?, fullDesc=?, icon=? WHERE id=?")

@@ -42,6 +42,27 @@ func getAchievements(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(res))
 	}
 }
+func getAchievement(w http.ResponseWriter, r *http.Request) {
+	id := context.Get(r, "achievementid").(string)
+	/*id, err := strconv.ParseInt(sid, 10, 0)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}*/
+
+	ach, err := core.GetAchievementData(id)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	res, err := json.Marshal(ach)
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+	} else {
+		fmt.Fprint(w, string(res))
+	}
+}
 
 func setAchievement(w http.ResponseWriter, r *http.Request) {
 	data := context.Get(r, "data").(string)

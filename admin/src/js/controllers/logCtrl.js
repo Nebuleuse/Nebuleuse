@@ -12,7 +12,6 @@ function LogCtrl($scope, $http) {
 
 	$http.post(APIURL + '/getLogs', {sessionid: $scope.Self.SessionId})
 	.success(function (data) {
-		console.log(data)
 		$scope.logLines = data;
 	})
 	.error(function (data, status) {

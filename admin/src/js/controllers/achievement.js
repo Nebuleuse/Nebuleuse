@@ -1,27 +1,10 @@
 angular.module('RDash')
-	.controller('AchievementsCtrl', ['$scope', '$http','$modal', AchievementsCtrl]);
+	.controller('AchievementCtrl', ['$scope', '$http','$modal', AchievementCtrl]);
 
-function AchievementsCtrl($scope, $http, $modal) {
-	$scope.setPageTitle("Achievements");
-	$scope.achievements = [];
-	$scope.editing = -1;
-	$scope.originAchievement = {};
+function AchievementCtrl($scope, $http, $modal) {
+	$scope.setPageTitle("Achievements info");
+	$scope.achievement = {};
 
-	$http.post(APIURL + '/getAchievements', {sessionid: $scope.Self.SessionId})
-		.success(function (data) {
-			$scope.achievements = data;
-		}).error(function (data, status) {
-			$scope.parseError(data, status);
-			$scope.addAlert("Could not fetch achievements infos!", "danger");
-		});
-
-	$scope.selectEdit  = function(index) {
-		if($scope.editing != -1)
-			$scope.cancelEdit();
-
-		$scope.originAchievement = angular.toJson($scope.achievements[index], false);
-		$scope.editing = index;
-	};
 	$scope.saveEdit = function (index) {
 		var current = $scope.achievements[index];
 		if(current.Id == null)
@@ -46,18 +29,6 @@ function AchievementsCtrl($scope, $http, $modal) {
 			$scope.addAlert("Could not add achievements!", "danger");
 		});
 	};
-	$scope.cancelEdit = function () {
-		if($scope.achievements[$scope.editing].Id == null){
-			$scope.achievements.splice($scope.editing, 1);
-		} else {
-			$scope.achievements[$scope.editing] = angular.fromJson($scope.originAchievement);
-		}
-		$scope.editing = -1;
-	}
-	$scope.addAchievement = function () {
-		$scope.editing = $scope.achievements.length;
-		$scope.achievements.push({});
-	}
 	$scope.deleteAchievement = function (index) {
 		var modalInstance = $modal.open({
 			templateUrl: 'templates/confirmDelete.html',

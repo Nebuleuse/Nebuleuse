@@ -38,7 +38,12 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
             .state('achievementEdit', {
                 url: '/achievementEdit/:achievementId',
                 controller: 'AchievementEditCtrl',
-                templateUrl: 'templates/achievementsEdit.html'
+                templateUrl: 'templates/achievementEdit.html'
+            })
+            .state('achievementAdd', {
+                url: '/achievementAdd',
+                controller: 'AchievementEditCtrl',
+                templateUrl: 'templates/achievementEdit.html'
             })
             .state('stats', {
                 url: '/stats',

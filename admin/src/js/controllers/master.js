@@ -92,6 +92,10 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         });
     }
 
+    $scope.goto = function (path) {
+        $location.path(path);
+    }
+
     $scope.Menus = [    {name: "Home", icon: "fa-home", link:"/"},
                         {name: "Log", icon: "fa-cloud", link:"log"},
                         {name: "Achievements", icon: "fa-trophy", link:"achievements"},

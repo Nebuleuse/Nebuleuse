@@ -1,6 +1,34 @@
-						
 
-						<td ng-show="editing == $index"><input ng-model="ach.Name" /></td>
-						<td ng-show="editing == $index"><input type="number" ng-model="ach.Max" /></td>
-						<td ng-show="editing == $index"><input ng-model="ach.FullName" /></td>
-						<td ng-show="editing == $index"><input ng-model="ach.FullDesc" /></td>
+<rd-widget>
+    <rd-widget-header icon="fa-tasks" title="Achievement">
+		<a ng-click="saveEdit()" ng-show="editing">Save</a>
+		<a ng-click="cancelEdit()" ng-show="editing">Cancel</a>
+		<a ng-click="startEdit()" ng-show="!editing">Edit</a>
+    </rd-widget-header>
+    <rd-widget-body classes="no-padding">
+		<div class="table-responsive">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr><th width="16">ID</th><th width="32">Icon</th><th>Name</th><th>Max</th><th>Full Name</th><th>Description</th></tr>
+			</thead>
+			<tbody>
+				<td>{{achievement.Id}}</td>
+				<span >
+					<td ng-hide="editing"><img ng-src="{{achievement.Icon}}" width="32" height="32"></td>
+					<td ng-hide="editing">{{achievement.Name}}</td>
+					<td ng-hide="editing">{{achievement.Max}}</td>
+					<td ng-hide="editing">{{achievement.FullName}}</td>
+					<td ng-hide="editing">{{achievement.FullDesc}}</td>
+				</span>
+				<span ng-show="editing">
+					<td ng-show="editing"><input ng-model="achievement.Icon"/></td>
+					<td ng-show="editing"><input ng-model="achievement.Name"/></td>
+					<td ng-show="editing"><input type="number" ng-model="achievement.Max"/></td>
+					<td ng-show="editing"><input ng-model="achievement.FullName"/></td>
+					<td ng-show="editing"><input ng-model="achievement.FullDesc"/></td>
+				</span>
+			</tbody>
+		 </table>
+		</div>
+	</rd-widget-body>
+</rd-widget>

@@ -3,3 +3,6 @@
 	width: 250px;
 	margin-top: 12px;
 }
+[ng-click], [data-ng-click], [x-ng-click] {
+    cursor: pointer;
+}

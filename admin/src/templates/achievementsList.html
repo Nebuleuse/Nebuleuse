@@ -9,7 +9,7 @@
 					<tr><th width="32">Icon</th><th>ID</th><th>Name</th><th>Max</th><th>Full Name</th><th>Description</th></tr>
 				</thead>
 				<tbody>
-					<tr ng-repeat="ach in achievements" ng-click="goto('achievementEdit/{{ach.Id}}')">
+					<tr ng-repeat="ach in achievements" ng-click="goto('achievementEdit/' + ach.Id)">
 						<td><img ng-src="{{ach.Icon}}" width="32" height="32"></td>
 						<td>{{ach.Id}}</td>
 						<td>{{ach.Name}}</td>

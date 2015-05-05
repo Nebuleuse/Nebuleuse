@@ -16,7 +16,7 @@ var paths = {
     images: 'src/img/**/*.*',
     templates: 'src/templates/**/*.html',
     index: 'src/index.html',
-    bower_fonts: 'src/components/**/*.{ttf,woff,eof,svg}',
+    bower_fonts: 'bower_components/**/*.{ttf,woff,eof,svg}',
 };
 
 /**
@@ -105,4 +105,4 @@ gulp.task('livereload', function() {
  * Gulp tasks
  */
 gulp.task('build', ['usemin', 'build-assets', 'build-custom']);
-gulp.task('default', ['build', 'livereload', 'watch']);
+gulp.task('default', ['build', 'watch']);

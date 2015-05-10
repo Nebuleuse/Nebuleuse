@@ -2,6 +2,9 @@ angular.module('RDash')
 	.controller('AchievementsCtrl', ['$scope', '$http','$modal', AchievementsCtrl]);
 
 function AchievementsCtrl($scope, $http, $modal) {
+	if (!$scope.isConnected)
+		return;
+	
 	$scope.setPageTitle("Achievements");
 	$scope.achievements = [];
 	$scope.editing = -1;

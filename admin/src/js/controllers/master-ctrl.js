@@ -36,8 +36,8 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         .success(function (data) {
             $scope.Self = data;
             if(data.Rank < 2){
-                $location.path('/noauth');
                 $scope.setConnected(false);
+                $location.path('/noauth');
             } else {
                 $scope.setConnected(true);
             }

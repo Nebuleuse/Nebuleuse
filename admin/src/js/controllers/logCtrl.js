@@ -2,6 +2,9 @@ angular.module('RDash')
     .controller('LogCtrl', ['$scope', '$http', LogCtrl]);
 
 function LogCtrl($scope, $http) {
+	if (!$scope.isConnected)
+		return;
+	
 	$scope.logLines = "";
 	$scope.setPageTitle("Live Log");
 	$scope.subscribeTo("log");
@@ -12,7 +15,6 @@ function LogCtrl($scope, $http) {
 
 	$http.post(APIURL + '/getLogs', {sessionid: $scope.Self.SessionId})
 	.success(function (data) {
-		console.log(data)
 		$scope.logLines = data;
 	})
 	.error(function (data, status) {

@@ -50,9 +50,7 @@ func EasyResponse(w http.ResponseWriter, code int, message string) {
 	}
 
 	switch code {
-	case core.NebErrorLogin:
-		w.WriteHeader(http.StatusUnauthorized)
-	case core.NebErrorAuthFail:
+	case core.NebErrorLogin, core.NebErrorAuthFail, core.NebErrorDisconnected:
 		w.WriteHeader(http.StatusUnauthorized)
 	case core.NebErrorPartialFail, core.NebError:
 		w.WriteHeader(http.StatusBadRequest)
@@ -77,7 +75,17 @@ func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 		core.Warning.Println("Could not encode easy response")
 	}
 
-	w.WriteHeader(http.StatusInternalServerError)
+	switch code {
+	case core.NebErrorLogin, core.NebErrorAuthFail, core.NebErrorDisconnected:
+		w.WriteHeader(http.StatusUnauthorized)
+	case core.NebErrorPartialFail:
+		w.WriteHeader(http.StatusBadRequest)
+	case core.NebError:
+		w.WriteHeader(http.StatusInternalServerError)
+	case core.NebErrorNone:
+		w.WriteHeader(http.StatusOK)
+	}
+
 	fmt.Fprint(w, string(res))
 }
 

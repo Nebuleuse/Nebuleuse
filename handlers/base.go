@@ -28,13 +28,18 @@ func RegisterHandlers() {
 
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
 	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")
+	r.HandleFunc("/getLogs", userBySession(false, mustBeAdmin(getLogs)))
+	//Users
 	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos))))
+	//Achievements
 	r.HandleFunc("/getAchievements", userBySession(false, mustBeAdmin(getAchievements)))
 	r.HandleFunc("/getAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, getAchievement))))
 	r.HandleFunc("/setAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid", "data"}, setAchievement))))
 	r.HandleFunc("/addAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addAchievement))))
 	r.HandleFunc("/deleteAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, deleteAchievement))))
-	r.HandleFunc("/getLogs", userBySession(false, mustBeAdmin(getLogs)))
+	//Stats
+	r.HandleFunc("/getStatsList", userBySession(false, mustBeAdmin(getStatsList)))
+
 	http.Handle("/", r)
 }
 

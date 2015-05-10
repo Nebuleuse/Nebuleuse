@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-type AchievementsTable struct {
+type AchievementData struct {
 	Id       int
 	Name     string
 	Max      int
@@ -13,8 +13,8 @@ type AchievementsTable struct {
 	Icon     string
 }
 
-func GetAchievementsData() ([]AchievementsTable, error) {
-	var achs []AchievementsTable
+func GetAchievementsData() ([]AchievementData, error) {
+	var achs []AchievementData
 	rows, err := Db.Query("SELECT id, name, max, fullName, fullDesc, icon FROM neb_achievements")
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func GetAchievementsData() ([]AchievementsTable, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var ach AchievementsTable
+		var ach AchievementData
 		err := rows.Scan(&ach.Id, &ach.Name, &ach.Max, &ach.FullName, &ach.FullDesc, &ach.Icon)
 		if err != nil {
 			Error.Println("Could not get achievement table infos :", err)
@@ -38,8 +38,8 @@ func GetAchievementsData() ([]AchievementsTable, error) {
 	}
 	return achs, nil
 }
-func GetAchievementData(id string) (AchievementsTable, error) {
-	var ach AchievementsTable
+func GetAchievementData(id string) (AchievementData, error) {
+	var ach AchievementData
 	err := Db.QueryRow("SELECT id, name, max, fullName, fullDesc, icon FROM neb_achievements WHERE id=?", id).Scan(&ach.Id, &ach.Name, &ach.Max, &ach.FullName, &ach.FullDesc, &ach.Icon)
 	if err != nil {
 		return ach, err
@@ -47,7 +47,7 @@ func GetAchievementData(id string) (AchievementsTable, error) {
 	return ach, nil
 }
 
-func SetAchievementData(id int, data AchievementsTable) error {
+func SetAchievementData(id int, data AchievementData) error {
 	stmt, err := Db.Prepare("UPDATE neb_achievements SET name=?, max=?, fullName=?, fullDesc=?, icon=? WHERE id=?")
 	if err != nil {
 		Error.Println("Could not prepare achievement data update :", err)
@@ -62,7 +62,7 @@ func SetAchievementData(id int, data AchievementsTable) error {
 	return nil
 }
 
-func AddAchievementData(data AchievementsTable) (AchievementsTable, error) {
+func AddAchievementData(data AchievementData) (AchievementData, error) {
 	stmt, err := Db.Prepare("INSERT INTO neb_achievements (name, max, fullName, fullDesc, icon) VALUES (?, ?, ?, ?, ?)")
 	if err != nil {
 		Error.Println("Could not prepare achievement data update :", err)
@@ -114,5 +114,6 @@ func AddUserStat(u UserStat) error {
 	if err != nil {
 		return &NebuleuseError{Code: NebError, Msg: "Table already exists"}
 	}
+	//TODO!
 	return nil
 }

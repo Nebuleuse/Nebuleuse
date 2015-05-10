@@ -139,7 +139,11 @@ func (u *User) PopulateAchievements() error {
 // to make a list of stats the user has. Entry for users is the users' fields
 // and entries with AutoCount true are additional fields updated when a complex stat is added
 func (u *User) PopulateStats() error {
-	Fields := GetUserStatsFields()
+	Fields, err := GetUserStatsFields()
+	if err != nil {
+		Error.Println("Could not get users stats fields :", err)
+		return err
+	}
 	StatFields := make(map[string]int64)
 	for _, field := range Fields {
 		StatFields[field] = 0

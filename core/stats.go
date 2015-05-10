@@ -51,12 +51,13 @@ func GetComplexStatsTablesInfos() ([]ComplexStatTableInfo, error) {
 	return ret, nil
 }
 
-func GetUserStatsFields() []string {
+func GetUserStatsFields() ([]string, error) {
 	var statFields []string
 
 	tables, err := GetComplexStatsTablesInfos()
 	if err != nil {
 		Error.Println("Could not read ComplexStatsTableInfos: ", err)
+		return statFields, err
 	}
 
 	for _, table := range tables {
@@ -69,5 +70,5 @@ func GetUserStatsFields() []string {
 		}
 	}
 
-	return statFields
+	return statFields, nil
 }

@@ -74,7 +74,7 @@ func setAchievement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ach core.AchievementsTable
+	var ach core.AchievementData
 	json.Unmarshal([]byte(data), &ach)
 	err = core.SetAchievementData(int(id), ach)
 
@@ -88,7 +88,7 @@ func setAchievement(w http.ResponseWriter, r *http.Request) {
 func addAchievement(w http.ResponseWriter, r *http.Request) {
 	data := context.Get(r, "data").(string)
 
-	var ach core.AchievementsTable
+	var ach core.AchievementData
 	json.Unmarshal([]byte(data), &ach)
 	value, err := core.AddAchievementData(ach)
 
@@ -123,6 +123,36 @@ func deleteAchievement(w http.ResponseWriter, r *http.Request) {
 }
 
 func getLogs(w http.ResponseWriter, r *http.Request) {
-	res := core.GetPastLogs(500)
+	res := core.GetPastLogs(5000)
 	fmt.Fprint(w, string(res))
+}
+
+func getUserStatsList(w http.ResponseWriter, r *http.Request) {
+	fields, err := core.GetUserStatsFields()
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	res, err := json.Marshal(fields)
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+	} else {
+		fmt.Fprint(w, string(res))
+	}
+}
+
+func getStatsList(w http.ResponseWriter, r *http.Request) {
+	fields, err := core.GetComplexStatsTablesInfos()
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	res, err := json.Marshal(fields)
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+	} else {
+		fmt.Fprint(w, string(res))
+	}
 }

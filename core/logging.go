@@ -32,21 +32,28 @@ func initLogging() {
 		panic(err)
 	}
 
+	normalOut := io.MultiWriter(os.Stdout, dash, logFile)
+	errOut := io.MultiWriter(os.Stderr, dash, logFile)
+
 	Trace = log.New(ioutil.Discard,
 		"TRACE: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
-	Info = log.New(io.MultiWriter(os.Stdout, dash, logFile),
+	Info = log.New(normalOut,
 		"INFO: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
-	Warning = log.New(io.MultiWriter(os.Stdout, dash, logFile),
+	Warning = log.New(normalOut,
 		"WARNING: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
-	Error = log.New(io.MultiWriter(os.Stderr, dash, logFile),
+	Error = log.New(errOut,
 		"ERROR: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
+
+	log.SetOutput(errOut)
+	log.SetPrefix("ERROR: ")
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func GetPastLogs(size int64) string {

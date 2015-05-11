@@ -13,6 +13,8 @@ function AchievementCtrl($scope, $http, $modal, $location, $stateParams) {
 	}
 
 	$scope.setPageTitle("Achievements info");
+	if(!$scope.checkAccess())
+		return;
 	$scope.achievement = {};
 	$scope.editing = false;
 

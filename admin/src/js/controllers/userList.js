@@ -2,7 +2,7 @@ angular.module('RDash')
     .controller('UserListCtrl', ['$scope', '$http', UserListCtrl]);
 
 function UserListCtrl($scope, $http) {
-	if (!$scope.isConnected)
+	if(!$scope.checkAccess())
 		return;
 	
 	$scope.users= [];

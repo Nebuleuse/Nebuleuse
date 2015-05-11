@@ -1,9 +1,10 @@
-
+<div class="row col-lg-12">
 <rd-widget>
     <rd-widget-header icon="fa-tasks" title="Achievement">
 		<a ng-click="saveEdit()" ng-show="editing">Save</a>
 		<a ng-click="cancelEdit()" ng-show="editing">Cancel</a>
 		<a ng-click="startEdit()" ng-show="!editing">Edit</a>
+		<a ng-click="deleteAchievement()" ng-show="!editing">Delete</a>
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
 		<div class="table-responsive">
@@ -32,3 +33,4 @@
 		</div>
 	</rd-widget-body>
 </rd-widget>
+</div>

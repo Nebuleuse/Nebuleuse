@@ -3,7 +3,7 @@ angular.module('RDash')
 
 function AchievementCtrl($scope, $http, $modal, $location, $stateParams) {
 	$scope.getAchievement = function () {
-		$http.post(APIURL + '/getAchievement', {sessionid: $scope.Self.SessionId, achievementid: $stateParams.achievementId})
+		$http.post(APIURL + '/getAchievement', {sessionid: $scope.Self.SessionId, achievementid: $scope.achievement.Id})
 		.success(function (data) {
 			$scope.achievement = data;
 		}).error(function (data, status) {
@@ -17,9 +17,11 @@ function AchievementCtrl($scope, $http, $modal, $location, $stateParams) {
 	$scope.editing = false;
 
 	if ($location.path().startsWith("/achievementEdit")) {
+		$scope.achievement.Id = $stateParams.achievementId;
 		$scope.getAchievement();
 	} else if ($location.path().startsWith("/achievementAdd")) {
-		$scope.achievement.Id == null;
+		$scope.achievement.Id = null;
+		$scope.editing = true;
 	}
 
 	$scope.startEdit = function () {
@@ -27,6 +29,8 @@ function AchievementCtrl($scope, $http, $modal, $location, $stateParams) {
 	}
 	$scope.cancelEdit = function () {
 		$scope.editing = false;
+		if($scope.achievement.Id == null)
+			return $scope.goto('/achievements');
 		$scope.getAchievement();
 	}
 	$scope.saveEdit = function () {
@@ -48,7 +52,7 @@ function AchievementCtrl($scope, $http, $modal, $location, $stateParams) {
 		$http.post(APIURL + '/addAchievement', toSend)
 		.success(function (data) {
 			$scope.editing = false;
-			ach.Id = data.Id
+			$scope.achievement.Id = data.Id
 		}).error(function (data, status) {
 			$scope.addAlert("Could not add achievement!", "danger");
 		});

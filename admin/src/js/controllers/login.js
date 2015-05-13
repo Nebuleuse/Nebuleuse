@@ -4,9 +4,6 @@ angular.module('RDash')
 function LoginCtrl($scope, $cookieStore, $http, $location) {
 	$scope.setPageTitle("Login");
 
-    if(!$scope.checkAccess())
-        return;
-	
 	$scope.connect = function(username, password) {
         $http.post(APIURL + '/connect', {username: username, password: password})
         .success(function (data, status, headers, config) {

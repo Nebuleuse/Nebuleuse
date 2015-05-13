@@ -30,6 +30,11 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
                 controller: 'LogCtrl',
                 templateUrl: 'templates/log.html'
             })
+            .state('users', {
+                url: '/users',
+                controller: 'UserListCtrl',
+                templateUrl: 'templates/usersList.html'
+            })
             .state('achievements', {
                 url: '/achievements',
                 controller: 'AchievementsCtrl',
@@ -52,10 +57,6 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
             })
             .state('matchmaking', {
                 url: '/matchmaking',
-                templateUrl: 'templates/wip.html'
-            })
-            .state('users', {
-                url: '/users',
                 templateUrl: 'templates/wip.html'
             })
             .state('servers', {

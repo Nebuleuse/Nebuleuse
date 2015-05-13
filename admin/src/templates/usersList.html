@@ -1,0 +1,24 @@
+<div class="col-lg-12">
+	<rd-widget>
+		<rd-widget-header icon="fa-users" title="Users">
+			<input type="text" placeholder="Search" class="form-control input-sm" />
+		</rd-widget-header>
+		<rd-widget-body classes="medium no-padding">
+			<div class="table-responsive">
+				<table class="table">
+					<thead>
+						<tr><th class="text-center">ID</th><th>Username</th><th>Rank</th></tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="user in users">
+							<td class="text-center">{{user.Id}}</td><td>{{user.Username}}</td><td>{{user.Rank}}</td>
+						</tr>
+					</tbody>
+				</table>
+       		</div>
+		</rd-widget-body>
+		<rd-widget-footer classes="medium no-padding">
+			<pagination total-items="infos.UserCount/30" ng-model="page" ng-change="pageChanged()"></pagination>
+		</rd-widget-footer>
+	<rd-widget>
+</div>

@@ -38,7 +38,11 @@ func RegisterHandlers() {
 	r.HandleFunc("/addAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addAchievement))))
 	r.HandleFunc("/deleteAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, deleteAchievement))))
 	//Stats
-	r.HandleFunc("/getStatsList", userBySession(false, mustBeAdmin(getStatsList)))
+	r.HandleFunc("/getStatTables", userBySession(false, mustBeAdmin(getStatTables)))
+	r.HandleFunc("/getStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name"}, getStatTable))))
+	r.HandleFunc("/setStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, setStatTable))))
+	r.HandleFunc("/addStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addStatTable))))
+	r.HandleFunc("/deleteStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name"}, deleteStatTable))))
 
 	http.Handle("/", r)
 }

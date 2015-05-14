@@ -55,6 +55,16 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
                 controller: 'StatsCtrl',
                 templateUrl: 'templates/statsList.html'
             })
+            .state('statTableEdit', {
+                url: '/statTableEdit/:statName',
+                controller: 'StatTableEditCtrl',
+                templateUrl: 'templates/statsEdit.html'
+            })
+            .state('statTableAdd', {
+                url: '/statTableAdd',
+                controller: 'StatTableEditCtrl',
+                templateUrl: 'templates/statsEdit.html'
+            })
             .state('matchmaking', {
                 url: '/matchmaking',
                 templateUrl: 'templates/wip.html'

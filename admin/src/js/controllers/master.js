@@ -22,8 +22,9 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     $scope.parseError = function(data, status) {
         if(data.Code == 0)
             return;
-        if(data.Code == 2)
-            return $scope.setConnected(false);
+        if(data.Code == 2 || status == 401)
+            $scope.setConnected(false);
+        console.error(data, status);
     };
     $scope.parseMessage = function(data) {
         if (data.Code != null && data.Code == 0)

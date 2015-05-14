@@ -1,24 +1,29 @@
 package core
 
 import (
-	"strings"
+	"encoding/json"
 )
 
 type ComplexStatTableInfo struct {
-	Name      string
-	Fields    []string
+	Name   string
+	Fields []struct {
+		Name string
+		Type string
+		Size int
+	}
 	AutoCount bool
 }
 
 func GetComplexStatsTableInfos(table string) (ComplexStatTableInfo, error) {
 	var values string
 	var info ComplexStatTableInfo
-	err := Db.QueryRow("SELECT fields, autoCount FROM neb_stats_tables WHERE tableName = ?", table).Scan(&values, &info.AutoCount)
+	err := Db.QueryRow("SELECT tableName, fields, autoCount FROM neb_stats_tables WHERE tableName = ?", table).Scan(&info.Name, &values, &info.AutoCount)
 	if err != nil {
 		Error.Println("Could not read ComplexStatsTableInfos: ", err)
 		return info, err
 	}
-	info.Fields = strings.Split(values, ",")
+	json.Unmarshal(([]byte)(values), &info.Fields)
+	//info.Fields = strings.Split(values, ",")
 	return info, nil
 }
 
@@ -39,7 +44,8 @@ func GetComplexStatsTablesInfos() ([]ComplexStatTableInfo, error) {
 		if err != nil {
 			return ret, err
 		}
-		info.Fields = strings.Split(fields, ",")
+		json.Unmarshal(([]byte)(fields), &info.Fields)
+		//info.Fields = strings.Split(fields, ",")
 		ret = append(ret, info)
 	}
 
@@ -63,7 +69,7 @@ func GetUserStatsFields() ([]string, error) {
 	for _, table := range tables {
 		if table.Name == "users" {
 			for _, field := range table.Fields {
-				statFields = append(statFields, field)
+				statFields = append(statFields, field.Name)
 			}
 		} else if table.AutoCount {
 			statFields = append(statFields, table.Name)

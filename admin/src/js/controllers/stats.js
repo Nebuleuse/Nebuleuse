@@ -2,12 +2,12 @@ angular.module('RDash')
 	.controller('StatsCtrl', ['$scope', '$http','$modal', statsCtrl]);
 
 function statsCtrl($scope, $http, $modal) {
-	$scope.setPageTitle("Stats list");
+	$scope.setPageTitle("Stat tables list");
 	if(!$scope.checkAccess())
 		return;
 	$scope.stats = [];
 
-	$http.post(APIURL + '/getStatsList', {sessionid: $scope.Self.SessionId})
+	$http.post(APIURL + '/getStatTables', {sessionid: $scope.Self.SessionId})
 		.success(function (data) {
 			$scope.stats = data;
 			$scope.usersStats = {Fields: [], ExtraFields:[]};
@@ -22,7 +22,11 @@ function statsCtrl($scope, $http, $modal) {
 			$scope.addAlert("Could not fetch stats infos!", "danger");
 		});
 
-	$scope.addStat = function () {
-		$scope.goto("/achievementAdd");
+	$scope.getFields = function (Fields) {
+		var ret = "";
+		for (var i = Fields.length - 1; i >= 0; i--) {
+			ret += Fields[i].Name + " ";
+		};
+		return ret;
 	}
 }

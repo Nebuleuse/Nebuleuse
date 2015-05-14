@@ -14,20 +14,17 @@
 			</thead>
 			<tbody>
 				<td>{{achievement.Id}}</td>
-				<span >
 					<td ng-hide="editing"><img ng-src="{{achievement.Icon}}" width="32" height="32"></td>
 					<td ng-hide="editing">{{achievement.Name}}</td>
 					<td ng-hide="editing">{{achievement.Max}}</td>
 					<td ng-hide="editing">{{achievement.FullName}}</td>
 					<td ng-hide="editing">{{achievement.FullDesc}}</td>
-				</span>
-				<span ng-show="editing">
+
 					<td ng-show="editing"><input ng-model="achievement.Icon"/></td>
 					<td ng-show="editing"><input ng-model="achievement.Name"/></td>
 					<td ng-show="editing"><input type="number" ng-model="achievement.Max"/></td>
 					<td ng-show="editing"><input ng-model="achievement.FullName"/></td>
 					<td ng-show="editing"><input ng-model="achievement.FullDesc"/></td>
-				</span>
 			</tbody>
 		 </table>
 		</div>

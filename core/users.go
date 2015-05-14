@@ -266,12 +266,12 @@ func (u *User) SetComplexStats(stats []ComplexStat) error {
 		//Sort values so they match the table definition
 		var sortedValues []interface{}
 		for _, field := range tableInfo.Fields {
-			if field == "userid" {
+			if field.Name == "userid" {
 				sortedValues = append(sortedValues, u.Id)
 				continue
 			}
 			for _, value := range stat.Values {
-				if value.Name != field {
+				if value.Name != field.Name {
 					continue
 				}
 				sortedValues = append(sortedValues, value.Value)

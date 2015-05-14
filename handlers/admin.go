@@ -142,7 +142,7 @@ func getUserStatsList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getStatsList(w http.ResponseWriter, r *http.Request) {
+func getStatTables(w http.ResponseWriter, r *http.Request) {
 	fields, err := core.GetComplexStatsTablesInfos()
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
@@ -154,5 +154,71 @@ func getStatsList(w http.ResponseWriter, r *http.Request) {
 		core.Warning.Println("Could not encode status response")
 	} else {
 		fmt.Fprint(w, string(res))
+	}
+}
+
+func getStatTable(w http.ResponseWriter, r *http.Request) {
+	name := context.Get(r, "name").(string)
+
+	table, err := core.GetComplexStatsTableInfos(name)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+
+	res, err := json.Marshal(table)
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+	} else {
+		fmt.Fprint(w, string(res))
+	}
+}
+
+func addStatTable(w http.ResponseWriter, r *http.Request) {
+	data := []byte(context.Get(r, "data").(string))
+	var table core.ComplexStatTableInfo
+
+	err := json.Unmarshal(data, &table)
+
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+		return
+	}
+
+	err = core.AddStatTable(table)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "added table")
+	}
+}
+
+func setStatTable(w http.ResponseWriter, r *http.Request) {
+	data := []byte(context.Get(r, "data").(string))
+	var table core.ComplexStatTableInfo
+
+	err := json.Unmarshal(data, &table)
+
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+		return
+	}
+
+	err = core.SetStatTable(table)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "updated table")
+	}
+}
+
+func deleteStatTable(w http.ResponseWriter, r *http.Request) {
+	name := context.Get(r, "name").(string)
+
+	err := core.DeleteStatTable(name)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "updated table")
 	}
 }

@@ -1,6 +1,8 @@
 package core
 
 import (
+	"encoding/json"
+	"strconv"
 	"strings"
 )
 
@@ -115,5 +117,72 @@ func AddUserStat(u UserStat) error {
 		return &NebuleuseError{Code: NebError, Msg: "Table already exists"}
 	}
 	//TODO!
+	return nil
+}
+
+func AddStatTable(table ComplexStatTableInfo) error {
+	query := "CREATE TABLE neb_users_stats_"
+	query += table.Name
+	query += " ( "
+	for _, field := range table.Fields {
+		query += field.Name
+		query += " "
+		switch field.Type {
+		case "string":
+			query += "varchar("
+			query += strconv.Itoa(field.Size)
+			query += "),"
+		case "int":
+			query += "int("
+			query += strconv.Itoa(field.Size)
+			query += "),"
+		case "text":
+			query += "text,"
+		case "timestamp":
+			query += "timestamp,"
+		default:
+			query += "int("
+			query += strconv.Itoa(field.Size)
+			query += "),"
+		}
+	}
+	query = query[:len(query)-1]
+	query += " );"
+	Info.Println(query)
+	_, err := Db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	res, err := json.Marshal(table.Fields)
+	if err != nil {
+		return err
+	}
+	_, err = Db.Exec("INSERT INTO neb_stats_tables VALUES(?,?,?)", table.Name, res, table.AutoCount)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SetStatTable(table ComplexStatTableInfo) error {
+	return nil
+}
+
+func DeleteStatTable(name string) error {
+	query := "DROP TABLE neb_users_stats_"
+	query += name
+
+	_, err := Db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	_, err = Db.Exec("DELETE FROM neb_stats_tables WHERE tableName = ?", name)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

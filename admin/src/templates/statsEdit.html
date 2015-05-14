@@ -1,0 +1,42 @@
+<div class="row col-lg-12">
+<rd-widget>
+    <rd-widget-header icon="fa-tasks" title="Stats">
+		<a ng-click="saveEdit()" ng-show="editing">Save</a>
+		<a ng-click="cancelEdit()" ng-show="editing">Cancel</a>
+		<a ng-click="startEdit()" ng-show="!editing">Edit</a>
+		<a ng-click="deleteTable()" ng-show="!editing">Delete</a>
+    </rd-widget-header>
+    <rd-widget-body classes="no-padding">
+    	<div class="row col-lg-6">
+    		Name : <input ng-show="editing" type="text" ng-model="table.Name" /> {{table.Name}}
+    		Auto counting : <input ng-disabled="!editing" type="checkbox" ng-model="table.AutoCount" />
+		</div>
+		<div class="table-responsive row col-lg-6">
+    		<span ng-show="editing" class="fa fa-plus" ng-click="addField()">Add field</span>
+			<table class="table table-hover table-condensed">
+				<thead>
+					<tr><th></th><th>Name</th><th>Type</th><th>Length</th></tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="field in table.Fields">
+						<td ng-show="editing"><span class="fa fa-remove" ng-click="removeField($index)"></span></td>
+						<td ng-show="editing"><input type="text" ng-model="field.Name" required/></td>
+						<td ng-show="editing"><select ng-model="field.Type" required>
+  							<option value="int">Int</option>
+  							<option value="string">String</option>
+  							<option value="text">Text</option>
+  							<option value="timestamp">Timestamp</option>
+						</select></td>
+						<td ng-show="editing"><input type="number" ng-model="field.Size" /></td>
+						
+						<td ng-hide="editing"></td>
+						<td ng-hide="editing">{{field.Name}}</td>
+						<td ng-hide="editing">{{field.Type}}</td>
+						<td ng-hide="editing">{{field.Size}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</rd-widget-body>
+</rd-widget>
+</div>

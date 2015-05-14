@@ -98,7 +98,7 @@ func DeleteAchievementData(id int) error {
 	return nil
 }
 
-func AddUserStat(u UserStat) error {
+func AddUserStatFields(name string) error {
 	var fields string
 	err := Db.QueryRow("SELECT fields FROM neb_stats_table WHERE tableName = users").Scan(&fields)
 	if err != nil {
@@ -108,15 +108,43 @@ func AddUserStat(u UserStat) error {
 
 	tFields := strings.Split(fields, ",")
 	for _, field := range tFields {
-		if field == u.Name {
+		if field == name {
 			return &NebuleuseError{Code: NebError, Msg: "Field already exists in users"}
 		}
 	}
-	err = Db.QueryRow("SELECT fields FROM neb_stats_table WHERE tableName = ?", u.Name).Scan(&fields)
+	fields += "," + field
+	err = Db.QueryRow("UPDATE fields FROM neb_stats_table WHERE tableName = users", fields)
 	if err != nil {
-		return &NebuleuseError{Code: NebError, Msg: "Table already exists"}
+		return &NebuleuseError{Code: NebError, Msg: "Could not update users stats fields"}
 	}
-	//TODO!
+
+	return nil
+}
+
+func DeleteUserStatFields(name string) error {
+	var fields string
+	err := Db.QueryRow("SELECT fields FROM neb_stats_table WHERE tableName = users").Scan(&fields)
+	if err != nil {
+		Error.Println("Could not get fields from neb_stats_table for users")
+		return err
+	}
+
+	var newFields string
+	tFields := strings.Split(fields, ",")
+	for _, field := range tFields {
+		if field != name {
+			newFields += field + ","
+		}
+	}
+
+	//Remove trailing ,
+	newFields = newFields[:len(newFields)]
+
+	err = Db.QueryRow("UPDATE fields FROM neb_stats_table WHERE tableName = users", newFields)
+	if err != nil {
+		return &NebuleuseError{Code: NebError, Msg: "Could not update users stats stats"}
+	}
+
 	return nil
 }
 

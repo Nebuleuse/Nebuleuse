@@ -1,11 +1,33 @@
-<div class="row col-lg-12">
+<div class="row col-lg-6">
 <rd-widget>
-    <rd-widget-header icon="fa-tasks" title="Stats">
+    <rd-widget-header icon="fa-tasks" title="Users">
+    	<a ng-click="addUsersField()">Add Field</a>
+    </rd-widget-header>
+    <rd-widget-body classes="no-padding">
+		<div class="table-responsive">
+			<table class="table table-hover table-condensed">
+				<thead>
+					<tr><th> </th><th>Field</th></tr>
+				</thead>
+				<tbody>
+					<tr ng-repeat="field in usersStats.Fields">
+						<td>
+							<span class="fa fa-remove" ng-click="removeUsersField(field)"></span>
+						</td>
+						<td>{{field.Name}}</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</rd-widget-body>
+</rd-widget>
+</div>
+<div class="row col-lg-6">
+<rd-widget>
+    <rd-widget-header icon="fa-tasks" title="Tables">
     	<a ng-href="#/statTableAdd">Add Table</a>
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
-			Users : {{getFields(usersStats.Fields)}}
-			Auto counted : {{usersStats.ExtraFields.join(" ")}}
 		<div class="table-responsive">
 			<table class="table table-hover table-condensed">
 				<thead>

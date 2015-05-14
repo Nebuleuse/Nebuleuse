@@ -35,6 +35,11 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
                 controller: 'UserListCtrl',
                 templateUrl: 'templates/usersList.html'
             })
+            .state('user', {
+                url: '/user/:userId',
+                controller: 'UserCtrl',
+                templateUrl: 'templates/user.html'
+            })
             .state('achievements', {
                 url: '/achievements',
                 controller: 'AchievementsCtrl',

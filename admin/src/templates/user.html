@@ -1,0 +1,54 @@
+<div class="col-lg-12">
+	<rd-widget>
+		<rd-widget-header icon="fa-users" title="Infos">
+		</rd-widget-header>
+		<rd-widget-body classes="medium no-padding">
+			<img ng-src="{{user.Avatar}}" width="32" height="32">
+			{{user.Username}}
+			{{user.Rank}}
+		</rd-widget-body>
+	<rd-widget>
+</div>
+<div class="col-lg-6">
+	<rd-widget>
+		<rd-widget-header icon="fa-users" title="Achievements">
+		</rd-widget-header>
+		<rd-widget-body classes="medium no-padding">
+			<div class="table-responsive">
+				<table class="table">
+					<thead>
+						<tr><th width="32">Icon</th><th>Name</th><th>Progress</th></tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="ach in user.Achievements">
+							<td><img ng-src="{{ach.Icon}}" width="32" height="32"></td>
+							<td>{{ach.Name}}</td>
+							<td>{{ach.Progress}} / {{ach.Max}}</td>
+						</tr>
+					</tbody>
+				</table>
+       		</div>
+		</rd-widget-body>
+	<rd-widget>
+</div>
+<div class="col-lg-6">
+	<rd-widget>
+		<rd-widget-header icon="fa-users" title="Stats">
+		</rd-widget-header>
+		<rd-widget-body classes="medium no-padding">
+			<div class="table-responsive">
+				<table class="table">
+					<thead>
+						<tr><th>Name</th><th>Value</th></tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="stat in user.Stats">
+							<td>{{stat.Name}}</td>
+							<td>{{stat.Value}}</td>
+						</tr>
+					</tbody>
+				</table>
+       		</div>
+		</rd-widget-body>
+	<rd-widget>
+</div>

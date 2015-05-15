@@ -120,7 +120,7 @@
             <alert data-ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.msg}}</alert>
           </div>
         </div>
-        <div class="row col-xs-12" ng-show="lostConnection">
+        <div class="row col-xs-12" ng-show="lostConnection && isConnected">
           <alert type="info">
             Lost connection to server. <a role="button" class="btn btn-primary" href="" ng-click="getMessages()">Reconnect</a>
           </alert>

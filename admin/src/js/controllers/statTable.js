@@ -63,7 +63,7 @@ function StatTableEditCtrl($scope, $http, $modal, $location, $stateParams) {
 		$http.post(APIURL + '/addStatTable', toSend)
 		.success(function (data) {
 			$scope.editing = false;
-			$scope.toAdd = true;
+			$scope.toAdd = false;
 		}).error(function (data, status) {
 			$scope.addAlert("Could not add Table!", "danger");
 		});

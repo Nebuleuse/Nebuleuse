@@ -118,6 +118,17 @@ func SetUsersStatFields(fields string) error {
 	return err
 }
 
+func SetStatFields(table ComplexStatTableInfo) error {
+	res, err := json.Marshal(table.Fields)
+	if err != nil {
+		return err
+	}
+
+	_, err = Db.Exec("UPDATE neb_stats_tables SET fields=?, autoCount=? WHERE tableName = ?", res, table.AutoCount, table.Name)
+
+	return err
+}
+
 func AddUserStatFields(name string) error {
 	var fields string
 	err := Db.QueryRow("SELECT fields FROM neb_stats_table WHERE tableName = users").Scan(&fields)
@@ -167,7 +178,28 @@ func DeleteUserStatFields(name string) error {
 
 	return nil
 }
-
+func getTypeForQuery(Type string, size int) string {
+	query := ""
+	switch Type {
+	case "string":
+		query += "varchar("
+		query += strconv.Itoa(size)
+		query += ")"
+	case "int":
+		query += "int("
+		query += strconv.Itoa(size)
+		query += ")"
+	case "text":
+		query += "text"
+	case "timestamp":
+		query += "timestamp"
+	default:
+		query += "int("
+		query += strconv.Itoa(size)
+		query += ")"
+	}
+	return query
+}
 func AddStatTable(table ComplexStatTableInfo) error {
 	query := "CREATE TABLE neb_users_stats_"
 	query += table.Name
@@ -175,24 +207,8 @@ func AddStatTable(table ComplexStatTableInfo) error {
 	for _, field := range table.Fields {
 		query += field.Name
 		query += " "
-		switch field.Type {
-		case "string":
-			query += "varchar("
-			query += strconv.Itoa(field.Size)
-			query += "),"
-		case "int":
-			query += "int("
-			query += strconv.Itoa(field.Size)
-			query += "),"
-		case "text":
-			query += "text,"
-		case "timestamp":
-			query += "timestamp,"
-		default:
-			query += "int("
-			query += strconv.Itoa(field.Size)
-			query += "),"
-		}
+		query += getTypeForQuery(field.Type, field.Size)
+		query += ","
 	}
 	query = query[:len(query)-1]
 	query += " );"
@@ -215,7 +231,49 @@ func AddStatTable(table ComplexStatTableInfo) error {
 }
 
 func SetStatTable(table ComplexStatTableInfo) error {
-	return nil
+	oldTable, err := GetComplexStatsTableInfos(table.Name)
+	if err != nil {
+		return err
+	}
+
+	removeQuery := "ALTER TABLE neb_users_stats_" + table.Name + " DROP COLUMN "
+	if err != nil {
+		return err
+	}
+	for _, oldField := range oldTable.Fields {
+		found := false
+		for _, newField := range table.Fields {
+			if newField.Name == oldField.Name {
+				found = true
+			}
+		}
+		if !found {
+			Trace.Println(removeQuery + oldField.Name)
+			_, err := Db.Exec(removeQuery + oldField.Name)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	addQuery := "ALTER TABLE neb_users_stats_" + table.Name + " ADD COLUMN "
+	for _, newField := range table.Fields {
+		found := false
+		for _, oldField := range oldTable.Fields {
+			if oldField.Name == newField.Name {
+				found = true
+			}
+		}
+		if !found {
+			Trace.Println(addQuery + newField.Name + " " + getTypeForQuery(newField.Type, newField.Size))
+			_, err := Db.Exec(addQuery + newField.Name + " " + getTypeForQuery(newField.Type, newField.Size))
+			if err != nil {
+				return err
+			}
+		}
+	}
+	err = SetStatFields(table)
+
+	return err
 }
 
 func DeleteStatTable(name string) error {

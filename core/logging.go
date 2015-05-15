@@ -2,7 +2,6 @@ package core
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -35,7 +34,7 @@ func initLogging() {
 	normalOut := io.MultiWriter(os.Stdout, dash, logFile)
 	errOut := io.MultiWriter(os.Stderr, dash, logFile)
 
-	Trace = log.New(ioutil.Discard,
+	Trace = log.New(normalOut,
 		"TRACE: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 

@@ -43,6 +43,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/setStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, setStatTable))))
 	r.HandleFunc("/addStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addStatTable))))
 	r.HandleFunc("/deleteStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name"}, deleteStatTable))))
+	r.HandleFunc("/setUsersStatFields", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"fields"}, setUsersStatFields))))
 
 	http.Handle("/", r)
 }

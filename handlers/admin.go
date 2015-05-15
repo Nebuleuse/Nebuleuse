@@ -222,3 +222,13 @@ func deleteStatTable(w http.ResponseWriter, r *http.Request) {
 		EasyResponse(w, core.NebErrorNone, "updated table")
 	}
 }
+func setUsersStatFields(w http.ResponseWriter, r *http.Request) {
+	fields := context.Get(r, "fields").(string)
+
+	err := core.SetUsersStatFields(fields)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "set users fields")
+	}
+}

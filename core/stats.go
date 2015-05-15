@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 )
 
+type FieldStruct struct {
+	Name string
+	Type string
+	Size int
+}
 type ComplexStatTableInfo struct {
-	Name   string
-	Fields []struct {
-		Name string
-		Type string
-		Size int
-	}
+	Name      string
+	Fields    []FieldStruct
 	AutoCount bool
 }
 

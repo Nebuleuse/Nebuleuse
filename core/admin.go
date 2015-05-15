@@ -98,6 +98,26 @@ func DeleteAchievementData(id int) error {
 	return nil
 }
 
+func SetUsersStatFields(fields string) error {
+	var utable ComplexStatTableInfo
+	for _, field := range strings.Split(fields, ",") {
+		var tfield FieldStruct
+		tfield.Name = field
+		tfield.Size = 11
+		tfield.Type = "int"
+		utable.Fields = append(utable.Fields, tfield)
+	}
+
+	res, err := json.Marshal(utable.Fields)
+	if err != nil {
+		return err
+	}
+
+	_, err = Db.Exec("UPDATE neb_stats_tables SET fields=? WHERE tableName = 'users'", res)
+
+	return err
+}
+
 func AddUserStatFields(name string) error {
 	var fields string
 	err := Db.QueryRow("SELECT fields FROM neb_stats_table WHERE tableName = users").Scan(&fields)
@@ -112,8 +132,8 @@ func AddUserStatFields(name string) error {
 			return &NebuleuseError{Code: NebError, Msg: "Field already exists in users"}
 		}
 	}
-	fields += "," + field
-	err = Db.QueryRow("UPDATE fields FROM neb_stats_table WHERE tableName = users", fields)
+	fields += "," + name
+	_, err = Db.Exec("UPDATE fields FROM neb_stats_table WHERE tableName = users", fields)
 	if err != nil {
 		return &NebuleuseError{Code: NebError, Msg: "Could not update users stats fields"}
 	}
@@ -140,7 +160,7 @@ func DeleteUserStatFields(name string) error {
 	//Remove trailing ,
 	newFields = newFields[:len(newFields)]
 
-	err = Db.QueryRow("UPDATE fields FROM neb_stats_table WHERE tableName = users", newFields)
+	_, err = Db.Exec("UPDATE fields FROM neb_stats_table WHERE tableName = users", newFields)
 	if err != nil {
 		return &NebuleuseError{Code: NebError, Msg: "Could not update users stats stats"}
 	}

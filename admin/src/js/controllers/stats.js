@@ -5,9 +5,12 @@ function statsCtrl($scope, $http, $modal) {
 	$scope.setPageTitle("Stat tables list");
 	if(!$scope.checkAccess())
 		return;
+
+	$scope.editing = false;
 	$scope.stats = [];
 
-	$http.post(APIURL + '/getStatTables', {sessionid: $scope.Self.SessionId})
+	$scope.getStatsTables = function () {
+	  $http.post(APIURL + '/getStatTables', {sessionid: $scope.Self.SessionId})
 		.success(function (data) {
 			$scope.stats = data;
 			$scope.usersStats = {Fields: [], ExtraFields:[]};
@@ -21,6 +24,36 @@ function statsCtrl($scope, $http, $modal) {
 			$scope.parseError(data, status);
 			$scope.addAlert("Could not fetch stats infos!", "danger");
 		});
+	}
+	$scope.getStatsTables();
+
+	$scope.addUsersField = function () {
+		$scope.usersStats.Fields[$scope.usersStats.Fields.length] = {};
+	}
+	$scope.removeUsersField = function (field) {
+		for (var i = $scope.usersStats.Fields.length - 1; i >= 0; i--) {
+			if ($scope.usersStats.Fields[i] === field){
+				$scope.usersStats.Fields.splice(i, 1);
+			}
+		};
+	}
+	$scope.saveUsersFields = function () {
+		var fields = "";
+		for (var i = $scope.usersStats.Fields.length - 1; i >= 0; i--) {
+			if(i == 0)
+				fields += $scope.usersStats.Fields[i].Name
+			else
+				fields += $scope.usersStats.Fields[i].Name + ","
+		};
+		$http.post(APIURL + '/setUsersStatFields', {sessionid: $scope.Self.SessionId, fields: fields})
+			.success(function (data) {
+				
+			}).error(function (data, status) {
+				$scope.parseError(data, status);
+				$scope.addAlert("Could not set users stats fields!", "danger");
+			})
+		console.log(fields);
+	}
 
 	$scope.getFields = function (Fields) {
 		var ret = "";
@@ -29,4 +62,12 @@ function statsCtrl($scope, $http, $modal) {
 		};
 		return ret;
 	}
+
+	$scope.startEdit = function() {
+		$scope.editing = true;
+	};
+	$scope.cancelEdit = function() {
+		$scope.editing = false;
+		$scope.getStatsTables();
+	};
 }

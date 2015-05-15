@@ -212,7 +212,7 @@ func AddStatTable(table ComplexStatTableInfo) error {
 	}
 	query = query[:len(query)-1]
 	query += " );"
-	Info.Println(query)
+
 	_, err := Db.Exec(query)
 	if err != nil {
 		return err
@@ -248,7 +248,6 @@ func SetStatTable(table ComplexStatTableInfo) error {
 			}
 		}
 		if !found {
-			Trace.Println(removeQuery + oldField.Name)
 			_, err := Db.Exec(removeQuery + oldField.Name)
 			if err != nil {
 				return err
@@ -264,7 +263,6 @@ func SetStatTable(table ComplexStatTableInfo) error {
 			}
 		}
 		if !found {
-			Trace.Println(addQuery + newField.Name + " " + getTypeForQuery(newField.Type, newField.Size))
 			_, err := Db.Exec(addQuery + newField.Name + " " + getTypeForQuery(newField.Type, newField.Size))
 			if err != nil {
 				return err

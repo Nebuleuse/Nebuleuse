@@ -47,7 +47,7 @@ function statsCtrl($scope, $http, $modal) {
 		};
 		$http.post(APIURL + '/setUsersStatFields', {sessionid: $scope.Self.SessionId, fields: fields})
 			.success(function (data) {
-				
+				$scope.editing = false;
 			}).error(function (data, status) {
 				$scope.parseError(data, status);
 				$scope.addAlert("Could not set users stats fields!", "danger");

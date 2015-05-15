@@ -82,6 +82,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         });
     }
     $scope.getMessages = function () {
+        $scope.lostConnection = false;
         $http.post(APIURL + '/getMessages', {sessionid: $scope.Self.SessionId})
         .success(function (data) {
             $scope.parseMessage(data);
@@ -90,6 +91,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         .error(function (data, status) {
             $scope.parseError(data, status);
             $scope.addAlert("Could not get new messages", "danger");
+            $scope.lostConnection = true;
         });
     }
 
@@ -107,6 +109,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
                         {name: "Items", icon: "fa-sitemap", link:"items"}];
     $scope.setPageTitle("Dashboard");
     $scope.isConnected = false;
+    $scope.lostConnection = false;
     $scope.Self = {};
     
     if(angular.isDefined($cookieStore.get('sessionId'))){

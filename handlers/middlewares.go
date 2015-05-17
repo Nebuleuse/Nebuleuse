@@ -36,7 +36,7 @@ func userBySession(allowTarget bool, next middleWare) middleWare {
 			user.Id, err = strconv.Atoi(r.FormValue("userid"))
 			context.Set(r, "user", user)
 			if !allowTarget {
-				// If we don't allow targeting other users, only devs can target
+				// If we don't allow targeting other users, only admins can target
 				n := mustBeAdmin(next)
 				n(w, r)
 			} else {

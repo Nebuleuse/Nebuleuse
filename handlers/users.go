@@ -14,13 +14,8 @@ type connectResponse struct {
 }
 
 func connectUser(w http.ResponseWriter, r *http.Request) {
-	if r.FormValue("username") == "" || r.FormValue("password") == "" {
-		EasyResponse(w, core.NebError, "Missing username and/or password")
-		return
-	}
-
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	username := context.Get(r, "username").(string)
+	password := context.Get(r, "password").(string)
 	id, err := core.CreateSession(username, password)
 
 	if err != nil {

@@ -4,6 +4,19 @@ import (
 	"encoding/json"
 )
 
+type UserStat struct {
+	Name  string
+	Value int64
+}
+type KeyValue struct {
+	Name  string
+	Value string
+}
+type ComplexStat struct {
+	Name   string
+	Values []KeyValue
+}
+
 type FieldStruct struct {
 	Name string
 	Type string

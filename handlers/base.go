@@ -28,22 +28,22 @@ func RegisterHandlers() {
 
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
 	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")
-	r.HandleFunc("/getLogs", userBySession(false, mustBeAdmin(getLogs)))
+	r.HandleFunc("/getLogs", userBySession(false, mustBeAdmin(getLogs))).Methods("POST")
 	//Users
-	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos))))
+	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos)))).Methods("POST")
 	//Achievements
-	r.HandleFunc("/getAchievements", userBySession(false, mustBeAdmin(getAchievements)))
-	r.HandleFunc("/getAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, getAchievement))))
-	r.HandleFunc("/setAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid", "data"}, setAchievement))))
-	r.HandleFunc("/addAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addAchievement))))
-	r.HandleFunc("/deleteAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, deleteAchievement))))
+	r.HandleFunc("/getAchievements", userBySession(false, mustBeAdmin(getAchievements))).Methods("POST")
+	r.HandleFunc("/getAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, getAchievement)))).Methods("POST")
+	r.HandleFunc("/setAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid", "data"}, setAchievement)))).Methods("POST")
+	r.HandleFunc("/addAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addAchievement)))).Methods("POST")
+	r.HandleFunc("/deleteAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, deleteAchievement)))).Methods("POST")
 	//Stats
-	r.HandleFunc("/getStatTables", userBySession(false, mustBeAdmin(getStatTables)))
-	r.HandleFunc("/getStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name"}, getStatTable))))
-	r.HandleFunc("/setStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, setStatTable))))
-	r.HandleFunc("/addStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addStatTable))))
-	r.HandleFunc("/deleteStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name"}, deleteStatTable))))
-	r.HandleFunc("/setUsersStatFields", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"fields"}, setUsersStatFields))))
+	r.HandleFunc("/getStatTables", userBySession(false, getStatTables)).Methods("POST")
+	r.HandleFunc("/getStatTable", userBySession(false, verifyFormValuesExist([]string{"name"}, getStatTable))).Methods("POST")
+	r.HandleFunc("/setStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, setStatTable)))).Methods("POST")
+	r.HandleFunc("/addStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addStatTable)))).Methods("POST")
+	r.HandleFunc("/deleteStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name"}, deleteStatTable)))).Methods("POST")
+	r.HandleFunc("/setUsersStatFields", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"fields"}, setUsersStatFields)))).Methods("POST")
 
 	http.Handle("/", r)
 }

@@ -17,25 +17,10 @@ func (a *Achievement) isComplete() bool {
 	return a.Progress == a.Max
 }
 
-// Stats
-type UserStat struct {
-	Name  string
-	Value int64
-}
-type KeyValue struct {
-	Name  string
-	Value string
-}
-type ComplexStat struct {
-	Name   string
-	Values []KeyValue
-}
-
 // User
 type User struct {
 	Id           int
 	Username     string
-	SessionId    string
 	Rank         int
 	Avatar       string
 	Achievements []Achievement
@@ -52,7 +37,6 @@ const (
 
 func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 	var user User
-	user.SessionId = SessionId
 
 	var id int
 	err := Db.QueryRow("SELECT userid FROM neb_sessions WHERE sessionid = ?", SessionId).Scan(&id)

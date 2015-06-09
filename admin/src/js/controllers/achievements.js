@@ -3,6 +3,8 @@ angular.module('RDash')
 
 function AchievementsCtrl($scope, $http, $modal) {
 	$scope.setPageTitle("Achievements list");
+	if(!$scope.checkAccess())
+		return;
 	$scope.achievements = [];
 
 	$http.post(APIURL + '/getAchievements', {sessionid: $scope.Self.SessionId})

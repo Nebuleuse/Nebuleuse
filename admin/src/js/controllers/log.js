@@ -2,7 +2,7 @@ angular.module('RDash')
     .controller('LogCtrl', ['$scope', '$http', LogCtrl]);
 
 function LogCtrl($scope, $http) {
-	if (!$scope.isConnected)
+	if(!$scope.checkAccess())
 		return;
 	
 	$scope.logLines = "";

@@ -35,7 +35,9 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     $scope.getUserInfos = function () {
         $http.post(APIURL + '/getUserInfos', {sessionid: $scope.Self.SessionId, infomask:UserMaskBase})
         .success(function (data) {
+            var sessionid = $scope.Self.SessionId;
             $scope.Self = data;
+            $scope.Self.SessionId = sessionid;
             if(data.Rank < 2){
                 $scope.setConnected(false);
                 $location.path('/noauth');

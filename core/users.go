@@ -195,8 +195,11 @@ func (u *User) SetAchievementProgress(aid int, value int) error {
 		return err
 	}
 	if rowCnt == 0 {
-		Error.Println("Tried to update achievementid : ", aid, " but no rows affected")
-		return &NebuleuseError{NebError, "No rows affected by operation"}
+		res, err = Db.Exec("INSERT INTO neb_users_achievements (userid, achievementid, progress) VALUES (?, ?, ?)", u.Id, aid, value)
+		if err != nil {
+			Error.Println("Could not insert achievement for user:", err)
+			return err
+		}
 	}
 
 	return nil

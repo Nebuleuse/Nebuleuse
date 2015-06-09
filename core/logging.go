@@ -40,7 +40,7 @@ func initLogging() {
 
 	Info = log.New(normalOut,
 		"INFO: ",
-		log.Ldate|log.Ltime|log.Lshortfile)
+		log.Ldate|log.Ltime)
 
 	Warning = log.New(normalOut,
 		"WARNING: ",

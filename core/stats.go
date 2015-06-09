@@ -37,7 +37,7 @@ func GetComplexStatsTableInfos(table string) (ComplexStatTableInfo, error) {
 		return info, err
 	}
 	json.Unmarshal(([]byte)(values), &info.Fields)
-	//info.Fields = strings.Split(values, ",")
+
 	return info, nil
 }
 
@@ -59,7 +59,7 @@ func GetComplexStatsTablesInfos() ([]ComplexStatTableInfo, error) {
 			return ret, err
 		}
 		json.Unmarshal(([]byte)(fields), &info.Fields)
-		//info.Fields = strings.Split(fields, ",")
+
 		ret = append(ret, info)
 	}
 

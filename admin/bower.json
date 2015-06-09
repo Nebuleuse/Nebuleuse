@@ -20,7 +20,6 @@
         "tests"
     ],
     "dependencies": {
-        "rdash-ui": "1.0.*",
         "angular": "~1.2.21",
         "angular-cookies": "~1.2.21",
         "angular-bootstrap": "~0.12.1",

@@ -49,7 +49,6 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             $scope.setConnected(false);
         });
     };
-
     $scope.setPageTitle = function (title) {
         $rootScope.PageTitle = title + " - Nebuleuse";
         $scope.PageTitle = title;

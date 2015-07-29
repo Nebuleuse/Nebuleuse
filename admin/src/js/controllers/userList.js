@@ -1,8 +1,10 @@
 angular.module('RDash')
-    .controller('UserListCtrl', ['$scope', '$http', UserListCtrl]);
+    .controller('UserListCtrl', ['$scope', '$http', "$attrs", UserListCtrl]);
 
-function UserListCtrl($scope, $http) {
-	$scope.setPageTitle("Users list");
+function UserListCtrl($scope, $http, $attrs) {
+	if($attrs.changetitle != "false")
+		$scope.setPageTitle("Users list");
+
 	if(!$scope.checkAccess())
 		return;
 	

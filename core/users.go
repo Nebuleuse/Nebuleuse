@@ -1,7 +1,10 @@
 package core
 
 import (
+	"crypto/rand"
+	"crypto/sha512"
 	"database/sql"
+	"encoding/base64"
 )
 
 //Achievements
@@ -79,9 +82,19 @@ func (u *User) FetchUserInfos(Bitmask int) error {
 	return nil
 }
 
-func RegisterUser(username string, password string, hash string) error {
-	stmt, err := Db.Prepare("INSERT INTO neb_users (username,password,rank,hash) VALUES (?,?,1,?)")
-	_, err = stmt.Exec(username, password, hash)
+func RegisterUser(username string, password string, rank int) error {
+	c := sha512.Size
+	bhash := make([]byte, c)
+	_, err := rand.Read(bhash)
+	if err != nil {
+		Error.Println("Error generating crytpo hash:", err)
+		return err
+	}
+	hash := base64.URLEncoding.EncodeToString(bhash)
+	hashedPassword := HashPassword(password, string(hash))
+
+	stmt, err := Db.Prepare("INSERT INTO neb_users (username,password,rank,hash) VALUES (?,?,?,?)")
+	_, err = stmt.Exec(username, hashedPassword, rank, string(hash))
 	if err != nil {
 		Error.Println("Could not register new user :", err)
 		return err

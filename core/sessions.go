@@ -1,7 +1,6 @@
 package core
 
 import (
-	"crypto/rand"
 	"crypto/sha512"
 	"database/sql"
 	"encoding/base64"
@@ -88,21 +87,7 @@ func CreateSession(username string, password string) (string, error) {
 
 	if err != nil && err == sql.ErrNoRows { //If user are registered on connection
 		if Cfg["autoRegister"] == "true" {
-			c := sha512.Size
-			bhash := make([]byte, c)
-			_, err := rand.Read(bhash)
-			if err != nil {
-				Error.Println("Error generating crytpo hash:", err)
-				return "", err
-			}
-			hash := base64.URLEncoding.EncodeToString(bhash)
-			hashedPassword := HashPassword(password, string(hash))
-			err = RegisterUser(username, hashedPassword, string(hash))
-
-			if err != nil {
-				return "", err
-			}
-
+			RegisterUser(username, password, 1)
 			return CreateSession(username, password)
 		} else {
 			return "", &NebuleuseError{NebErrorLogin, "Unknown username"}

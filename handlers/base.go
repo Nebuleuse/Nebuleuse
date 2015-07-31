@@ -26,7 +26,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/subscribeTo", userBySession(false, verifyFormValuesExist([]string{"channel"}, subscribeTo))).Methods("POST")
 	r.HandleFunc("/unSubscribeTo", userBySession(false, verifyFormValuesExist([]string{"channel"}, unSubscribeTo))).Methods("POST")
 
-	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir("./admin/dist/")))))
+	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir(core.SysCfg["DashboardLocation"])))))
 	r.HandleFunc("/getDashboardInfos", userBySession(false, mustBeAdmin(getDashboardInfos))).Methods("POST")
 	r.HandleFunc("/getLogs", userBySession(false, mustBeAdmin(getLogs))).Methods("POST")
 	//Users

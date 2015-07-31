@@ -60,6 +60,7 @@ func Die() {
 }
 func Install() {
 	initLogging()
+
 	reader := bufio.NewReader(os.Stdin)
 	if _, err := os.Stat(".config"); err == nil {
 		Info.Println(".config file already exists. Replace it ? Y/N")
@@ -87,7 +88,8 @@ func Install() {
 		"dbPass":                   "",
 		"dbBase":                   "",
 		"MaxSessionsChannelBuffer": "10",
-		"LongpollingTimeout":       "10"}
+		"LongpollingTimeout":       "10",
+		"DashboardLocation":        "./admin/"}
 
 	c := config.NewDefault()
 	Info.Println("Please enter the following configuration values. Enter empty value to use the default one:")
@@ -115,6 +117,46 @@ func Install() {
 
 	c.WriteFile(".config", 0644, "")
 	Info.Println("Saved config")
+	Info.Println("Testing database connectivity")
+	initConfig()
+	initDb()
+
+	Info.Println("Do you want to create a new admin account ? Y/N")
+
+	in, err := reader.ReadString('\n')
+	in = strings.TrimSpace(in)
+	for err != nil || (in != "Y" && in != "N") {
+		in, err = reader.ReadString('\n')
+		in = strings.TrimSpace(in)
+	}
+	if in == "N" {
+		return
+	}
+
+	Info.Println("Please enter the user name : ")
+	username, _ := reader.ReadString('\n')
+	username = strings.TrimSpace(username)
+	for username == "" {
+		username, _ = reader.ReadString('\n')
+		username = strings.TrimSpace(username)
+	}
+
+	Info.Println("Please enter the password : ")
+	password, _ := reader.ReadString('\n')
+	password = strings.TrimSpace(password)
+	for password == "" {
+		password, _ = reader.ReadString('\n')
+		password = strings.TrimSpace(password)
+	}
+
+	err = RegisterUser(username, password, 3)
+	if err != nil {
+		Error.Println("Could not register user : ", err)
+		return
+	}
+
+	Info.Println("Registered user : ", username)
+
 }
 
 func initDb() {

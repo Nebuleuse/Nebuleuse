@@ -64,7 +64,14 @@ func GetSessionBySessionId(sessionid string) *UserSession {
 	}
 	return nil
 }
-
+func DisconnectUser(userid int) {
+	delete(connectedUsers, id)
+	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
+	_, err = stmt.Exec(userid)
+	if err != nil {
+		Error.Println("Could not delete user session :", err)
+	}
+}
 func CountOnlineUsers() int {
 	return len(connectedUsers)
 }
@@ -124,7 +131,7 @@ func CreateSession(username string, password string) (string, error) {
 func PurgeSessions() {
 	for id, sess := range connectedUsers {
 		delta := time.Since(sess.LastAlive).Minutes()
-		if delta > 3600 {
+		if delta > stmt.Exec(Cfg["sessionTimeout"]) {
 			delete(connectedUsers, id)
 		}
 	}

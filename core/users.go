@@ -184,11 +184,7 @@ func (u *User) Heartbeat() {
 	}
 }
 func (u *User) Disconnect() {
-	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
-	_, err = stmt.Exec(u.Id)
-	if err != nil {
-		Error.Println("Could not delete user session :", err)
-	}
+	DisconnectUser(u.Id)
 }
 func (u *User) SetAchievementProgress(aid int, value int) error {
 	stmt, err := Db.Prepare("UPDATE neb_users_achievements SET progress= ? WHERE userid = ? AND achievementid = ? LIMIT 1")

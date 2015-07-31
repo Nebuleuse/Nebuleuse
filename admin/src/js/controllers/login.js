@@ -17,7 +17,7 @@ function LoginCtrl($scope, $cookieStore, $http, $location) {
             $location.path('/');
         }).error(function (data, status, headers, config) {
             $scope.parseError(data, status);
-            $scope.addAlert("Impossible to login", 'error');
+            $scope.addAlert("Impossible to login", 'danger');
         });
     };
 }

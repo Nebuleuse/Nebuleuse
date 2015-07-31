@@ -32,7 +32,6 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
             })
             .state('users', {
                 url: '/users',
-                controller: 'UserListCtrl',
                 templateUrl: 'templates/usersList.html'
             })
             .state('user', {
@@ -84,7 +83,8 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
             })
             .state('config', {
                 url: '/config',
-                templateUrl: 'templates/wip.html'
+                controller: 'ConfigCtrl',
+                templateUrl: 'templates/config.html'
             });
     }
 ]);

@@ -22,10 +22,19 @@ func initConfig() error {
 
 	return err
 }
-func GetConfigInt(name string) int {
-	res, _ := strconv.Atoi(SysCfg["MaxSessionsChannelBuffer"])
+func GetSysConfigInt(name string) int {
+	res, _ := strconv.Atoi(SysCfg[name])
 	return res
 }
+func GetConfigInt(name string) int {
+	res, _ := strconv.Atoi(Cfg[name])
+	return res
+}
+func GetConfigFloat(name string) float64 {
+	res, _ := strconv.ParseFloat(Cfg[name], 64)
+	return res
+}
+
 func loadConfig() {
 	var (
 		name  string

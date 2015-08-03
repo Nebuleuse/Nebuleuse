@@ -31,6 +31,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/getLogs", userBySession(false, mustBeAdmin(getLogs))).Methods("POST")
 	//Users
 	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos)))).Methods("POST")
+	r.HandleFunc("/getOnlineUsersList", userBySession(false, mustBeAdmin(getOnlineUsersList))).Methods("POST")
 	//Achievements
 	r.HandleFunc("/getAchievements", userBySession(false, mustBeAdmin(getAchievements))).Methods("POST")
 	r.HandleFunc("/getAchievement", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"achievementid"}, getAchievement)))).Methods("POST")

@@ -221,18 +221,29 @@ func (u *User) SetStats(stats []UserStat) error {
 	}
 
 	for _, stat := range stats {
-		if stat.Name == "userid" {
-			Error.Println("Could not update user stats, userid present in stat list")
-			return &NebuleuseError{NebErrorLogin, "Could not update user stats, userid present in stat list"}
-		}
-		_, err := stmt.Exec(stat.Value, u.Id, stat.Name)
-		if err != nil {
-			Error.Println("Could not update user stats : ", err)
-			return err
+		if stat.Name != "userid" {
+			res, err := stmt.Exec(stat.Value, u.Id, stat.Name)
+			if err != nil {
+				Error.Println("Could not update user stats : ", err)
+				return err
+			}
+			rows, err := res.RowsAffected()
+			if err != nil {
+				Error.Println("Error getting rows affected : ", err)
+				return err
+			}
+			if rows == 0 {
+				_, err = Db.Exec("INSERT INTO neb_users_stats (userid, name, value) VALUES (?,?,?)", u.Id, stat.Name, stat.Value)
+				if err != nil {
+					Error.Println("Could not update user stats : ", err)
+					return err
+				}
+			}
 		}
 	}
 	return nil
 }
+
 func (u *User) SetComplexStats(stats []ComplexStat) error {
 	var count = 0
 	for _, stat := range stats {
@@ -286,8 +297,13 @@ func (u *User) SetComplexStats(stats []ComplexStat) error {
 		count++
 
 		if tableInfo.AutoCount { // Do we need to update the player stat associated ?
+			if len(u.Stats) == 0 {
+				u.PopulateStats()
+			}
+
 			var stt []UserStat
 			var st UserStat
+
 			for _, s := range u.Stats {
 				if s.Name == stat.Name {
 					st = s
@@ -296,6 +312,7 @@ func (u *User) SetComplexStats(stats []ComplexStat) error {
 			}
 			st.Value = st.Value + 1
 			stt = append(stt, st)
+
 			u.SetStats(stt)
 		}
 	}

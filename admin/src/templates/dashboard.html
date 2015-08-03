@@ -72,7 +72,7 @@
 			</rd-widget-body>
 		</rd-widget>
 	</div>
-	<div class="col-lg-6" ng-controller="UserListCtrl" online="true" changetitle="false">
+	<div class="col-lg-6" ng-controller="OnlineUserListCtrl" online="true" changetitle="false">
 		<rd-widget>
 			<rd-widget-header icon="fa-users" title="Users Online">
 				<input type="text" placeholder="Search" class="form-control input-sm" />
@@ -81,11 +81,11 @@
 				<div class="table-responsive">
 					<table class="table">
 						<thead>
-							<tr><th class="text-center">ID</th><th>Username</th><th>Rank</th></tr>
+							<tr><th class="text-center">ID</th><th>Last Alive</th><th>Session ID</th></tr>
 						</thead>
 						<tbody>
 							<tr ng-repeat="user in users">
-								<td class="text-center">{{user.Id}}</td><td>{{user.Username}}</td><td>{{user.Rank}}</td>
+								<td class="text-center">{{user.UserId}}</td><td>{{user.LastAlive}}</td><td>{{user.SessionId}}</td>
 							</tr>
 						</tbody>
 					</table>

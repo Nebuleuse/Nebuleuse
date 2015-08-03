@@ -49,7 +49,7 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, msg)
 	case <-session.TimedOut:
 		return
-	case <-time.After(time.Second * time.Duration(core.GetConfigInt("LongpollingTimeout"))):
+	case <-time.After(time.Second * time.Duration(core.GetSysConfigInt("LongpollingTimeout"))):
 		EasyResponse(w, core.NebErrorNone, "longpoll timedout")
 	}
 	session.LongPolling = false

@@ -39,7 +39,17 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 	user.Disconnect()
 	EasyResponse(w, core.NebErrorNone, "User disconnected")
 }
+func getOnlineUsersList(w http.ResponseWriter, r *http.Request) {
+	list := core.GetOnlineUsersList()
 
+	res, err := json.Marshal(list)
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		fmt.Fprint(w, string(res))
+	}
+}
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	smask := context.Get(r, "infomask").(string)
 	mask, err := strconv.ParseInt(smask, 10, 0)
@@ -56,7 +66,12 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := json.Marshal(user)
-	fmt.Fprint(w, string(res))
+	if err != nil {
+		core.Warning.Println("Could not encode status response")
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		fmt.Fprint(w, string(res))
+	}
 }
 
 func getUsersInfos(w http.ResponseWriter, r *http.Request) {

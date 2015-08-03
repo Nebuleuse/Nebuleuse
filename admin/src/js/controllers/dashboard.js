@@ -11,8 +11,8 @@ function DashboardCtrl($scope, $cookieStore, $http, $location) {
 	$http.post(APIURL + '/getDashboardInfos', {sessionid: $scope.Self.SessionId})
 	.success(function (data) {
 		$scope.infos = data;
-		console.log(data);
 	}).error(function (data) {
-		console.log(data);
+		$scope.parseError(data, status);
+		$scope.addAlert("Could not fetch dashboard infos!", "danger");
 	});
 }

@@ -91,7 +91,8 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         })
         .error(function (data, status) {
             $scope.parseError(data, status);
-            $scope.addAlert("Could not get new messages", "danger");
+            if($scope.isConnected)
+                $scope.addAlert("Could not get new messages", "danger");
             $scope.lostConnection = true;
         });
     }

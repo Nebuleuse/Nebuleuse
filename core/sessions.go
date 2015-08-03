@@ -20,6 +20,7 @@ type UserSession struct {
 var connectedUsers map[int]UserSession
 
 func initSessions() error {
+	PurgeSessions()
 	connectedUsers = make(map[int]UserSession)
 	rows, err := Db.Query("SELECT userid, lastAlive, sessionId FROM neb_sessions")
 	if err != nil {

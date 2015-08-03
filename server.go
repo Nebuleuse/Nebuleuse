@@ -16,9 +16,9 @@ func CreateServer() {
 }
 
 func SessionsPurgeTimer() {
-	core.PurgeSessions()
-
 	timer := time.NewTimer(time.Minute)
 	<-timer.C
+
+	core.PurgeSessions()
 	go SessionsPurgeTimer()
 }

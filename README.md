@@ -4,7 +4,7 @@ Nebuleuse is a REST-like API for game developpers to use to integrate Stats, Ach
 Further Information can be found on the **[Nebuleuse homepage][NebuleuseWeb]**  
 
 ##Clients
-Currently only one client exists for [C++] but contributers are welcome to start working on a port to your favorite language.  
+Currently only one client exists for [C++] but contributors are welcome to start working on a port to your favorite language.  
 
 ## Documentation & Quick start
 The Nebuleuse documentation is available on the [Nebuleuse doc page][doc] where you can find the full API documentation as well as a quick start guide.  

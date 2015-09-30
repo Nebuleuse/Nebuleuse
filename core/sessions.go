@@ -19,12 +19,13 @@ type UserSession struct {
 
 var connectedUsers map[int]UserSession
 
-func initSessions() error {
+func initSessions() {
 	PurgeSessions()
 	connectedUsers = make(map[int]UserSession)
 	rows, err := Db.Query("SELECT userid, lastAlive, sessionId FROM neb_sessions")
 	if err != nil {
-		return err
+		Error.Fatal("Could not create query to fetch sessions")
+		return
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -33,8 +34,8 @@ func initSessions() error {
 		var sessionId string
 		err := rows.Scan(&userid, &lastAlive, &sessionId)
 		if err != nil {
-			Error.Println("Could not read sessions from db: " + err.Error())
-			return err
+			Error.Fatal("Could not read sessions from db: " + err.Error())
+			return
 		}
 
 		var session UserSession
@@ -45,7 +46,7 @@ func initSessions() error {
 		session.UserId = userid
 		connectedUsers[userid] = session
 	}
-	return nil
+	return
 }
 func IsUserLongPolling(userid int) bool {
 	return connectedUsers[userid].LongPolling

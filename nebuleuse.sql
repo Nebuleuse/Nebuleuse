@@ -25,14 +25,16 @@ CREATE TABLE IF NOT EXISTS `neb_config` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 INSERT INTO `neb_config` (`name`, `value`) VALUES
-('maintenance', '0'),
-('maintenanceMessage', 'Main server is undergoing maintenance.'),
-('gameVersion', '1'),
-('sessionTimeout', '120'),
 ('gameName', ''),
+('gameVersion', '1'),
 ('updaterVersion', '1'),
+('sessionTimeout', '1800'),
 ('autoRegister', 'true'),
-('defaultAvatar', 'http://i.imgur.com/oyrwt3a.png');
+('defaultAvatar', 'http://i.imgur.com/oyrwt3a.png'),
+('currentCommit', '1ea7b265ac3c6318aaab112528b95dc4d4afb799'),
+('productionBranch', 'master'),
+('gitRepositoryPath', ''),
+('updateSystem', 'GitPatch');
 
 CREATE TABLE IF NOT EXISTS `neb_mirrors` (
 `id` smallint(5) unsigned NOT NULL,

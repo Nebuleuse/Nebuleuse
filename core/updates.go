@@ -25,9 +25,9 @@ func GetUpdateInfos(version int) (Update, error) {
 
 	return up, nil
 }
-func GetUpdatesInfos(start int, end int) ([]Update, error) {
+func GetUpdatesInfos(start int) ([]Update, error) {
 	var updates []Update
-	rows, err := Db.Query("SELECT version, log, size, date, commit FROM neb_updates WHERE version >= ? AND version <= ?", start, end)
+	rows, err := Db.Query("SELECT version, log, size, date, commit FROM neb_updates WHERE version >= ?", start)
 	if err != nil {
 		return updates, err
 	}
@@ -61,6 +61,10 @@ func PublishNewUpdate(info Update) {
 	//WIP
 	if Cfg["updateSystem"] == "GitPatch" {
 		GitPreparePatch()
+	} else if Cfg["updateSystem"] == "FullGit" {
+
+	} else if Cfg["updateSystem"] == "Manual" {
+		
 	}
 }
 func GetUpdateCount() int {

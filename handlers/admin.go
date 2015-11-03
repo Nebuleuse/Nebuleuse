@@ -20,12 +20,7 @@ func getDashboardInfos(w http.ResponseWriter, r *http.Request) {
 	dashRes.OnlineUsers = core.CountOnlineUsers()
 	dashRes.UserCount = core.GetUserCount()
 	dashRes.UpdateCount = core.GetUpdateCount()
-	res, err := json.Marshal(dashRes)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, dashRes)
 }
 
 func getAchievements(w http.ResponseWriter, r *http.Request) {
@@ -35,12 +30,7 @@ func getAchievements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(ach)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, ach)
 }
 func getAchievement(w http.ResponseWriter, r *http.Request) {
 	id := context.Get(r, "achievementid").(string)
@@ -56,12 +46,7 @@ func getAchievement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(ach)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, ach)
 }
 
 func setAchievement(w http.ResponseWriter, r *http.Request) {
@@ -97,12 +82,7 @@ func addAchievement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(value)
-	if err != nil {
-		EasyErrorResponse(w, core.NebError, err)
-		return
-	}
-	fmt.Fprint(w, string(res))
+	EasyDataResponse(w, value)
 }
 
 func deleteAchievement(w http.ResponseWriter, r *http.Request) {
@@ -134,12 +114,7 @@ func getUserStatsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(fields)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, fields)
 }
 
 func getStatTables(w http.ResponseWriter, r *http.Request) {
@@ -149,12 +124,7 @@ func getStatTables(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(fields)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, fields)
 }
 
 func getStatTable(w http.ResponseWriter, r *http.Request) {
@@ -166,12 +136,7 @@ func getStatTable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(table)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, table)
 }
 
 func addStatTable(w http.ResponseWriter, r *http.Request) {

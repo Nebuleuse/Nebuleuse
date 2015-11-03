@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"github.com/gorilla/context"
 	"net/http"
@@ -25,13 +24,7 @@ func connectUser(w http.ResponseWriter, r *http.Request) {
 
 	response := connectResponse{id}
 
-	res, err := json.Marshal(response)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-		EasyErrorResponse(w, core.NebError, err)
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, response)
 }
 
 func disconnectUser(w http.ResponseWriter, r *http.Request) {
@@ -42,13 +35,7 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 func getOnlineUsersList(w http.ResponseWriter, r *http.Request) {
 	list := core.GetOnlineUsersList()
 
-	res, err := json.Marshal(list)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-		EasyErrorResponse(w, core.NebError, err)
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, list)
 }
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	smask := context.Get(r, "infomask").(string)
@@ -65,13 +52,7 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(user)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-		EasyErrorResponse(w, core.NebError, err)
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, user)
 }
 
 func getUsersInfos(w http.ResponseWriter, r *http.Request) {
@@ -95,14 +76,7 @@ func getUsersInfos(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal(users)
-	if err != nil {
-		EasyErrorResponse(w, core.NebError, err)
-		core.Warning.Println("Unable to marshal users info")
-		return
-	}
-
-	fmt.Fprint(w, string(res))
+	EasyDataResponse(w, users)
 }
 
 type setAchievementsRequest struct {

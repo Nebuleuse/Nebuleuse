@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func initConfig() error {
+func initConfig() {
 	var err error
 	Cfg = make(map[string]string)
 	SysCfg = make(map[string]string)
@@ -17,14 +17,15 @@ func initConfig() error {
 	}
 	configs, err := c.Options("default")
 	if err != nil {
-		return err
+		Error.Fatal("Could not read values from config file")
+		return
 	}
 
 	for _, value := range configs {
 		SysCfg[value], err = c.String("default", value)
 	}
 
-	return err
+	return
 }
 func GetSysConfigInt(name string) int {
 	res, _ := strconv.Atoi(SysCfg[name])

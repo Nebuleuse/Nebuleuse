@@ -45,6 +45,8 @@ func RegisterHandlers() {
 	r.HandleFunc("/addStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"data"}, addStatTable)))).Methods("POST")
 	r.HandleFunc("/deleteStatTable", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name"}, deleteStatTable)))).Methods("POST")
 	r.HandleFunc("/setUsersStatFields", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"fields"}, setUsersStatFields)))).Methods("POST")
+	//Updates
+	r.HandleFunc("/getUpdateList", verifyFormValuesExist([]string{"version"}, getUpdateList))
 
 	http.Handle("/", r)
 }
@@ -71,6 +73,15 @@ func EasyResponse(w http.ResponseWriter, code int, message string) {
 	}
 
 	fmt.Fprint(w, string(res))
+}
+func EasyDataResponse(w http.ResponseWriter, data interface{}) {
+	res, err := json.Marshal(data)
+	if err != nil {
+		core.Warning.Println("Could not encode data response", data)
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		fmt.Fprint(w, string(res))
+	}
 }
 func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 	v, ok := err.(core.NebuleuseError)
@@ -121,11 +132,5 @@ func status(w http.ResponseWriter, r *http.Request) {
 		response.Maintenance = true
 	}
 
-	res, err := json.Marshal(response)
-	if err != nil {
-		core.Warning.Println("Could not encode status response")
-		EasyErrorResponse(w, core.NebError, err)
-	} else {
-		fmt.Fprint(w, string(res))
-	}
+	EasyDataResponse(w, response)
 }

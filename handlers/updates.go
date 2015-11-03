@@ -2,18 +2,20 @@ package handlers
 
 import (
 	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/gorilla/context"
 	"net/http"
 )
 
-type getUpdateListRequest struct {
-	Version int
-}
-
 func getUpdateList(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-	if r.PostForm["sessionid"] == nil || r.PostForm["data"] == nil {
-		EasyResponse(w, core.NebError, "Missing sessionid or data")
-		return
+	version := context.Get(r, "version").(int)
+
+	list, err := core.GetUpdatesInfos(version)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyDataResponse(w, list)
 	}
-	//user, err := core.GetUserBySession(r.PostForm["sessionid"][0], core.UserMaskOnlyId)
+}
+func addUpdate(w http.ResponseWriter, r *http.Request) {
+	
 }

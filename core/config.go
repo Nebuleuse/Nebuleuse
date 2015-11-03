@@ -11,6 +11,10 @@ func initConfig() error {
 	SysCfg = make(map[string]string)
 
 	c, err := config.ReadDefault(".config")
+	if err != nil {
+		Error.Fatal("Could not open config file. Please run 'nebuleuse install' to generate one")
+		return err
+	}
 	configs, err := c.Options("default")
 	if err != nil {
 		return err

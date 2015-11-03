@@ -30,9 +30,10 @@ INSERT INTO `neb_config` (`name`, `value`) VALUES
 ('sessionTimeout', '1800'),
 ('autoRegister', 'true'),
 ('defaultAvatar', 'http://i.imgur.com/oyrwt3a.png'),
-('latestCommit', '1ea7b265ac3c6318aaab112528b95dc4d4afb799'),
+('currentCommit', '1ea7b265ac3c6318aaab112528b95dc4d4afb799'),
+('currentVersion', '1'),
 ('productionBranch', 'master'),
-('gitPath', ''),
+('gitRepositoryPath', ''),
 ('updateSystem', 'GitPatch');
 
 CREATE TABLE IF NOT EXISTS `neb_mirrors` (

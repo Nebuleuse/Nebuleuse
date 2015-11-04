@@ -51,7 +51,7 @@ func Init() {
 
 	//Todo: if update system is Git
 	if Cfg["updateSystem"] == "GitPatch" || Cfg["updateSystem"] == "FullGit" {
-		InitGitUpdater(SysCfg["gitPath"])
+		initGit()
 	}
 }
 func Die() {

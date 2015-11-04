@@ -1,0 +1,25 @@
+<div class="row col-lg-12">
+<rd-widget>
+    <rd-widget-header icon="fa-tasks" title="Updates">
+		<a href="" ng-click="addUpdate()">Add</a>
+    </rd-widget-header>
+    <rd-widget-body classes="no-padding">
+		<div class="table-responsive">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr><th width="128">Version</th><th width="139">Semantic version</th><th width="64">Size</th><th width="128">Date</th><th>Log</th></tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="update in updates">
+					<td>{{update.Version}}</td>
+					<td>{{update.SemVer}}</td>
+					<td>{{update.Size}}</td>
+					<td>{{update.Date}}</td>
+					<td>{{update.Log}}</td>
+				</tr>
+			</tbody>
+		 </table>
+		</div>
+	</rd-widget-body>
+</rd-widget>
+</div>

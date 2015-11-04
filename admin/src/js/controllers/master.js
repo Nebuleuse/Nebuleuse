@@ -106,6 +106,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
                         {name: "Users", icon: "fa-users", link:"users"},
                         {name: "Achievements", icon: "fa-trophy", link:"achievements"},
                         {name: "Stats", icon: "fa-pie-chart", link:"stats"},
+                        {name: "Updates", icon: "fa-folder-open", link:"updates"},
                         {name: "Matchmaking", icon: "fa-globe", link:"matchmaking"},
                         {name: "Servers", icon: "fa-server", link:"servers"},
                         {name: "Items", icon: "fa-sitemap", link:"items"}];

@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-func initConfig() {
+func initConfig() error {
 	var err error
 	Cfg = make(map[string]string)
 	SysCfg = make(map[string]string)
@@ -18,14 +18,14 @@ func initConfig() {
 	configs, err := c.Options("default")
 	if err != nil {
 		Error.Fatal("Could not read values from config file")
-		return
+		return err
 	}
 
 	for _, value := range configs {
 		SysCfg[value], err = c.String("default", value)
 	}
 
-	return
+	return nil
 }
 func GetSysConfigInt(name string) int {
 	res, _ := strconv.Atoi(SysCfg[name])
@@ -72,6 +72,7 @@ func loadConfig() {
 func (c *ConfigMgr) SetConfig(name, value string) error {
 	_, err := Db.Query("UPDATE neb_config SET value=? WHERE name=?", value, name)
 	if err != nil {
+		Error.Println("Failed to update config : ", value, name)
 		return err
 	}
 	(*c)[name] = value

@@ -28,6 +28,15 @@ func StopListen(name string, userid int) {
 		delete(messagePipeline, name)
 	}
 }
+func UserStopListen(userid int) {
+	for pipeName, pipe := range messagePipeline {
+		for _, id := range pipe {
+			if id == userid {
+				StopListen(pipeName, userid)
+			}
+		}
+	}
+}
 func Dispatch(name string, message interface{}) {
 	var msg messageData
 	msg.Channel = name

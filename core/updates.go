@@ -2,20 +2,23 @@ package core
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Update struct {
 	Version int
+	SemVer  string
 	Log     string
 	Size    int
-	Date    int
+	Url     string
+	Date    time.Time
 	Commit  string
 }
 
 func GetUpdateInfos(version int) (Update, error) {
 	var up Update
 
-	err := Db.QueryRow("SELECT version, log, size, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.Version, &up.Log, &up.Size, &up.Date, &up.Commit)
+	err := Db.QueryRow("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.Version, &up.SemVer, &up.Log, &up.Size, &up.Url, &up.Date, &up.Commit)
 
 	if err != nil && err == sql.ErrNoRows {
 		return up, &NebuleuseError{NebError, "No update found"}
@@ -25,9 +28,10 @@ func GetUpdateInfos(version int) (Update, error) {
 
 	return up, nil
 }
+
 func GetUpdatesInfos(start int) ([]Update, error) {
 	var updates []Update
-	rows, err := Db.Query("SELECT version, log, size, date, commit FROM neb_updates WHERE version >= ?", start)
+	rows, err := Db.Query("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version >= ?", start)
 	if err != nil {
 		return updates, err
 	}
@@ -35,7 +39,7 @@ func GetUpdatesInfos(start int) ([]Update, error) {
 
 	for rows.Next() {
 		var update Update
-		err := rows.Scan(&update.Version, &update.Log, &update.Size, &update.Date, &update.Commit)
+		err := rows.Scan(&update.Version, &update.SemVer, &update.Log, &update.Size, &update.Url, &update.Date, &update.Commit)
 		if err != nil {
 			Warning.Println("Could not get update infos :", err)
 			return updates, err
@@ -51,22 +55,47 @@ func GetUpdatesInfos(start int) ([]Update, error) {
 
 	return updates, nil
 }
+
 func SetActiveUpdate(version int) {
 	//Todo
 }
-func AddUpdate(info Update) {
-	Db.Query("INSERT INTO neb_updates VALUES(?,?,?,?,?)", info.Version, info.Log, info.Size, info.Date, info.Commit)
-}
-func PublishNewUpdate(info Update) {
-	//WIP
-	if Cfg["updateSystem"] == "GitPatch" {
-		GitPreparePatch()
-	} else if Cfg["updateSystem"] == "FullGit" {
 
+func AddUpdate(info Update) error {
+	if Cfg["updateSystem"] == "GitPatch" {
+		return createGitPatch(info)
+	} else if Cfg["updateSystem"] == "FullGit" {
+		return addFullGitPatch(info)
 	} else if Cfg["updateSystem"] == "Manual" {
-		
+
 	}
+	return nil
 }
+
+//Assumes update selected to create patch from is forward in history tree
+func createGitPatch(info Update) error {
+	gitCreatePatch(info.Commit)
+	return nil
+}
+
+func addFullGitPatch(info Update) error {
+	_, err := Db.Exec("INSERT INTO neb_updates VALUES(?,?,?,?,?,NOW(),?)", info.Version, info.SemVer, info.Log, info.Size, info.Url, info.Commit)
+	if err != nil {
+		Error.Println("Failed to insert update : ", info)
+		return err
+	}
+
+	err = Cfg.SetConfig("currentCommit", info.Commit)
+	if err != nil {
+		return err
+	}
+	SignalGameUpdated()
+	return nil
+}
+
+func SignalGameUpdated() {
+	Dispatch("system", "game update released")
+}
+
 func GetUpdateCount() int {
 	var count int
 	err := Db.QueryRow("SELECT COUNT(*) FROM neb_updates").Scan(&count)

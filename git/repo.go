@@ -71,3 +71,8 @@ func (r *Repository) GetFilesChangedSinceUpdate(branch, latestCommit string) (*D
 
 	return res, err
 }
+func (r *Repository) GetFilesChangedSinceUpdateRange(branch, start, end string) (*Diff, error) {
+	res, err := r.GetDiffRange(start, end)
+
+	return res, err
+}

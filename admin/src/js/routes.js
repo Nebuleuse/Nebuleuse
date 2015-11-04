@@ -32,43 +32,49 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
             })
             .state('users', {
                 url: '/users',
-                templateUrl: 'templates/usersList.html'
+                templateUrl: 'templates/users/usersList.html'
             })
             .state('user', {
                 url: '/user/:userId',
                 controller: 'UserCtrl',
-                templateUrl: 'templates/user.html'
+                templateUrl: 'templates/users/user.html'
             })
             .state('achievements', {
                 url: '/achievements',
                 controller: 'AchievementsCtrl',
-                templateUrl: 'templates/achievementsList.html'
+                templateUrl: 'templates/achievements/achievementsList.html'
             })
             .state('achievementEdit', {
                 url: '/achievementEdit/:achievementId',
                 controller: 'AchievementCtrl',
-                templateUrl: 'templates/achievementEdit.html'
+                templateUrl: 'templates/achievements/achievementEdit.html'
             })
             .state('achievementAdd', {
                 url: '/achievementAdd',
                 controller: 'AchievementCtrl',
-                templateUrl: 'templates/achievementEdit.html'
+                templateUrl: 'templates/achievements/achievementEdit.html'
             })
             .state('stats', {
                 url: '/stats',
                 controller: 'StatsCtrl',
-                templateUrl: 'templates/statsList.html'
+                templateUrl: 'templates/stats/statsList.html'
             })
             .state('statTableEdit', {
                 url: '/statTableEdit/:statName',
                 controller: 'StatTableEditCtrl',
-                templateUrl: 'templates/statsEdit.html'
+                templateUrl: 'templates/sstats/tatsEdit.html'
             })
             .state('statTableAdd', {
                 url: '/statTableAdd',
                 controller: 'StatTableEditCtrl',
-                templateUrl: 'templates/statsEdit.html'
+                templateUrl: 'templates/stats/statsEdit.html'
             })
+            .state('updates', {
+                url: '/updates',
+                controller: 'UpdatesCtrl',
+                templateUrl: 'templates/updates/updatesList.html'
+            })
+
             .state('matchmaking', {
                 url: '/matchmaking',
                 templateUrl: 'templates/wip.html'

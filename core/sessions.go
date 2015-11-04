@@ -68,6 +68,7 @@ func GetSessionBySessionId(sessionid string) *UserSession {
 }
 func DisconnectUser(userid int) {
 	delete(connectedUsers, userid)
+	UserStopListen(userid)
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
 	if err != nil {
 		Error.Println("Could not prepare statement: ", err)
@@ -144,6 +145,8 @@ func CreateSession(username string, password string) (string, error) {
 	session.LongPolling = false
 	session.UserId = id
 	connectedUsers[id] = session
+
+	Listen("system", id)
 
 	return sessionid, nil
 }

@@ -10,7 +10,7 @@
 				<tr><th width="128">Version</th><th width="139">Semantic version</th><th width="64">Size</th><th width="128">Date</th><th>Log</th></tr>
 			</thead>
 			<tbody>
-				<tr ng-repeat="update in updates">
+				<tr ng-repeat="update in list.Updates">
 					<td>{{update.Version}}</td>
 					<td>{{update.SemVer}}</td>
 					<td>{{update.Size}}</td>
@@ -20,6 +20,7 @@
 			</tbody>
 		 </table>
 		</div>
+		<canvas update-list="list"></canvas>
 	</rd-widget-body>
 </rd-widget>
 </div>

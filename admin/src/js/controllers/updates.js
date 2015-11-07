@@ -5,11 +5,11 @@ function UpdatesCtrl($scope, $http, $modal) {
 	$scope.setPageTitle("Achievements list");
 	if(!$scope.checkAccess())
 		return;
-	$scope.updates = [];
+	$scope.list = [];
 
-	$http.post(APIURL + '/getUpdateGraphList', {sessionid: $scope.Self.SessionId})
+	$http.post(APIURL + '/getUpdateListWithGit', {sessionid: $scope.Self.SessionId})
 		.success(function (data) {
-			$scope.updates = data.Updates;
+			$scope.list = data;
 		}).error(function (data, status) {
 			$scope.parseError(data, status);
 			$scope.addAlert("Could not fetch updates infos!", "danger");

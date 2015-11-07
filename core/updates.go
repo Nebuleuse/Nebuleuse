@@ -60,6 +60,14 @@ func SetActiveUpdate(version int) {
 	//Todo
 }
 
+func UpdateGitCommitCache() error {
+	return gitUpdateCommitCache()
+}
+
+func GetGitCommitList() ([]Commit, error) {
+	return gitGetLatestCommitsCached(Cfg["currentCommit"], 5)
+}
+
 func AddUpdate(info Update) error {
 	if Cfg["updateSystem"] == "GitPatch" {
 		return createGitPatch(info)

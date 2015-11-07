@@ -20,18 +20,26 @@ func getUpdateList(w http.ResponseWriter, r *http.Request) {
 
 type getupdateGraphListResponse struct {
 	Updates []core.Update
+	Commits []core.Commit
 }
 
-func getUpdateGraphList(w http.ResponseWriter, r *http.Request) {
+func getUpdateListWithGit(w http.ResponseWriter, r *http.Request) {
 	list, err := core.GetUpdatesInfos(0)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 	} else {
+		commits, err := core.GetGitCommitList()
+		if err != nil {
+			EasyErrorResponse(w, core.NebError, err)
+		}
 		var response getupdateGraphListResponse
 		response.Updates = list
+		response.Commits = commits
 		EasyDataResponse(w, response)
 	}
+
 }
+
 func addUpdate(w http.ResponseWriter, r *http.Request) {
 	data := context.Get(r, "data").([]byte)
 
@@ -41,4 +49,8 @@ func addUpdate(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 	}
 	err = core.AddUpdate(request)
+}
+
+func updateGitCommitCacheList(w http.ResponseWriter, r *http.Request) {
+
 }

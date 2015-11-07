@@ -9,7 +9,9 @@ import (
 
 type middleWare func(http.ResponseWriter, *http.Request)
 
-//Populates the context with the user struct using the request sessionId
+// Populates the context with the user struct using the request sessionId
+// If allowTarget is true, this means this action can be called on other users.
+// Used to get other users stats and such
 func userBySession(allowTarget bool, next middleWare) middleWare {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("sessionid") == "" {

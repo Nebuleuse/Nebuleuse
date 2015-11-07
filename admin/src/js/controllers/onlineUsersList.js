@@ -13,7 +13,6 @@ function OnlineUserListCtrl($scope, $http, $attrs) {
 
 	$http.post(APIURL + '/getOnlineUsersList', {sessionid: $scope.Self.SessionId})
 	.success(function (data) {
-		console.log(data);
 		$scope.users = data;
 	}).error(function (data, status) {
 		$scope.parseError(data, status);

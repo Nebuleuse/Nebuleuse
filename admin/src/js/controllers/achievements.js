@@ -1,5 +1,5 @@
 angular.module('RDash')
-	.controller('AchievementsCtrl', ['$scope', '$http','$modal', AchievementsCtrl]);
+	.controller('AchievementsCtrl', ['$scope', '$http','$uibModal', AchievementsCtrl]);
 
 function AchievementsCtrl($scope, $http, $modal) {
 	$scope.setPageTitle("Achievements list");

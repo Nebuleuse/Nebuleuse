@@ -20,10 +20,10 @@
         "tests"
     ],
     "dependencies": {
-        "angular": "~1.2.21",
-        "angular-cookies": "~1.2.21",
-        "angular-bootstrap": "~0.12.1",
-        "angular-ui-router": "^0.2.10",
+        "angular": "~1.4.7",
+        "angular-cookies": "~1.4.7",
+        "angular-bootstrap": "~0.14.3",
+        "angular-ui-router": "^0.2.15",
         "bootstrap": "~3.2.0",
         "font-awesome": "~4.3.0"
     },

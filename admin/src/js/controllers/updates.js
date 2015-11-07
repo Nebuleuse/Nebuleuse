@@ -1,8 +1,8 @@
 angular.module('RDash')
-	.controller('UpdatesCtrl', ['$scope', '$http','$modal', UpdatesCtrl]);
+	.controller('UpdatesCtrl', ['$scope', '$http','$uibModal', UpdatesCtrl]);
 
-function UpdatesCtrl($scope, $http, $modal) {
-	$scope.setPageTitle("Achievements list");
+function UpdatesCtrl($scope, $http, $uibModal) {
+	$scope.setPageTitle("Update list");
 	if(!$scope.checkAccess())
 		return;
 	$scope.list = [];

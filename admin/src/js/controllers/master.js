@@ -90,6 +90,8 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             $scope.getMessages();
         })
         .error(function (data, status) {
+            if (status === -1)
+                return;
             $scope.parseError(data, status);
             if($scope.isConnected)
                 $scope.addAlert("Could not get new messages", "danger");

@@ -1,5 +1,5 @@
 angular.module('RDash')
-	.controller('StatsCtrl', ['$scope', '$http','$modal', statsCtrl]);
+	.controller('StatsCtrl', ['$scope', '$http','$uibModal', statsCtrl]);
 
 function statsCtrl($scope, $http, $modal) {
 	$scope.setPageTitle("Stat tables list");

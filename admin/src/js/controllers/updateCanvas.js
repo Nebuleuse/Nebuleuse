@@ -2,9 +2,9 @@ angular.module('RDash')
 .directive("updateList", function(){
   return {
     restrict: "A",
-    scope: {
-      list: '=updateList'
-    },
+    /*scope: {
+      updateList: '='
+    },*/
     link: function(scope, element, attrs){
       var ctx = element[0].getContext('2d');
 
@@ -12,11 +12,12 @@ angular.module('RDash')
         draw(0, 10, element[0].width, 10)
       }
 
-      scope.$watch(scope.list, function(value) {
+      scope.$watch(scope.list, function(value, old) {
         console.dir(value)
+        console.dir(old)
         updateCanvas(value)
       });
-        console.dir(scope.list)
+      console.dir(scope.list)
         console.dir(scope)
 
       element.bind('mousedown', function(event){

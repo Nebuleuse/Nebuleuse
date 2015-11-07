@@ -1,5 +1,5 @@
 angular.module('RDash')
-	.controller('StatTableEditCtrl', ['$scope', '$http', '$modal', '$location', '$stateParams', StatTableEditCtrl]);
+	.controller('StatTableEditCtrl', ['$scope', '$http', '$uibModal', '$location', '$stateParams', StatTableEditCtrl]);
 
 function StatTableEditCtrl($scope, $http, $modal, $location, $stateParams) {
 	$scope.getStatTable = function () {

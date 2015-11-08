@@ -22,6 +22,7 @@ func initGit() error {
 
 func gitUpdateCommitCache() error {
 	gitUpdateRepo()
+	Info.Println("Updating commit cache")
 
 	if len(commitCache) == 0 {
 		cache, err := gitGetCommits("")
@@ -46,8 +47,8 @@ func gitUpdateCommitCache() error {
 }
 
 func gitUpdateRepo() {
-	Info.Println("Updating git repository…")
 	gitRepo.UpdateGitRepo(Cfg["productionBranch"])
+	Info.Println("Updated git repository")
 }
 
 type Commit struct {
@@ -66,6 +67,21 @@ type Diff struct {
 	IsCreated          bool
 	IsDeleted          bool
 	IsBin              bool
+}
+
+func gitGetDiffs(commits []Commit) []Diff {
+	var diffs []Diff
+	found := make(map[string]bool)
+
+	for _, commit := range commits {
+		for _, diff := range commit.Diff {
+			if !found[diff.Name] {
+				found[diff.Name] = true
+				diffs = append(diffs, diff)
+			}
+		}
+	}
+	return diffs
 }
 
 func gitGetCommits(commit string) ([]Commit, error) {
@@ -120,6 +136,7 @@ func gitGetCommits(commit string) ([]Commit, error) {
 	return Commits, err
 }
 
+//Get latest commits with no duplicates
 func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 	if len(commitCache) == 0 {
 		return commitCache, nil
@@ -136,7 +153,9 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 		}
 		endPos++
 	}
-	return commitCache[0:endPos], nil
+	ret := make([]Commit, endPos)
+	copy(ret, commitCache[0:endPos])
+	return ret, nil
 }
 
 func gitCreatePatch(commit string) {

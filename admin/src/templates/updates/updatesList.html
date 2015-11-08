@@ -20,6 +20,21 @@
 			</tbody>
 		 </table>
 		</div>
+		<div class="table-responsive">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr><th width="64">Id</th><th width="139">Commiter</th><th width="64">Message</th><th width="128">File Changed</th></tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="commit in list.Commits">
+					<td width="64">{{commit.Id}}</td>
+					<td>{{commit.Committer}}</td>
+					<td>{{commit.Message}}</td>
+					<td>{{commit.Diff.length}}</td>
+				</tr>
+			</tbody>
+		 </table>
+		</div>
 	</rd-widget-body>
 </rd-widget>
 </div>

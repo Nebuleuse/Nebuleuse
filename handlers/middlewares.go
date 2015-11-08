@@ -62,6 +62,23 @@ func verifyFormValuesExist(vals []string, next middleWare) middleWare {
 	}
 }
 
+// Allow boolean switch not to be included in request
+func optionalSwitchs(vals []string, next middleWare) middleWare {
+	return func(w http.ResponseWriter, r *http.Request) {
+		for _, val := range vals {
+			formValues := r.Form[val]
+			if len(formValues) == 0 {
+				context.Set(r, val, false)
+			} else if formValues[0] == "true" {
+				context.Set(r, val, true)
+			} else {
+				context.Set(r, val, false)
+			}
+		}
+		next(w, r)
+	}
+}
+
 // Verifies context's requester rank for auth level
 func mustBeAdmin(next middleWare) middleWare {
 	return authRank(2, next)

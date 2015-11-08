@@ -7,8 +7,9 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		return;
 	$scope.list = [];
 
-	$http.post(APIURL + '/getUpdateListWithGit', {sessionid: $scope.Self.SessionId})
+	$http.post(APIURL + '/getUpdateListWithGit', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {
+			console.dir(data)
 			$scope.list = data;
 		}).error(function (data, status) {
 			$scope.parseError(data, status);

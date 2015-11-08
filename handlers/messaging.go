@@ -46,6 +46,7 @@ func getMessages(w http.ResponseWriter, r *http.Request) {
 	session.Heartbeat()
 	select {
 	case msg := <-session.Messages:
+		core.Info.Println(msg)
 		fmt.Fprint(w, msg)
 	case <-session.TimedOut:
 		return

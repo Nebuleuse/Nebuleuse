@@ -24,6 +24,8 @@ type getupdateGraphListResponse struct {
 }
 
 func getUpdateListWithGit(w http.ResponseWriter, r *http.Request) {
+	withDiffs := context.Get(r, "diffs").(bool)
+
 	list, err := core.GetUpdatesInfos(0)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
@@ -35,6 +37,12 @@ func getUpdateListWithGit(w http.ResponseWriter, r *http.Request) {
 		var response getupdateGraphListResponse
 		response.Updates = list
 		response.Commits = commits
+		if !withDiffs {
+			for i, _ := range response.Commits {
+				response.Commits[i].Diff = nil
+			}
+		}
+
 		EasyDataResponse(w, response)
 	}
 

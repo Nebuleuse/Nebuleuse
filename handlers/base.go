@@ -32,6 +32,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/setUserAchievements", userBySession(false, verifyFormValuesExist([]string{"data"}, setUserAchievements))).Methods("POST")
 	r.HandleFunc("/setUserStats", userBySession(false, verifyFormValuesExist([]string{"data"}, setUserStats))).Methods("POST")
 	r.HandleFunc("/addComplexStats", userBySession(false, verifyFormValuesExist([]string{"data"}, addComplexStats))).Methods("POST")
+
 	//Users
 	r.HandleFunc("/getUsersInfos", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"infomask", "page"}, getUsersInfos)))).Methods("POST")
 	r.HandleFunc("/getOnlineUsersList", userBySession(false, mustBeAdmin(getOnlineUsersList))).Methods("POST")
@@ -53,8 +54,8 @@ func RegisterHandlers() {
 
 	//Updates
 	r.HandleFunc("/getUpdateList", verifyFormValuesExist([]string{"version"}, getUpdateList)).Methods("POST")
-	r.HandleFunc("/getUpdateListWithGit", userBySession(false, mustBeAdmin(getUpdateListWithGit))).Methods("POST")
-	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(updateGitCommitCacheList))).Methods("POST")
+	r.HandleFunc("/getUpdateListWithGit", userBySession(false, mustBeAdmin(optionalSwitchs([]string{"diffs"}, getUpdateListWithGit)))).Methods("POST")
+	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"version"}, updateGitCommitCacheList)))).Methods("POST")
 
 	http.Handle("/", r)
 }

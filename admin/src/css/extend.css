@@ -6,3 +6,127 @@
 [ng-click], [data-ng-click], [x-ng-click] {
     cursor: pointer;
 }
+#timeline {
+  list-style: none;
+  margin: 80px 0 0;
+  padding: 0;
+  border-top: 8px solid #2D3E63;
+  display: table;
+  border-spacing: 30px 0;
+}
+#timeline li {
+  display: table-cell;
+}
+#timeline li .relative {
+  position: relative;
+}
+#timeline p {
+  margin: 0 0 15px;
+}
+
+.date {
+  text-align: center;
+  top: -55px;
+  left: 0;
+  right: 0;
+  font-size: 0.95em;
+  line-height: 20px;
+  position: absolute;
+  max-height: 40px;
+  overflow: hidden;
+}
+
+.circle {
+  margin: 0 auto;
+  top: -14px;
+  left: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: #2D3E63;
+  border: 5px solid #C6C6C6;
+  border-radius: 50%;
+  display: block;
+  position: absolute;
+}
+
+.content {
+  width: 128px;
+  max-height: 0;
+  margin-top: 40px;
+  vertical-align: top;
+  padding: 50px 15px 15px;
+  transition: width 0.4s linear, max-height 0.4s linear;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 0.5em;
+  position: relative;
+}
+.content:before, .content:after {
+  content: "";
+  width: 0;
+  height: 0;
+  border: solid transparent;
+  position: absolute;
+  pointer-events: none;
+  bottom: 100%;
+}
+.content:before {
+  border-bottom-color: inherit;
+  border-width: 15px;
+  left: 50%;
+  margin-left: -15px;
+}
+.content:after {
+  border-bottom-color: white;
+  border-width: 12px;
+  left: 50%;
+  margin-left: -12px;
+}
+.content p {
+  max-height: 0;
+  color: transparent;
+  text-align: justify;
+  word-break: break-word;
+  hyphens: auto;
+  overflow: hidden;
+}
+
+
+.work label {
+  font-size: 0.9em;
+  position: absolute;
+  z-index: 100;
+  cursor: pointer;
+  width: 100px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  display: block;
+  top: 60px;
+  left: 15px;
+}
+
+.radio {
+  display: none;
+}
+
+.radio:checked + .relative label {
+  cursor: auto;
+  font-size: 0.9em;
+  width: 320px;
+  transition: width 0.3s linear 0.2s;
+}
+.radio:checked + .relative .circle {
+  background: red;
+}
+.radio:checked ~ .content {
+  max-height: 300px;
+  border-color: black;
+  width: 350px;
+}
+.radio:checked ~ .content p {
+  max-height: 200px;
+  color: #2D3E63;
+  transition: color 0.3s linear 0.3s;
+}

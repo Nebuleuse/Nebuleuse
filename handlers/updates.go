@@ -19,8 +19,9 @@ func getUpdateList(w http.ResponseWriter, r *http.Request) {
 }
 
 type getupdateGraphListResponse struct {
-	Updates []core.Update
-	Commits []core.Commit
+	Updates       []core.Update
+	Commits       []core.Commit
+	CurrentCommit string
 }
 
 func getUpdateListWithGit(w http.ResponseWriter, r *http.Request) {
@@ -36,9 +37,11 @@ func getUpdateListWithGit(w http.ResponseWriter, r *http.Request) {
 		}
 		var response getupdateGraphListResponse
 		response.Updates = list
+		response.CurrentCommit = core.GetCurrentCommit()
 		response.Commits = commits
 		if !withDiffs {
 			for i, _ := range response.Commits {
+				core.Info.Println(response.Commits[i].Message)
 				response.Commits[i].Diff = nil
 			}
 		}

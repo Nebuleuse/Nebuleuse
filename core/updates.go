@@ -64,6 +64,10 @@ func UpdateGitCommitCache() error {
 	return gitUpdateCommitCache()
 }
 
+func GetCurrentCommit() string {
+	return Cfg["currentCommit"]
+}
+
 func GetGitCommitList() ([]Commit, error) {
 	return gitGetLatestCommitsCached(Cfg["currentCommit"], 5)
 }

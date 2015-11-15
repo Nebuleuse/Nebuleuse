@@ -122,10 +122,11 @@ func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 }
 
 type statusResponse struct {
-	Maintenance       bool
 	NebuleuseVersion  int
 	GameVersion       int
+	GameSemVer		  string
 	UpdaterVersion    int
+	UpdateSystem	  string
 	ComplexStatsTable []core.ComplexStatTableInfo
 }
 
@@ -135,11 +136,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
-	response := statusResponse{false, core.NebuleuseVersion, core.GetGameVersion(), core.GetUpdaterVersion(), CStatsInfos}
-
-	if core.Cfg["maintenance"] != "0" {
-		response.Maintenance = true
-	}
+	response := statusResponse{core.NebuleuseVersion, core.GetGameVersion(), core.GetGameSemVer(), core.GetUpdaterVersion(), core.GetUpdateSystem(), CStatsInfos}
 
 	EasyDataResponse(w, response)
 }

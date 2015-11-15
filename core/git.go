@@ -160,7 +160,7 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 
 func gitCreatePatch(commit string) {
 	gitUpdateRepo()
-	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(Cfg["productionBranch"], Cfg["currentCommit"], commit)
+	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(GetProductionBranch(), GetCurrentCommit(), commit)
 
 	Info.Println(diff)
 }

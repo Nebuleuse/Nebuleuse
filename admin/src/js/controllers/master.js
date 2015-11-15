@@ -90,7 +90,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             $scope.getMessages();
         })
         .error(function (data, status) {
-            if (status === -1)
+            if (status === -1) // connection error results in -1
                 return;
             $scope.parseError(data, status);
             if($scope.isConnected)
@@ -116,14 +116,25 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     $scope.isConnected = false;
     $scope.lostConnection = false;
     $scope.Self = {};
+    $scope.Nebuleuse = {};
     
-    if(angular.isDefined($cookieStore.get('sessionId'))){
-        $scope.Self.SessionId = $cookieStore.get('sessionId');
-        $scope.getUserInfos();
-        $scope.getMessages();
-    } else if ($location.path() != '/login') {
-        $scope.setConnected(false);
-    }
+    $http.get(APIURL + '/status')
+        .success(function (data) {
+            console.log(data)
+            $scope.Nebuleuse = data;
+            if(angular.isDefined($cookieStore.get('sessionId'))){
+                $scope.Self.SessionId = $cookieStore.get('sessionId');
+                $scope.getUserInfos();
+                $scope.getMessages();
+            } else if ($location.path() != '/login') {
+                $scope.setConnected(false);
+            }
+        }).error(function (data, status) {
+            if (status === -1)
+                return;
+            $scope.parseError(data, status);
+            $scope.addAlert("Could not get server status", "danger");
+        })
     
 
     $scope.logout = function () {

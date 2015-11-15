@@ -68,8 +68,16 @@ func GetCurrentCommit() string {
 	return Cfg["currentCommit"]
 }
 
+func GetUpdateSystem() string {
+	return Cfg["updateSystem"]
+}
+
+func GetProductionBranch() string {
+	return Cfg["productionBranch"]
+}
+
 func GetGitCommitList() ([]Commit, error) {
-	return gitGetLatestCommitsCached(Cfg["currentCommit"], 5)
+	return gitGetLatestCommitsCached(GetCurrentCommit(), 5)
 }
 
 func AddUpdate(info Update) error {

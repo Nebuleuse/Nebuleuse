@@ -182,6 +182,13 @@ func GetGameVersion() int {
 	}
 	return n
 }
+func GetGameSemVer() string {
+	update, err := GetUpdateInfos(GetGameVersion())
+	if err != nil {
+		return ""
+	}
+	return update.SemVer
+}
 func GetUpdaterVersion() int {
 	n, e := strconv.Atoi(Cfg["updaterVersion"])
 	if e != nil {

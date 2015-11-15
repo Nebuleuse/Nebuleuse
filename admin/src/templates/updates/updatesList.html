@@ -37,7 +37,7 @@
 		<div style="overflow-x: scroll; max-width: 100%;">
 		<ul id='timeline'>
 		  <li class='work' ng-repeat="commit in list.Commits">
-		    <input class='radio' id='{{commit.Id}}' name='works' type='radio' ng-checked="{{$first}}">
+		    <input class='radio' id='{{commit.Id}}' name='works' type='radio' ng-checked="commit.Id == list.CurrentCommit">
 		    <div class="relative">
 		      <label for='{{commit.Id}}'>{{commit.Id}}</label>
 		      <span class='date'>{{commit.Committer}}</span>

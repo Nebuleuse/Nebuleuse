@@ -35,7 +35,7 @@ func gitUpdateCommitCache() error {
 	} else {
 		newCommits, err := gitGetCommits(commitCache[0].Id)
 		if err != nil {
-			Warning.Println("Could not get complete commits list")
+			Warning.Println("Could not recent commits list")
 			return err
 		}
 		if len(newCommits) != 0 {

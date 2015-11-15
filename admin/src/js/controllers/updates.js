@@ -7,7 +7,8 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		return;
 	$scope.list = [];
 
-	$http.post(APIURL + '/getUpdateListWithGit', {sessionid: $scope.Self.SessionId, diffs: true})
+	$scope.refreshList = function () {
+		$http.post(APIURL + '/getUpdateListWithGit', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {
 			console.dir(data)
 			$scope.list = data;
@@ -15,8 +16,17 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 			$scope.parseError(data, status);
 			$scope.addAlert("Could not fetch updates infos!", "danger");
 		});
-
-	$scope.addAchievement = function () {
-		$scope.goto("/updateAdd");
 	}
+
+	$scope.updateCacheList = function () {
+		$http.post(APIURL + '/updateGitCommitCacheList', {sessionid: $scope.Self.SessionId}).success(function (data) {
+			$scope.refreshList();
+		}).error(function (data, status) {
+			$scope.parseError(data, status);
+			$scope.addAlert("Could not update cache list!", "danger");
+		})
+	}
+
+	$scope.refreshList();
+
 }

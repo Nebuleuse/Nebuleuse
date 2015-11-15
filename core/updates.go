@@ -80,6 +80,7 @@ func GetGitCommitList() ([]Commit, error) {
 	return gitGetLatestCommitsCached(GetCurrentCommit(), 5)
 }
 
+
 func AddUpdate(info Update) error {
 	if Cfg["updateSystem"] == "GitPatch" {
 		return createGitPatch(info)

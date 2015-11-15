@@ -63,5 +63,10 @@ func addUpdate(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateGitCommitCacheList(w http.ResponseWriter, r *http.Request) {
-
+	err := core.UpdateGitCommitCache()
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "updated cache list")
+	}
 }

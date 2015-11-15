@@ -55,7 +55,7 @@ func RegisterHandlers() {
 	//Updates
 	r.HandleFunc("/getUpdateList", verifyFormValuesExist([]string{"version"}, getUpdateList)).Methods("POST")
 	r.HandleFunc("/getUpdateListWithGit", userBySession(false, mustBeAdmin(optionalSwitchs([]string{"diffs"}, getUpdateListWithGit)))).Methods("POST")
-	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"version"}, updateGitCommitCacheList)))).Methods("POST")
+	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(updateGitCommitCacheList))).Methods("POST")
 
 	http.Handle("/", r)
 }

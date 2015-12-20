@@ -57,10 +57,18 @@
   vertical-align: top;
   padding: 50px 15px 15px;
   transition: width 0.4s linear, max-height 0.4s linear;
-  border-width: 2px;
-  border-style: solid;
-  border-radius: 0.5em;
+
   position: relative;
+}
+.contentCommit {
+	border-width: 1.5px;
+ 	border-style: dashed;
+ 	border-radius: 2.5em;
+}
+.contentVersion {
+	border-width: 2px;
+ 	border-style: solid;	
+ 	border-radius: 0.5em;
 }
 .content:before, .content:after {
   content: "";
@@ -70,6 +78,9 @@
   position: absolute;
   pointer-events: none;
   bottom: 100%;
+}
+.contentCommit:before, .contentCommit:after {
+	border: dashed transparent;
 }
 .content:before {
   border-bottom-color: inherit;
@@ -91,7 +102,9 @@
   hyphens: auto;
   overflow: hidden;
 }
-
+.content button {
+	display: none;
+}
 
 .work label {
   font-size: 0.9em;
@@ -105,6 +118,7 @@
   display: block;
   top: 60px;
   left: 15px;
+  text-align: center;
 }
 
 .radio {
@@ -129,4 +143,7 @@
   max-height: 200px;
   color: #2D3E63;
   transition: color 0.3s linear 0.3s;
+}
+.radio:checked ~ .content button {
+	display: inline-block;
 }

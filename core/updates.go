@@ -2,6 +2,7 @@ package core
 
 import (
 	"database/sql"
+	"os"
 	"time"
 )
 
@@ -56,16 +57,25 @@ func GetUpdatesInfos(start int) ([]Update, error) {
 	return updates, nil
 }
 
-func SetActiveUpdate(version int) {
-	//Todo
+func SetActiveUpdate(version int) error {
+	err := Cfg.SetConfig("gameVersion", string(version))
+	if err != nil {
+		return err
+	}
+	SignalGameUpdated()
+	return nil
 }
 
 func UpdateGitCommitCache() error {
 	return gitUpdateCommitCache()
 }
 
-func GetCurrentCommit() string {
-	return Cfg["currentCommit"]
+func GetCurrentCommit() (string, error) {
+	info, err := GetUpdateInfos(GetConfigInt("gameVersion"))
+	if err != nil {
+		return "", err
+	}
+	return info.Commit, nil
 }
 
 func GetUpdateSystem() string {
@@ -77,9 +87,13 @@ func GetProductionBranch() string {
 }
 
 func GetGitCommitList() ([]Commit, error) {
-	return gitGetLatestCommitsCached(GetCurrentCommit(), 5)
-}
+	comm, err := GetCurrentCommit()
+	if err != nil {
+		return nil, err
+	}
 
+	return gitGetLatestCommitsCached(comm, 0)
+}
 
 func AddUpdate(info Update) error {
 	if Cfg["updateSystem"] == "GitPatch" {
@@ -98,6 +112,41 @@ func createGitPatch(info Update) error {
 	return nil
 }
 
+type gitPatchPrepInfos struct {
+	Diffs     []Diff
+	TotalSize int64
+}
+
+func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
+	var res gitPatchPrepInfos
+	comm, err := GetCurrentCommit()
+	if err != nil {
+		return res, err
+	}
+	com, err := gitGetCommitsBetween(commit, comm)
+	if err != nil {
+		return res, err
+	}
+	diffs := gitGetDiffs(com)
+	var total int64
+	for _, c := range diffs {
+		file, err := os.Open(Cfg["gitRepositoryPath"] + c.Name)
+		if err != nil {
+			return res, err
+		}
+		stat, err := file.Stat()
+		if err != nil {
+			return res, err
+		}
+		total = total + stat.Size()
+		file.Close()
+	}
+
+	res.Diffs = diffs
+	res.TotalSize = total
+
+	return res, err
+}
 func addFullGitPatch(info Update) error {
 	_, err := Db.Exec("INSERT INTO neb_updates VALUES(?,?,?,?,?,NOW(),?)", info.Version, info.SemVer, info.Log, info.Size, info.Url, info.Commit)
 	if err != nil {
@@ -105,11 +154,6 @@ func addFullGitPatch(info Update) error {
 		return err
 	}
 
-	err = Cfg.SetConfig("currentCommit", info.Commit)
-	if err != nil {
-		return err
-	}
-	SignalGameUpdated()
 	return nil
 }
 

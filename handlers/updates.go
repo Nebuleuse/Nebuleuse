@@ -34,10 +34,14 @@ func getUpdateListWithGit(w http.ResponseWriter, r *http.Request) {
 		commits, err := core.GetGitCommitList()
 		if err != nil {
 			EasyErrorResponse(w, core.NebError, err)
+			return
 		}
 		var response getupdateGraphListResponse
 		response.Updates = list
-		response.CurrentCommit = core.GetCurrentCommit()
+		response.CurrentCommit, err = core.GetCurrentCommit()
+		if err != nil {
+			EasyErrorResponse(w, core.NebError, err)
+		}
 		response.Commits = commits
 		if !withDiffs {
 			for i, _ := range response.Commits {
@@ -68,5 +72,15 @@ func updateGitCommitCacheList(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 	} else {
 		EasyResponse(w, core.NebErrorNone, "updated cache list")
+	}
+}
+
+func prepareGitPatch(w http.ResponseWriter, r *http.Request) {
+	commit := context.Get(r, "commit").(string)
+	res, err := core.PrepareGitPatch(commit)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyDataResponse(w, res)
 	}
 }

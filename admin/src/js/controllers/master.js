@@ -43,6 +43,9 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
                 $location.path('/noauth');
             } else {
                 $scope.setConnected(true);
+                if($location.path() === "/login") {
+                    $location.path('/');
+                }
             }
         }).error(function (data, status) {
             $scope.parseError(data, status);
@@ -120,7 +123,6 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     
     $http.get(APIURL + '/status')
         .success(function (data) {
-            console.log(data)
             $scope.Nebuleuse = data;
             if(angular.isDefined($cookieStore.get('sessionId'))){
                 $scope.Self.SessionId = $cookieStore.get('sessionId');

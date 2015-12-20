@@ -55,6 +55,7 @@ type Commit struct {
 	Id        string
 	Message   string
 	Committer string
+	Date      string
 
 	TotalAddition, TotalDeletion int
 	Diff                         []Diff
@@ -71,40 +72,28 @@ type Diff struct {
 
 func gitGetDiffs(commits []Commit) []Diff {
 	var diffs []Diff
-	found := make(map[string]bool)
+	found := make(map[string]int) //0 not present, else indicate position+1 in array
 
 	for _, commit := range commits {
 		for _, diff := range commit.Diff {
-			if !found[diff.Name] {
-				found[diff.Name] = true
+			if found[diff.Name] == 0 {
 				diffs = append(diffs, diff)
+				found[diff.Name] = len(diffs)
+			} else {
+				storedDiff := diffs[found[diff.Name]-1]
+				if diff.IsCreated && !storedDiff.IsCreated && !storedDiff.IsDeleted {
+					diffs[found[diff.Name]-1].IsCreated = true
+				} else if diff.IsDeleted {
+					diffs[found[diff.Name]-1].IsCreated = false
+					diffs[found[diff.Name]-1].IsDeleted = true
+				}
 			}
 		}
 	}
 	return diffs
 }
 
-func gitGetCommits(commit string) ([]Commit, error) {
-	//Get commits between HEAD and the current commit version and the 2 before
-	headCommit, err := gitRepo.GetCommitOfBranch(Cfg["productionBranch"])
-	if err != nil {
-		Error.Println("Could not get Head commit of production branch")
-		return nil, err
-	}
-	var list *list.List
-	if commit == "" { // Get list of all commits
-		list, err = headCommit.CommitsBefore()
-		if err != nil {
-			Error.Println("Could not get commits of production branch")
-			return nil, err
-		}
-	} else { // Get list of commits between HEAD and specified commit
-		list, err = headCommit.CommitsBeforeUntil(commit)
-		if err != nil {
-			Error.Println("Could not get commits of production branch")
-			return nil, err
-		}
-	}
+func gitParseCommitList(list *list.List) []Commit {
 	var Commits []Commit
 	i := 0
 	for e := list.Front(); e != nil; e = e.Next() {
@@ -112,7 +101,8 @@ func gitGetCommits(commit string) ([]Commit, error) {
 		gitCommit := e.Value.(*git.Commit)
 		commit.Id = gitCommit.Id.String()
 		commit.Message = gitCommit.Message()
-		commit.Committer = gitCommit.Committer.Name + " " + gitCommit.Committer.Email + " " + gitCommit.Committer.When.String()
+		commit.Committer = gitCommit.Committer.Name + " " + gitCommit.Committer.Email
+		commit.Date = gitCommit.Committer.When.String()
 
 		Diffs, _ := gitRepo.GetDiffCommit(commit.Id)
 		commit.TotalAddition = Diffs.TotalAddition
@@ -133,7 +123,48 @@ func gitGetCommits(commit string) ([]Commit, error) {
 		Commits = append(Commits, commit)
 		i++
 	}
-	return Commits, err
+	return Commits
+}
+
+func gitGetCommits(commit string) ([]Commit, error) {
+	//Get commits between HEAD and the provided commit
+	headCommit, err := gitRepo.GetCommitOfBranch(Cfg["productionBranch"])
+	if err != nil {
+		Error.Println("Could not get Head commit of production branch")
+		return nil, err
+	}
+	var list *list.List
+	if commit == "" { // Get list of all commits
+		list, err = headCommit.CommitsBefore()
+		if err != nil {
+			Error.Println("Could not get commits of production branch")
+			return nil, err
+		}
+	} else { // Get list of commits between HEAD and specified commit
+		list, err = headCommit.CommitsBeforeUntil(commit)
+		if err != nil {
+			Error.Println("Could not get commits of production branch")
+			return nil, err
+		}
+	}
+
+	return gitParseCommitList(list), err
+}
+
+func gitGetCommitsBetween(last, before string) ([]Commit, error) {
+	lastCom, err := gitRepo.GetCommit(last)
+	if err != nil {
+		return nil, err
+	}
+	beforeCom, err := gitRepo.GetCommit(before)
+	if err != nil {
+		return nil, err
+	}
+	list, err := gitRepo.CommitsBetween(lastCom, beforeCom)
+	if err != nil {
+		return nil, err
+	}
+	return gitParseCommitList(list), err
 }
 
 //Get latest commits with no duplicates
@@ -158,9 +189,14 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 	return ret, nil
 }
 
-func gitCreatePatch(commit string) {
+func gitCreatePatch(commit string) error {
+	latestCommit, err := GetCurrentCommit()
+	if err != nil {
+		return err
+	}
 	gitUpdateRepo()
-	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(GetProductionBranch(), GetCurrentCommit(), commit)
+	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(GetProductionBranch(), latestCommit, commit)
 
 	Info.Println(diff)
+	return nil
 }

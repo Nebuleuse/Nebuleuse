@@ -4,50 +4,34 @@
     	<a ng-click="updateCacheList()">Update cache</a>
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
-		<!--<div class="table-responsive">
-		<table class="table table-hover table-condensed">
-			<thead>
-				<tr><th width="128">Version</th><th width="139">Semantic version</th><th width="64">Size</th><th width="128">Date</th><th>Log</th></tr>
-			</thead>
-			<tbody>
-				<tr ng-repeat="update in list.Updates">
-					<td>{{update.Version}}</td>
-					<td>{{update.SemVer}}</td>
-					<td>{{update.Size}}</td>
-					<td>{{update.Date}}</td>
-					<td>{{update.Log}}</td>
-				</tr>
-			</tbody>
-		 </table>
-		</div>
-		<div class="table-responsive">
-		<table class="table table-hover table-condensed">
-			<thead>
-				<tr><th width="64">Id</th><th width="139">Commiter</th><th width="64">Message</th><th width="128">File Changed</th></tr>
-			</thead>
-			<tbody>
-				<tr ng-repeat="commit in list.Commits">
-					<td width="64">{{commit.Id}}</td>
-					<td>{{commit.Committer}}</td>
-					<td>{{commit.Message}}</td>
-					<td>{{commit.Diff.length}}</td>
-				</tr>
-			</tbody>
-		 </table>
-		</div>-->
 		<div style="overflow-x: scroll; max-width: 100%;">
 		<ul id='timeline'>
 		  <li class='work' ng-repeat="commit in list.Commits">
 		    <input class='radio' id='{{commit.Id}}' name='works' type='radio' ng-checked="commit.Id == list.CurrentCommit">
 		    <div class="relative">
 		      <label for='{{commit.Id}}'>{{commit.Id}}</label>
-		      <span class='date'>{{commit.Committer}}</span>
+		      <span class='date'>{{commit.Date}}</span>
 		      <span class='circle'></span>
 		    </div>
-		    <div class='content'>
+		    <div class='content contentCommit'>
 		      <p>
 		        {{commit.Message}}
 		      </p>
+  			  <button type="button" class='btn btn-default' ng-click="createPatch(commit.Id)">Create update</button>
+		    </div>
+		  </li>
+		  <li class='work' ng-repeat="update in list.Updates">
+		    <input class='radio' id='{{update.Commit}}' name='works' type='radio' ng-checked="update.Commit == list.CurrentCommit">
+		    <div class="relative">
+		      <label for='{{update.Commit}}'>V.{{update.SemVer}} <sup>build {{update.Version}}</sup></label>
+		      <span class='date'>{{update.Date}}</span>
+		      <span class='circle'></span>
+		    </div>
+		    <div class='content contentVersion'>
+		      <p>
+		        {{update.Log}}
+		      </p>
+		      <button type="button" class='btn btn-default' ng-click="">Download</button>
 		    </div>
 		  </li>
 		</ul>

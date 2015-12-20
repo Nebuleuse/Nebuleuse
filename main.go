@@ -21,5 +21,5 @@ func main() {
 
 	defer core.Die()
 
-	CreateServer()
+	createServer()
 }

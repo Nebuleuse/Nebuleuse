@@ -56,6 +56,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/getUpdateList", verifyFormValuesExist([]string{"version"}, getUpdateList)).Methods("POST")
 	r.HandleFunc("/getUpdateListWithGit", userBySession(false, mustBeAdmin(optionalSwitchs([]string{"diffs"}, getUpdateListWithGit)))).Methods("POST")
 	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(updateGitCommitCacheList))).Methods("POST")
+	r.HandleFunc("/prepareGitPatch", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit"}, prepareGitPatch))))
 
 	http.Handle("/", r)
 }
@@ -124,9 +125,9 @@ func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 type statusResponse struct {
 	NebuleuseVersion  int
 	GameVersion       int
-	GameSemVer		  string
+	GameSemVer        string
 	UpdaterVersion    int
-	UpdateSystem	  string
+	UpdateSystem      string
 	ComplexStatsTable []core.ComplexStatTableInfo
 }
 

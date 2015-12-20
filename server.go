@@ -7,18 +7,18 @@ import (
 	"time"
 )
 
-func CreateServer() {
+func createServer() {
 	handlers.RegisterHandlers()
 
-	go SessionsPurgeTimer()
+	go sessionsPurgeTimer()
 
 	core.Info.Fatal(http.ListenAndServe(core.SysCfg["serverAddress"]+":"+core.SysCfg["serverPort"], nil))
 }
 
-func SessionsPurgeTimer() {
+func sessionsPurgeTimer() {
 	timer := time.NewTimer(time.Minute)
 	<-timer.C
 
 	core.PurgeSessions()
-	go SessionsPurgeTimer()
+	go sessionsPurgeTimer()
 }

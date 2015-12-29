@@ -158,7 +158,7 @@ func addFullGitPatch(info Update) error {
 }
 
 func SignalGameUpdated() {
-	Dispatch("system", "game update released")
+	Dispatch("system", "game", "game update released")
 }
 
 func GetUpdateCount() int {

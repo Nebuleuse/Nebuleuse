@@ -4,7 +4,24 @@ import (
 	"encoding/json"
 )
 
-var messagePipeline map[string][]int
+type MessagePipeline struct {
+	name                         string
+	rank                         int
+	canUserJoin, canUserDispatch bool
+	pipes                        map[string][]*UserSession
+}
+
+func createPipeline(name string, rank int, canUserJoin, canDispatch bool) MessagePipeline {
+	var p MessagePipeline
+	p.pipes = make(map[string][]*UserSession)
+	p.name = name
+	p.canUserJoin = canUserJoin
+	p.canUserDispatch = canDispatch
+	p.rank = rank
+	return p
+}
+
+var messagePipelines map[string]MessagePipeline
 
 type messageData struct {
 	Channel string
@@ -12,32 +29,56 @@ type messageData struct {
 }
 
 func initMessaging() {
-	messagePipeline = make(map[string][]int)
+	messagePipelines = make(map[string]MessagePipeline)
+	messagePipelines["system"] = createPipeline("system", 1, false, false)
+	messagePipelines["admin"] = createPipeline("admin", 2, true, false)
 }
-func Listen(name string, userid int) {
-	for _, id := range messagePipeline[name] { // prevent duplicates
-		if id == userid {
+func CanUserListen(pipe string, user *UserSession) bool {
+	return messagePipelines[pipe].rank <= user.UserId
+}
+func Listen(pipe, name string, user *UserSession) {
+	pipeline := messagePipelines[pipe]
+	if !pipeline.canUserJoin {
+		return
+	} else if pipeline.rank > user.UserRank {
+		return
+	}
+	for _, list := range pipeline.pipes[name] { // prevent duplicates
+		if user.UserId == list.UserId {
 			return
 		}
 	}
-	messagePipeline[name] = append(messagePipeline[name], userid)
+	pipeline.pipes[name] = append(pipeline.pipes[name], user)
 }
-func StopListen(name string, userid int) {
-	messagePipeline[name] = append(messagePipeline[name][:userid], messagePipeline[name][userid+1:]...)
-	if len(messagePipeline[name]) == 0 {
-		delete(messagePipeline, name)
+func StopListen(pipe, name string, user *UserSession) {
+	pipeline := messagePipelines[pipe]
+
+	list := pipeline.pipes[name]
+	for i, usr := range list {
+		if usr.UserId == user.UserId { // remove the userSession from the slice
+			list, list[len(list)-1] = append(list[:i], list[i+1:]...), nil
+		}
+	}
+
+	if len(pipeline.pipes[name]) == 0 {
+		delete(pipeline.pipes, name)
 	}
 }
-func UserStopListen(userid int) {
-	for pipeName, pipe := range messagePipeline {
-		for _, id := range pipe {
-			if id == userid {
-				StopListen(pipeName, userid)
+func UserStopListen(user *UserSession) {
+	for _, pipeline := range messagePipelines {
+		for _, pipe := range pipeline.pipes {
+			for i, usr := range pipe {
+				if usr.UserId == user.UserId {
+					pipe, pipe[len(pipe)-1] = append(pipe[:i], pipe[i+1:]...), nil
+				}
 			}
 		}
 	}
 }
-func Dispatch(name string, message interface{}) {
+func CanUserDispatch(pipe, user) bool {
+	return messagePipelines[pipe].canUserDispatch
+}
+func Dispatch(pipe, name string, message interface{}) {
 	var msg messageData
 	msg.Channel = name
 	msg.Message = message
@@ -47,23 +88,14 @@ func Dispatch(name string, message interface{}) {
 		return
 	}
 
-	for _, id := range messagePipeline[name] {
-		ok := SendMessageToUserId(id, string(res))
-		if !ok {
-			Warning.Println("Inexistant userid in connectedUser still present in Messaging pipepline: " + name + " : " + string(id))
-			StopListen(name, id)
-		}
+	for _, id := range messagePipelines[pipe].pipes[name] {
+		SendMessageToUserId(id, string(res))
 	}
 }
 func GetMessages(userid int) chan string {
 	return connectedUsers[userid].Messages
 }
 
-func SendMessageToUserId(userid int, message string) bool {
-	session := GetSessionByUserId(userid)
-	if session != nil {
-		session.Messages <- message
-		return true
-	}
-	return false
+func SendMessageToUserId(user *UserSession, message string) {
+	user.Messages <- message
 }

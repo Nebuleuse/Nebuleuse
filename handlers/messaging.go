@@ -9,24 +9,29 @@ import (
 )
 
 func subscribeTo(w http.ResponseWriter, r *http.Request) {
+	pipe := context.Get(r, "pipe").(string)
 	channel := context.Get(r, "channel").(string)
-	user := context.Get(r, "user").(*core.User)
+	session := context.Get(r, "session").(*core.UserSession)
 
-	core.Listen(channel, user.Id)
+	if core.CanUserListen(pipe, session) {
+		core.Listen(pipe, channel, session)
+	}
 	EasyResponse(w, core.NebErrorNone, "subscribed to "+channel)
 }
 func unSubscribeTo(w http.ResponseWriter, r *http.Request) {
+	pipe := context.Get(r, "pipe").(string)
 	channel := context.Get(r, "channel").(string)
-	user := context.Get(r, "user").(*core.User)
+	session := context.Get(r, "session").(*core.UserSession)
 
-	core.StopListen(channel, user.Id)
+	core.StopListen(pipe, channel, session)
 	EasyResponse(w, core.NebErrorNone, "unSubscribed from "+channel)
 }
 func sendMessage(w http.ResponseWriter, r *http.Request) {
+	pipe := context.Get(r, "pipe").(string)
 	channel := context.Get(r, "channel").(string)
 	message := context.Get(r, "message").(string)
 
-	core.Dispatch(channel, message)
+	core.Dispatch(pipe, channel, message)
 	EasyResponse(w, core.NebErrorNone, "Sent message ("+channel+")"+message)
 }
 func getMessages(w http.ResponseWriter, r *http.Request) {

@@ -5,6 +5,17 @@ import (
 	"strconv"
 )
 
+var defaultOptions = map[string]string{"serverAddress": "127.0.0.1",
+	"serverPort":               "8080",
+	"dbType":                   "mysql",
+	"dbAddress":                "127.0.0.1:3306",
+	"dbUser":                   "",
+	"dbPass":                   "",
+	"dbBase":                   "",
+	"MaxSessionsChannelBuffer": "10",
+	"LongpollingTimeout":       "10",
+	"DashboardLocation":        "./admin/"}
+
 func initConfig() error {
 	var err error
 	Cfg = make(map[string]string)

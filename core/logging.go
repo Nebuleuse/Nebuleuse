@@ -18,7 +18,7 @@ type DashboardLogWriter struct {
 }
 
 func (w *DashboardLogWriter) Write(p []byte) (n int, err error) {
-	Dispatch("log", p[:len(p)])
+	Dispatch("admin", "log", p[:len(p)])
 	return len(p), nil
 }
 

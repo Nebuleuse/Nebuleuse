@@ -38,7 +38,7 @@ func (e NebuleuseError) Error() string {
 type ConfigMgr map[string]string
 
 var Cfg ConfigMgr
-var SysCfg map[string]string
+var SysCfg ConfigMgr
 var Db *sql.DB
 
 func Init() {
@@ -79,17 +79,6 @@ func Install() {
 		Error.Println("file nebuleuse.sql not found")
 		return
 	}
-
-	defaultOptions := map[string]string{"serverAddress": "127.0.0.1",
-		"serverPort":               "8080",
-		"dbType":                   "mysql",
-		"dbAddress":                "127.0.0.1:3306",
-		"dbUser":                   "",
-		"dbPass":                   "",
-		"dbBase":                   "",
-		"MaxSessionsChannelBuffer": "10",
-		"LongpollingTimeout":       "10",
-		"DashboardLocation":        "./admin/"}
 
 	c := config.NewDefault()
 	Info.Println("Please enter the following configuration values. Enter empty value to use the default one:")

@@ -13,6 +13,7 @@ type UserSession struct {
 	LastAlive   time.Time
 	SessionId   string
 	UserId      int
+	UserRank    int
 	Messages    chan string `json:"-"`
 	TimedOut    chan int    `json:"-"`
 }
@@ -37,12 +38,17 @@ func initSessions() {
 			Error.Fatal("Could not read sessions from db: " + err.Error())
 			return
 		}
-
+		user, err := GetUserBySession(sessionId, UserMaskBase)
+		if err != nil {
+			Warning.Println("Userid found in sessions does not exist!")
+			continue
+		}
 		var session UserSession
 		session.SessionId = sessionId
 		session.Messages = make(chan string, GetConfigInt("MaxSessionsChannelBuffer"))
 		session.LastAlive = lastAlive
 		session.LongPolling = false
+		session.UserRank = user.Rank
 		session.UserId = userid
 		connectedUsers[userid] = session
 	}
@@ -67,8 +73,8 @@ func GetSessionBySessionId(sessionid string) *UserSession {
 	return nil
 }
 func DisconnectUser(userid int) {
+	UserStopListen(GetSessionByUserId(userid))
 	delete(connectedUsers, userid)
-	UserStopListen(userid)
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
 	if err != nil {
 		Error.Println("Could not prepare statement: ", err)
@@ -146,7 +152,7 @@ func CreateSession(username string, password string) (string, error) {
 	session.UserId = id
 	connectedUsers[id] = session
 
-	Listen("system", id)
+	Listen("system", "game", &session)
 
 	return sessionid, nil
 }

@@ -18,9 +18,9 @@ func RegisterHandlers() {
 
 	//Messaging
 	r.HandleFunc("/getMessages", userBySession(false, getMessages)).Methods("POST")
-	r.HandleFunc("/sendMessage", userBySession(false, verifyFormValuesExist([]string{"channel", "message"}, sendMessage))).Methods("POST")
-	r.HandleFunc("/subscribeTo", userBySession(false, verifyFormValuesExist([]string{"channel"}, subscribeTo))).Methods("POST")
-	r.HandleFunc("/unSubscribeTo", userBySession(false, verifyFormValuesExist([]string{"channel"}, unSubscribeTo))).Methods("POST")
+	r.HandleFunc("/sendMessage", userBySession(false, verifyFormValuesExist([]string{"pipe", "channel", "message"}, sendMessage))).Methods("POST")
+	r.HandleFunc("/subscribeTo", userBySession(false, verifyFormValuesExist([]string{"pipe", "channel"}, subscribeTo))).Methods("POST")
+	r.HandleFunc("/unSubscribeTo", userBySession(false, verifyFormValuesExist([]string{"pipe", "channel"}, unSubscribeTo))).Methods("POST")
 
 	//Administration
 	r.PathPrefix("/admin/").Handler((http.StripPrefix("/admin/", http.FileServer(http.Dir(core.SysCfg["DashboardLocation"])))))
@@ -106,20 +106,20 @@ func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 	res, err := json.Marshal(e)
 	if err != nil {
 		core.Warning.Println("Could not encode easy response")
-	}
+	} else {
+		switch code {
+		case core.NebErrorLogin, core.NebErrorAuthFail, core.NebErrorDisconnected:
+			w.WriteHeader(http.StatusUnauthorized)
+		case core.NebErrorPartialFail:
+			w.WriteHeader(http.StatusBadRequest)
+		case core.NebError:
+			w.WriteHeader(http.StatusInternalServerError)
+		case core.NebErrorNone:
+			w.WriteHeader(http.StatusOK)
+		}
 
-	switch code {
-	case core.NebErrorLogin, core.NebErrorAuthFail, core.NebErrorDisconnected:
-		w.WriteHeader(http.StatusUnauthorized)
-	case core.NebErrorPartialFail:
-		w.WriteHeader(http.StatusBadRequest)
-	case core.NebError:
-		w.WriteHeader(http.StatusInternalServerError)
-	case core.NebErrorNone:
-		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, string(res))
 	}
-
-	fmt.Fprint(w, string(res))
 }
 
 type statusResponse struct {

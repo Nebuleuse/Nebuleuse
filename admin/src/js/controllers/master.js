@@ -71,8 +71,8 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         }
         return true;
     };
-    $scope.subscribeTo = function (channel) {
-        $http.post(APIURL + '/subscribeTo', {sessionid: $scope.Self.SessionId, channel:channel})
+    $scope.subscribeTo = function (pipe, channel) {
+        $http.post(APIURL + '/subscribeTo', {sessionid: $scope.Self.SessionId, channel:channel, pipe:pipe})
         .error(function (data, status) {
             $scope.parseError(data, status);
             $scope.addAlert("Could not subscribe to " + channel, "danger");

@@ -32,11 +32,15 @@ func disconnectUser(w http.ResponseWriter, r *http.Request) {
 	user.Disconnect()
 	EasyResponse(w, core.NebErrorNone, "User disconnected")
 }
+
+//User connected, must be admin
 func getOnlineUsersList(w http.ResponseWriter, r *http.Request) {
 	list := core.GetOnlineUsersList()
 
 	EasyDataResponse(w, list)
 }
+
+//User connected, can target someone else, form value: infomask
 func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	smask := context.Get(r, "infomask").(string)
 	mask, err := strconv.ParseInt(smask, 10, 0)
@@ -55,6 +59,7 @@ func getUserInfos(w http.ResponseWriter, r *http.Request) {
 	EasyDataResponse(w, user)
 }
 
+//User connected, must be admin, form value: infomask, page
 func getUsersInfos(w http.ResponseWriter, r *http.Request) {
 	smask := context.Get(r, "infomask").(string)
 	mask, err := strconv.ParseInt(smask, 10, 0)
@@ -86,6 +91,7 @@ type setAchievementsRequest struct {
 	}
 }
 
+//User connected, form value: data
 func setUserAchievements(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 
@@ -117,6 +123,7 @@ type setStatsRequest struct {
 	Stats []core.UserStat
 }
 
+//User connected, form value: data
 func setUserStats(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 
@@ -136,6 +143,7 @@ type setComplexStatsRequest struct {
 	Stats []core.ComplexStat
 }
 
+//User connected, form value: data
 func addComplexStats(w http.ResponseWriter, r *http.Request) {
 	user := context.Get(r, "user").(*core.User)
 

@@ -69,9 +69,20 @@ func SetActiveUpdate(version int) error {
 func UpdateGitCommitCache() error {
 	return gitUpdateCommitCache()
 }
+func GetCurrentVersion() int {
+	return GetConfigInt("gameVersion")
+}
+func GetCurrentVersionCommit() (string, error) {
+	info, err := GetUpdateInfos(GetCurrentVersion())
+	if err != nil {
+		return "", err
+	}
+	return info.Commit, nil
+}
 
-func GetCurrentCommit() (string, error) {
-	info, err := GetUpdateInfos(GetConfigInt("gameVersion"))
+//TODO : differantiate from GetCurrentVersionCommit
+func GetLatestPublishedCommit() (string, error) {
+	info, err := GetUpdateInfos(GetCurrentVersion())
 	if err != nil {
 		return "", err
 	}
@@ -87,14 +98,21 @@ func GetProductionBranch() string {
 }
 
 func GetGitCommitList() ([]Commit, error) {
-	comm, err := GetCurrentCommit()
+	comm, err := GetCurrentVersionCommit()
 	if err != nil {
 		return nil, err
 	}
 
 	return gitGetLatestCommitsCached(comm, 0)
 }
+func GetGitUnpublishedCommitList() ([]Commit, error) {
+	comm, err := GetLatestPublishedCommit()
+	if err != nil {
+		return nil, err
+	}
 
+	return gitGetLatestCommitsCached(comm, 0)
+}
 func AddUpdate(info Update) error {
 	if Cfg["updateSystem"] == "GitPatch" {
 		return createGitPatch(info)
@@ -119,7 +137,7 @@ type gitPatchPrepInfos struct {
 
 func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
 	var res gitPatchPrepInfos
-	comm, err := GetCurrentCommit()
+	comm, err := GetCurrentVersionCommit()
 	if err != nil {
 		return res, err
 	}

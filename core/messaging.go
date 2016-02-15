@@ -33,9 +33,7 @@ func initMessaging() {
 	messagePipelines["system"] = createPipeline("system", 1, false, false)
 	messagePipelines["admin"] = createPipeline("admin", 2, true, false)
 }
-func CanUserListen(pipe string, user *UserSession) bool {
-	return messagePipelines[pipe].rank <= user.UserId
-}
+
 func Listen(pipe, name string, user *UserSession) {
 	pipeline := messagePipelines[pipe]
 	if !pipeline.canUserJoin {
@@ -75,8 +73,11 @@ func UserStopListen(user *UserSession) {
 		}
 	}
 }
-func CanUserDispatch(pipe, user) bool {
+func CanUserDispatch(pipe string) bool {
 	return messagePipelines[pipe].canUserDispatch
+}
+func CanUserJoin(pipe string, user *UserSession) bool {
+	return messagePipelines[pipe].canUserJoin && messagePipelines[pipe].rank <= user.UserId
 }
 func Dispatch(pipe, name string, message interface{}) {
 	var msg messageData

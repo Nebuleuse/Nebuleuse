@@ -7,10 +7,11 @@ import (
 )
 
 var (
-	Trace   *log.Logger
-	Info    *log.Logger
-	Warning *log.Logger
-	Error   *log.Logger
+	Trace     *log.Logger
+	Info      *log.Logger
+	Warning   *log.Logger
+	Error     *log.Logger
+	LogWriter *io.Writer
 )
 var logFile *os.File
 
@@ -31,18 +32,18 @@ func initLogging() {
 		panic(err)
 	}
 
-	normalOut := io.MultiWriter(os.Stdout, dash, logFile)
+	LogWriter := io.MultiWriter(os.Stdout, dash, logFile)
 	errOut := io.MultiWriter(os.Stderr, dash, logFile)
 
-	Trace = log.New(normalOut,
+	Trace = log.New(LogWriter,
 		"TRACE: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
-	Info = log.New(normalOut,
+	Info = log.New(LogWriter,
 		"INFO: ",
 		log.Ldate|log.Ltime)
 
-	Warning = log.New(normalOut,
+	Warning = log.New(LogWriter,
 		"WARNING: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
@@ -50,8 +51,8 @@ func initLogging() {
 		"ERROR: ",
 		log.Ldate|log.Ltime|log.Lshortfile)
 
-	log.SetOutput(errOut)
-	log.SetPrefix("ERROR: ")
+	log.SetOutput(LogWriter)
+	log.SetPrefix("EXT: ")
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 

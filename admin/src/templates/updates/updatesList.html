@@ -21,9 +21,9 @@
 		    </div>
 		  </li>
 		  <li class='work' ng-repeat="update in list.Updates">
-		    <input class='radio' id='{{update.Commit}}' name='works' type='radio' ng-checked="update.Commit == list.CurrentCommit">
+		    <input class='radio' id='{{update.Version}}' name='works' type='radio' ng-checked="update.Version == list.CurrentVersion">
 		    <div class="relative">
-		      <label for='{{update.Commit}}'>V.{{update.SemVer}} <sup>build {{update.Version}}</sup></label>
+		      <label for='{{update.Version}}'>V.{{update.SemVer}} <sup>build {{update.Version}}</sup></label>
 		      <span class='date'>{{update.Date}}</span>
 		      <span class='circle'></span>
 		    </div>

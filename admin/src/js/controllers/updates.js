@@ -9,22 +9,22 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	$scope.fullList = [];
 
 	$scope.refreshList = function () {
-		$http.post(APIURL + '/getUpdateListWithGit', {sessionid: $scope.Self.SessionId, diffs: true})
+		$http.post(APIURL + '/getUpdateListComplete', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {
+			console.dir(data)
 			$scope.fullList = JSON.parse(JSON.stringify(data));
+			data.Updates = data.Updates.reverse()
 			var compare = "";
-			if (data.Updates.length == 0){
-				compare = data.CurrentCommit;
-			} else {
-				compare = data.Updates[0].Commit;
+			if (data.Updates.length != 0){
+				for (var i = data.Commits.length - 1; i >= 0; i--) {
+					if (data.Commits[i].Id == data.Updates[0].Commit){
+						data.Commits = data.Commits.slice(0, i);
+						break;
+					}
+				};
 			}
-
-			for (var i = data.Commits.length - 1; i >= 0; i--) {
-				if (data.Commits[i].Id == compare){
-					data.Commits = data.Commits.slice(0, i);
-				}
 			$scope.list = data;
-			};
+
 		}).error(function (data, status) {
 			$scope.parseError(data, status);
 			$scope.addAlert("Could not fetch updates infos!", "danger");

@@ -18,35 +18,37 @@ func getUpdateList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type getupdateGraphListResponse struct {
-	Updates       []core.Update
-	Commits       []core.Commit
-	CurrentCommit string
+type getUpdateListResponse struct {
+	UpdateSystem   string
+	Updates        []core.Update
+	Commits        []core.Commit
+	CurrentVersion int
 }
 
-func getUpdateListWithGit(w http.ResponseWriter, r *http.Request) {
+//User connected, must be admin, optional switch : diffs, POST
+func getUpdateListComplete(w http.ResponseWriter, r *http.Request) {
 	withDiffs := context.Get(r, "diffs").(bool)
 
 	list, err := core.GetUpdatesInfos(0)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 	} else {
-		commits, err := core.GetGitCommitList()
-		if err != nil {
-			EasyErrorResponse(w, core.NebError, err)
-			return
-		}
-		var response getupdateGraphListResponse
+		var response getUpdateListResponse
+		response.UpdateSystem = core.GetUpdateSystem()
 		response.Updates = list
-		response.CurrentCommit, err = core.GetCurrentCommit()
-		if err != nil {
-			EasyErrorResponse(w, core.NebError, err)
-		}
-		response.Commits = commits
-		if !withDiffs {
-			for i, _ := range response.Commits {
-				core.Info.Println(response.Commits[i].Message)
-				response.Commits[i].Diff = nil
+		response.CurrentVersion = core.GetCurrentVersion()
+
+		if response.UpdateSystem == "FullGit" || response.UpdateSystem == "GitPatch" {
+			commits, err := core.GetGitCommitList()
+			if err != nil {
+				EasyErrorResponse(w, core.NebError, err)
+				return
+			}
+			response.Commits = commits
+			if !withDiffs {
+				for i := range response.Commits {
+					response.Commits[i].Diff = nil
+				}
 			}
 		}
 
@@ -66,6 +68,7 @@ func addUpdate(w http.ResponseWriter, r *http.Request) {
 	err = core.AddUpdate(request)
 }
 
+//User connected, must be admin
 func updateGitCommitCacheList(w http.ResponseWriter, r *http.Request) {
 	err := core.UpdateGitCommitCache()
 	if err != nil {
@@ -75,6 +78,7 @@ func updateGitCommitCacheList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//User connected, must be admin, form value: commit
 func prepareGitPatch(w http.ResponseWriter, r *http.Request) {
 	commit := context.Get(r, "commit").(string)
 	res, err := core.PrepareGitPatch(commit)

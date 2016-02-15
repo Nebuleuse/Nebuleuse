@@ -79,9 +79,6 @@
   pointer-events: none;
   bottom: 100%;
 }
-.contentCommit:before, .contentCommit:after {
-	border: dashed transparent;
-}
 .content:before {
   border-bottom-color: inherit;
   border-width: 15px;

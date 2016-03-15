@@ -138,7 +138,7 @@ func Install() {
 		password = strings.TrimSpace(password)
 	}
 
-	err = RegisterUser(username, password, 3)
+	err = RegisterUser(username, password, UserRankAdmin)
 	if err != nil {
 		Error.Println("Could not register user : ", err)
 		return

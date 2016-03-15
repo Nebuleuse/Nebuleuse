@@ -120,7 +120,7 @@ func CreateSession(username string, password string) (string, error) {
 
 	if err != nil && err == sql.ErrNoRows { //If user are registered on connection
 		if Cfg["autoRegister"] == "true" {
-			RegisterUser(username, password, 1)
+			RegisterUser(username, password, UserRankNormal)
 			return CreateSession(username, password)
 		} else {
 			return "", &NebuleuseError{NebErrorLogin, "Unknown username"}

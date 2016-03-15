@@ -38,6 +38,13 @@ const (
 	UserMaskAll = UserMaskStats | UserMaskAchievements
 )
 
+const (
+    UserRankBanned = 1 << iota
+    UserRankNormal
+    UserRankDev
+    UserRankAdmin
+)
+
 func GetUserBySession(SessionId string, BitMask int) (*User, error) {
 	var user User
 

@@ -1,30 +1,11 @@
--- phpMyAdmin SQL Dump
--- version 4.2.11
--- http://www.phpmyadmin.net
---
--- Client :  127.0.0.1
--- Généré le :  Mer 04 Novembre 2015 à 01:20
--- Version du serveur :  5.6.21
--- Version de PHP :  5.6.3
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8 */;
 
---
--- Base de données :  `nebuleuse`
---
-
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_achievements`
---
 
 CREATE TABLE IF NOT EXISTS `neb_achievements` (
 `id` int(10) unsigned NOT NULL,
@@ -35,27 +16,13 @@ CREATE TABLE IF NOT EXISTS `neb_achievements` (
   `icon` varchar(255) NOT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
 
---
--- Contenu de la table `neb_achievements`
---
-
 INSERT INTO `neb_achievements` (`id`, `name`, `max`, `fullName`, `fullDesc`, `icon`) VALUES
 (1, 'test', 24, 'test', 'test', 'http://i.imgur.com/oyrwt3a.png');
-
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_config`
---
 
 CREATE TABLE IF NOT EXISTS `neb_config` (
   `name` varchar(255) NOT NULL,
   `value` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
---
--- Contenu de la table `neb_config`
---
 
 INSERT INTO `neb_config` (`name`, `value`) VALUES
 ('gameName', ''),
@@ -64,28 +31,15 @@ INSERT INTO `neb_config` (`name`, `value`) VALUES
 ('sessionTimeout', '1800'),
 ('autoRegister', 'true'),
 ('defaultAvatar', 'http://i.imgur.com/oyrwt3a.png'),
-('currentCommit', 'fbbf884cf75c703d8ead57dfaf5c0ecdb4ec37d1'),
 ('productionBranch', 'master'),
-('gitRepositoryPath', './repo'),
+('gitRepositoryPath', './'),
 ('updateSystem', 'GitPatch');
-
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_mirrors`
---
 
 CREATE TABLE IF NOT EXISTS `neb_mirrors` (
   `id` smallint(5) unsigned NOT NULL,
   `Address` varchar(255) NOT NULL,
   `Name` varchar(255) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_sessions`
---
 
 CREATE TABLE IF NOT EXISTS `neb_sessions` (
   `userid` int(10) unsigned NOT NULL,
@@ -94,47 +48,50 @@ CREATE TABLE IF NOT EXISTS `neb_sessions` (
   `sessionStart` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_stats_tables`
---
-
 CREATE TABLE IF NOT EXISTS `neb_stats_tables` (
   `tableName` varchar(255) NOT NULL,
   `fields` text NOT NULL,
   `autoCount` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Contenu de la table `neb_stats_tables`
---
-
 INSERT INTO `neb_stats_tables` (`tableName`, `fields`, `autoCount`) VALUES
 ('users', '[{"Name":"timeplayed","Type":"int","Size":11}]', 0),
 ('kills', '[{"Name":"userid","Type":"int","Size":11},{"Name":"x","Type":"int","Size":11},{"Name":"y","Type":"int","Size":11},{"Name":"z","Type":"int","Size":11},{"Name":"map","Type":"string","Size":255},{"Name":"weapon","Type":"string","Size":255}]', 1);
 
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_updates`
---
-
 CREATE TABLE IF NOT EXISTS `neb_updates` (
-  `version` int(11) NOT NULL,
-  `SemVer` varchar(16) NOT NULL,
-  `log` text NOT NULL,
+  `build` int(11) NOT NULL,
+  `branch` varchar(255) NOT NULL,
   `size` int(11) NOT NULL,
-  `url` varchar(255) NOT NULL,
-  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `commit` varchar(255) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  `rollback` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
--- --------------------------------------------------------
+INSERT INTO `neb_updates` (`build`, `branch`, `size`, `rollback`) VALUES
+(1, 'public', 2, 1),
+(2, 'public', 25, 0),
+(3, 'public', 5, 0);
 
---
--- Structure de la table `neb_users`
---
+CREATE TABLE IF NOT EXISTS `neb_updates_branches` (
+  `name` varchar(255) NOT NULL,
+  `rank` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+INSERT INTO `neb_updates_branches` (`name`, `rank`) VALUES
+('public', 0);
+
+CREATE TABLE IF NOT EXISTS `neb_updates_builds` (
+`id` int(11) NOT NULL,
+  `semver` varchar(255) NOT NULL,
+  `commit` varchar(255) NOT NULL,
+  `log` text NOT NULL,
+  `date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `changelist` text NOT NULL,
+  `obselete` tinyint(1) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+
+INSERT INTO `neb_updates_builds` (`id`, `semver`, `commit`, `log`, `date`, `changelist`, `obselete`) VALUES
+(1, '0.1', '', 'Changed things', '2016-03-15 22:03:12', '', 0),
+(2, '0.2', '', 'again', '2016-03-15 22:11:24', '', 1),
+(3, '0.3', '', 'a', '2016-03-15 22:08:42', '', 0);
 
 CREATE TABLE IF NOT EXISTS `neb_users` (
 `id` int(11) NOT NULL,
@@ -143,20 +100,11 @@ CREATE TABLE IF NOT EXISTS `neb_users` (
   `rank` tinyint(3) NOT NULL,
   `avatars` varchar(255) NOT NULL,
   `hash` varchar(255) NOT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
-
---
--- Contenu de la table `neb_users`
---
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
 INSERT INTO `neb_users` (`id`, `username`, `password`, `rank`, `avatars`, `hash`) VALUES
-(1, 'test', 'q4F_1BnvOQERMAtuwNHoocjO6DiHvt15ol2krqZ60v-NW-tb0_IooASPuZq6iv1tjjT60JIIhA1MZvjTcGhDqA==', 2, '', 'O-z_gcTHzvgoM3ndhFnKVbM-tUcnGZDz_o6mhkWFiL0VTnvCvHFVOBYnvBp23pbz1ZIafCoH_JO51gXlVkmf8w==');
-
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_users_achievements`
---
+(1, 'test', 'q4F_1BnvOQERMAtuwNHoocjO6DiHvt15ol2krqZ60v-NW-tb0_IooASPuZq6iv1tjjT60JIIhA1MZvjTcGhDqA==', 8, '', 'O-z_gcTHzvgoM3ndhFnKVbM-tUcnGZDz_o6mhkWFiL0VTnvCvHFVOBYnvBp23pbz1ZIafCoH_JO51gXlVkmf8w=='),
+(2, 'test2', 'gx-5jrB9JIe2bc-Ou03lLhy4QYus0vjyuGdcFsnGItsvup4cxOFiBWO9h5S6uZFjiGQySWZKd4JSxHWjKW6EZQ==', 1, '', 'fJ_EfI7QylpTJTnrq_9hxzTGcUOHawhBUgDSoUkBVkXUubzAyIeefSTjXlK5DBru3G37wxczGVd_ILkkvkDvqA==');
 
 CREATE TABLE IF NOT EXISTS `neb_users_achievements` (
   `userid` int(10) unsigned NOT NULL,
@@ -164,18 +112,8 @@ CREATE TABLE IF NOT EXISTS `neb_users_achievements` (
   `progress` int(10) unsigned NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
---
--- Contenu de la table `neb_users_achievements`
---
-
 INSERT INTO `neb_users_achievements` (`userid`, `achievementid`, `progress`) VALUES
 (2, 1, 24);
-
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_users_stats`
---
 
 CREATE TABLE IF NOT EXISTS `neb_users_stats` (
   `userid` int(11) NOT NULL,
@@ -183,18 +121,8 @@ CREATE TABLE IF NOT EXISTS `neb_users_stats` (
   `value` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Contenu de la table `neb_users_stats`
---
-
 INSERT INTO `neb_users_stats` (`userid`, `name`, `value`) VALUES
-(2, 'kills', 11);
-
--- --------------------------------------------------------
-
---
--- Structure de la table `neb_users_stats_kills`
---
+(2, 'kills', 13);
 
 CREATE TABLE IF NOT EXISTS `neb_users_stats_kills` (
   `userid` int(11) DEFAULT NULL,
@@ -205,54 +133,44 @@ CREATE TABLE IF NOT EXISTS `neb_users_stats_kills` (
   `weapon` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
---
--- Index pour les tables exportées
---
+INSERT INTO `neb_users_stats_kills` (`userid`, `x`, `y`, `z`, `map`, `weapon`) VALUES
+(2, 5, 5, 5, 'test', 'Flower'),
+(2, 5, 5, 5, 'test', 'Flower');
 
---
--- Index pour la table `neb_achievements`
---
+
 ALTER TABLE `neb_achievements`
  ADD PRIMARY KEY (`id`);
 
---
--- Index pour la table `neb_mirrors`
---
 ALTER TABLE `neb_mirrors`
  ADD PRIMARY KEY (`id`);
 
---
--- Index pour la table `neb_sessions`
---
 ALTER TABLE `neb_sessions`
  ADD PRIMARY KEY (`userid`);
 
---
--- Index pour la table `neb_updates`
---
 ALTER TABLE `neb_updates`
- ADD PRIMARY KEY (`version`);
+ ADD PRIMARY KEY (`build`), ADD KEY `branch` (`branch`), ADD KEY `build` (`build`), ADD KEY `branch_2` (`branch`);
 
---
--- Index pour la table `neb_users`
---
+ALTER TABLE `neb_updates_branches`
+ ADD UNIQUE KEY `name` (`name`);
+
+ALTER TABLE `neb_updates_builds`
+ ADD PRIMARY KEY (`id`), ADD KEY `id` (`id`), ADD KEY `id_2` (`id`);
+
 ALTER TABLE `neb_users`
  ADD PRIMARY KEY (`id`);
 
---
--- AUTO_INCREMENT pour les tables exportées
---
 
---
--- AUTO_INCREMENT pour la table `neb_achievements`
---
 ALTER TABLE `neb_achievements`
 MODIFY `id` int(10) unsigned NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
---
--- AUTO_INCREMENT pour la table `neb_users`
---
+ALTER TABLE `neb_updates_builds`
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=4;
 ALTER TABLE `neb_users`
-MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=2;
+MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=3;
+
+ALTER TABLE `neb_updates`
+ADD CONSTRAINT `neb_updates_ibfk_1` FOREIGN KEY (`build`) REFERENCES `neb_updates_builds` (`id`) ON DELETE CASCADE,
+ADD CONSTRAINT `neb_updates_ibfk_2` FOREIGN KEY (`branch`) REFERENCES `neb_updates_branches` (`name`) ON DELETE CASCADE;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

@@ -81,8 +81,9 @@ func optionalSwitchs(vals []string, next middleWare) middleWare {
 
 // Verifies context's requester rank for auth level
 func mustBeAdmin(next middleWare) middleWare {
-	return authRank(2, next)
+	return authRank(core.UserRankDev|core.UserRankAdmin, next)
 }
+
 func authRank(rank int, next middleWare) middleWare {
 	return func(w http.ResponseWriter, r *http.Request) {
 		irqst, ok := context.GetOk(r, "requester")

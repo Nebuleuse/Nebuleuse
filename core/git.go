@@ -10,7 +10,7 @@ var commitCache []Commit
 
 func initGit() error {
 	var err error
-	gitRepo, err = git.OpenRepository(Cfg["gitRepositoryPath"])
+	gitRepo, err = git.OpenRepository(Cfg.GetConfig("gitRepositoryPath"))
 	if err != nil {
 		Error.Println("Failed to open repository")
 		return err
@@ -47,7 +47,7 @@ func gitUpdateCommitCache() error {
 }
 
 func gitUpdateRepo() {
-	gitRepo.UpdateGitRepo(Cfg["productionBranch"])
+	gitRepo.UpdateGitRepo(Cfg.GetConfig("productionBranch"))
 	Info.Println("Updated git repository")
 }
 
@@ -128,7 +128,7 @@ func gitParseCommitList(list *list.List) []Commit {
 
 func gitGetCommits(commit string) ([]Commit, error) {
 	//Get commits between HEAD and the provided commit
-	headCommit, err := gitRepo.GetCommitOfBranch(Cfg["productionBranch"])
+	headCommit, err := gitRepo.GetCommitOfBranch(Cfg.GetConfig("productionBranch"))
 	if err != nil {
 		Error.Println("Could not get Head commit of production branch")
 		return nil, err

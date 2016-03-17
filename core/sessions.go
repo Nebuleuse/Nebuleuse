@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"github.com/nu7hatch/gouuid"
+	"sync"
 	"time"
 )
 
@@ -19,6 +20,7 @@ type UserSession struct {
 }
 
 var connectedUsers map[int]UserSession
+var sessionsLock sync.RWMutex
 
 func initSessions() {
 	PurgeSessions()
@@ -29,6 +31,7 @@ func initSessions() {
 		return
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		var userid int
 		var lastAlive time.Time
@@ -45,7 +48,7 @@ func initSessions() {
 		}
 		var session UserSession
 		session.SessionId = sessionId
-		session.Messages = make(chan string, GetConfigInt("MaxSessionsChannelBuffer"))
+		session.Messages = make(chan string, Cfg.GetConfigInt("SessionsChannelBuffer"))
 		session.LastAlive = lastAlive
 		session.LongPolling = false
 		session.UserRank = user.Rank
@@ -55,9 +58,13 @@ func initSessions() {
 	return
 }
 func IsUserLongPolling(userid int) bool {
+	sessionsLock.RLock()
+	defer sessionsLock.RUnlock()
 	return connectedUsers[userid].LongPolling
 }
 func GetSessionByUserId(userid int) *UserSession {
+	sessionsLock.RLock()
+	defer sessionsLock.RUnlock()
 	session, ok := connectedUsers[userid]
 	if ok {
 		return &session
@@ -65,6 +72,8 @@ func GetSessionByUserId(userid int) *UserSession {
 	return nil
 }
 func GetSessionBySessionId(sessionid string) *UserSession {
+	sessionsLock.RLock()
+	defer sessionsLock.RUnlock()
 	for _, session := range connectedUsers {
 		if session.SessionId == sessionid {
 			return &session
@@ -73,6 +82,8 @@ func GetSessionBySessionId(sessionid string) *UserSession {
 	return nil
 }
 func DisconnectUser(userid int) {
+	sessionsLock.Lock()
+	defer sessionsLock.Unlock()
 	UserStopListen(GetSessionByUserId(userid))
 	delete(connectedUsers, userid)
 	stmt, err := Db.Prepare("DELETE FROM neb_sessions WHERE userid = ?")
@@ -119,7 +130,7 @@ func CreateSession(username string, password string) (string, error) {
 	err := Db.QueryRow("SELECT id, password, hash FROM neb_users WHERE username = ?", username).Scan(&id, &serverPassword, &hash)
 
 	if err != nil && err == sql.ErrNoRows { //If user are registered on connection
-		if Cfg["autoRegister"] == "true" {
+		if Cfg.GetConfig("autoRegister") == "true" {
 			RegisterUser(username, password, UserRankNormal)
 			return CreateSession(username, password)
 		} else {
@@ -146,7 +157,7 @@ func CreateSession(username string, password string) (string, error) {
 	//Create entry in connectedUsers
 	var session UserSession
 	session.SessionId = sessionid
-	session.Messages = make(chan string, GetConfigInt("MaxSessionsChannelBuffer"))
+	session.Messages = make(chan string, Cfg.GetConfigInt("MaxSessionsChannelBuffer"))
 	session.LastAlive = time.Now()
 	session.LongPolling = false
 	session.UserId = id
@@ -159,7 +170,7 @@ func CreateSession(username string, password string) (string, error) {
 func PurgeSessions() {
 	for id, sess := range connectedUsers {
 		delta := time.Since(sess.LastAlive).Minutes()
-		if delta > GetConfigFloat("sessionTimeout") {
+		if delta > Cfg.GetConfigFloat("sessionTimeout") {
 			delete(connectedUsers, id)
 		}
 	}
@@ -168,7 +179,7 @@ func PurgeSessions() {
 		Error.Println("Failed to prepare statement : ", err)
 		return
 	}
-	res, err := stmt.Exec(Cfg["sessionTimeout"])
+	res, err := stmt.Exec(Cfg.GetConfig("sessionTimeout"))
 	if err != nil {
 		Error.Println("Failed to purge sessions: ", err)
 		return

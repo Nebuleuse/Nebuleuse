@@ -70,7 +70,7 @@ func UpdateGitCommitCache() error {
 	return gitUpdateCommitCache()
 }
 func GetCurrentVersion() int {
-	return GetConfigInt("gameVersion")
+	return Cfg.GetConfigInt("gameVersion")
 }
 func GetCurrentVersionCommit() (string, error) {
 	info, err := GetUpdateInfos(GetCurrentVersion())
@@ -90,11 +90,11 @@ func GetLatestPublishedCommit() (string, error) {
 }
 
 func GetUpdateSystem() string {
-	return Cfg["updateSystem"]
+	return Cfg.GetConfig("updateSystem")
 }
 
 func GetProductionBranch() string {
-	return Cfg["productionBranch"]
+	return Cfg.GetConfig("productionBranch")
 }
 
 func GetGitCommitList() ([]Commit, error) {
@@ -114,11 +114,11 @@ func GetGitUnpublishedCommitList() ([]Commit, error) {
 	return gitGetLatestCommitsCached(comm, 0)
 }
 func AddUpdate(info Update) error {
-	if Cfg["updateSystem"] == "GitPatch" {
+	if Cfg.GetConfig("updateSystem") == "GitPatch" {
 		return createGitPatch(info)
-	} else if Cfg["updateSystem"] == "FullGit" {
+	} else if Cfg.GetConfig("updateSystem") == "FullGit" {
 		return addFullGitPatch(info)
-	} else if Cfg["updateSystem"] == "Manual" {
+	} else if Cfg.GetConfig("updateSystem") == "Manual" {
 
 	}
 	return nil
@@ -148,7 +148,7 @@ func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
 	diffs := gitGetDiffs(com)
 	var total int64
 	for _, c := range diffs {
-		file, err := os.Open(Cfg["gitRepositoryPath"] + c.Name)
+		file, err := os.Open(Cfg.GetConfig("gitRepositoryPath") + c.Name)
 		if err != nil {
 			return res, err
 		}

@@ -39,10 +39,10 @@ const (
 )
 
 const (
-    UserRankBanned = 1 << iota
-    UserRankNormal
-    UserRankDev
-    UserRankAdmin
+	UserRankBanned = 1 << iota
+	UserRankNormal
+	UserRankDev
+	UserRankAdmin
 )
 
 func GetUserBySession(SessionId string, BitMask int) (*User, error) {
@@ -76,7 +76,7 @@ func (u *User) FetchUserInfos(Bitmask int) error {
 		return err
 	}
 	if u.Avatar == "" {
-		u.Avatar = Cfg["defaultAvatar"]
+		u.Avatar = Cfg.GetConfig("defaultAvatar")
 	}
 
 	if Bitmask&UserMaskAchievements != 0 {

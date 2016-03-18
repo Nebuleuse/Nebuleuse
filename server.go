@@ -12,7 +12,7 @@ func createServer() {
 
 	go sessionsPurgeTimer()
 
-	core.Info.Fatal(http.ListenAndServe(core.SysCfg["serverAddress"]+":"+core.SysCfg["serverPort"], nil))
+	core.Info.Fatal(http.ListenAndServe(core.Cfg.GetSysConfig("serverAddress")+":"+core.Cfg.GetSysConfig("serverPort"), nil))
 }
 
 func sessionsPurgeTimer() {

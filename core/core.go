@@ -6,8 +6,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/robfig/config"
 	"os"
-	"strconv"
 	"strings"
+	"sync"
 )
 
 const NebuleuseVersion = 1
@@ -35,22 +35,28 @@ func (e NebuleuseError) Error() string {
 	return e.Msg
 }
 
-type ConfigMgr map[string]string
+type configMgr struct {
+	Cfg        map[string]string
+	SysCfg     map[string]string
+	configLock sync.RWMutex
+}
 
-var Cfg ConfigMgr
-var SysCfg ConfigMgr
+var Cfg configMgr
 var Db *sql.DB
 
 func Init() {
 	initLogging()
-	initConfig()
+	Cfg.InitConfig()
 	initDb()
-	loadConfig()
+	Cfg.LoadConfig()
 	initSessions()
 	initMessaging()
-
+	err := initUpdateSystem()
+	if err != nil {
+		Warning.Println("Update system not setup")
+	}
 	//Todo: if update system is Git
-	if Cfg["updateSystem"] == "GitPatch" || Cfg["updateSystem"] == "FullGit" {
+	if Cfg.GetConfig("updateSystem") == "GitPatch" || Cfg.GetConfig("updateSystem") == "FullGit" {
 		initGit()
 	}
 }
@@ -107,7 +113,7 @@ func Install() {
 	c.WriteFile(".config", 0644, "")
 	Info.Println("Saved config")
 	Info.Println("Testing database connectivity")
-	initConfig()
+	Cfg.InitConfig()
 	initDb()
 
 	Info.Println("Do you want to create a new admin account ? Y/N")
@@ -149,8 +155,8 @@ func Install() {
 }
 
 func initDb() {
-	con := SysCfg["dbUser"] + ":" + SysCfg["dbPass"] + "@tcp(" + SysCfg["dbAddress"] + ")/" + SysCfg["dbBase"] + "?parseTime=true"
-	db, err := sql.Open(SysCfg["dbType"], con)
+	con := Cfg.GetSysConfig("dbUser") + ":" + Cfg.GetSysConfig("dbPass") + "@tcp(" + Cfg.GetSysConfig("dbAddress") + ")/" + Cfg.GetSysConfig("dbBase") + "?parseTime=true"
+	db, err := sql.Open(Cfg.GetSysConfig("dbType"), con)
 
 	if err != nil {
 		Error.Fatal(err)
@@ -165,23 +171,18 @@ func initDb() {
 	Db = db
 }
 func GetGameVersion() int {
-	n, e := strconv.Atoi(Cfg["gameVersion"])
-	if e != nil {
-		return -1
-	}
-	return n
+	return Cfg.GetConfigInt("gameVersion")
 }
+
+//todo
 func GetGameSemVer() string {
-	update, err := GetUpdateInfos(GetGameVersion())
+	/*update, err := GetUpdateInfos(GetGameVersion())
 	if err != nil {
 		return ""
 	}
-	return update.SemVer
+	return update.SemVer*/
+	return ""
 }
 func GetUpdaterVersion() int {
-	n, e := strconv.Atoi(Cfg["updaterVersion"])
-	if e != nil {
-		return -1
-	}
-	return n
+	return Cfg.GetConfigInt("updaterVersion")
 }

@@ -1,38 +1,111 @@
 package core
 
 import (
-	"database/sql"
+	"errors"
 	"os"
 	"time"
 )
 
 type Update struct {
-	Version int
-	SemVer  string
-	Log     string
-	Size    int
-	Url     string
-	Date    time.Time
-	Commit  string
+	Build        *Build
+	Branch       string
+	Size         int
+	RollBack     bool
+	NextInBranch *Update
+}
+type Build struct {
+	Id          int
+	SemVer      string
+	Commit      string
+	Log         string
+	Date        time.Time
+	FileChanged string
+	Obselete    bool
+	Updates     map[string]*Update
+}
+type Branch struct {
+	Name       string
+	AccessRank int
+	Head       *Update
 }
 
+var updateBuilds map[int]*Build
+var updateBranches map[string]Branch
+
+func initUpdateSystem() error {
+	updateBuilds = make(map[int]*Build)
+	updateBranches = make(map[string]Branch)
+
+	buildRows, err := Db.Query("SELECT id, semver, commit, log, date, changelist, obselete FROM neb_updates_builds ORDER BY id")
+	if err != nil {
+		return err
+	}
+	defer buildRows.Close()
+	for buildRows.Next() {
+		var build Build
+		err := buildRows.Scan(&build.Id, &build.SemVer, &build.Commit, &build.Log, &build.Date, &build.FileChanged, &build.Obselete)
+		if err != nil {
+			Warning.Println("Could not scan build from DB:", err)
+			return err
+		}
+		build.Updates = make(map[string]*Update)
+		updateBuilds[build.Id] = &build
+	}
+
+	branchRows, err := Db.Query("SELECT name, rank FROM neb_updates_branches")
+	if err != nil {
+		return err
+	}
+	defer branchRows.Close()
+	for branchRows.Next() {
+		var branch Branch
+		err := branchRows.Scan(&branch.Name, &branch.AccessRank)
+		if err != nil {
+			Warning.Println("Could not scan branch from DB:", err)
+			return err
+		}
+		updateBranches[branch.Name] = branch
+	}
+
+	updateRows, err := Db.Query("SELECT build, branch, size, rollback FROM neb_updates ORDER BY build")
+	if err != nil {
+		return err
+	}
+	defer updateRows.Close()
+	for updateRows.Next() {
+		var update Update
+		var buildid int
+
+		err := updateRows.Scan(&buildid, update.Branch, update.Size, update.RollBack)
+		if err != nil {
+			return err
+		}
+
+		update.Build = updateBuilds[buildid]
+		update.NextInBranch = updateBranches[update.Branch].Head
+		branch := updateBranches[update.Branch]
+		branch.Head = &update
+	}
+
+	return nil
+}
 func GetUpdateInfos(version int) (Update, error) {
 	var up Update
 
-	err := Db.QueryRow("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.Version, &up.SemVer, &up.Log, &up.Size, &up.Url, &up.Date, &up.Commit)
+	/*err := Db.QueryRow("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.Version, &up.SemVer, &up.Log, &up.Size, &up.Url, &up.Date, &up.Commit)
 
 	if err != nil && err == sql.ErrNoRows {
 		return up, &NebuleuseError{NebError, "No update found"}
 	} else if err != nil {
 		return up, err
 	}
-
+	*/
 	return up, nil
 }
 
 func GetUpdatesInfos(start int) ([]Update, error) {
 	var updates []Update
-	rows, err := Db.Query("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version >= ?", start)
+	/*rows, err := Db.Query("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version >= ?", start)
 	if err != nil {
 		return updates, err
 	}
@@ -53,7 +126,7 @@ func GetUpdatesInfos(start int) ([]Update, error) {
 		Warning.Println("Could not get update infos :", err)
 		return updates, err
 	}
-
+	*/
 	return updates, nil
 }
 
@@ -72,21 +145,12 @@ func UpdateGitCommitCache() error {
 func GetCurrentVersion() int {
 	return Cfg.GetConfigInt("gameVersion")
 }
-func GetCurrentVersionCommit() (string, error) {
-	info, err := GetUpdateInfos(GetCurrentVersion())
-	if err != nil {
-		return "", err
-	}
-	return info.Commit, nil
-}
 
-//TODO : differantiate from GetCurrentVersionCommit
-func GetLatestPublishedCommit() (string, error) {
-	info, err := GetUpdateInfos(GetCurrentVersion())
-	if err != nil {
-		return "", err
+func GetLatestBuildCommit() (string, error) {
+	if len(updateBuilds) == 0 {
+		return "", errors.New("No build recorded, cannot acces latest build commit")
 	}
-	return info.Commit, nil
+	return updateBuilds[len(updateBuilds)-1].Commit, nil
 }
 
 func GetUpdateSystem() string {
@@ -98,38 +162,31 @@ func GetProductionBranch() string {
 }
 
 func GetGitCommitList() ([]Commit, error) {
-	comm, err := GetCurrentVersionCommit()
+	comm, err := GetLatestBuildCommit()
 	if err != nil {
 		return nil, err
 	}
 
 	return gitGetLatestCommitsCached(comm, 0)
 }
-func GetGitUnpublishedCommitList() ([]Commit, error) {
-	comm, err := GetLatestPublishedCommit()
-	if err != nil {
-		return nil, err
-	}
 
-	return gitGetLatestCommitsCached(comm, 0)
-}
 func AddUpdate(info Update) error {
-	if Cfg.GetConfig("updateSystem") == "GitPatch" {
+	/*if Cfg.GetConfig("updateSystem") == "GitPatch" {
 		return createGitPatch(info)
 	} else if Cfg.GetConfig("updateSystem") == "FullGit" {
 		return addFullGitPatch(info)
 	} else if Cfg.GetConfig("updateSystem") == "Manual" {
 
-	}
+	}*/
 	return nil
 }
 
 //Assumes update selected to create patch from is forward in history tree
-func createGitPatch(info Update) error {
+/*func createGitPatch(info Update) error {
 	gitCreatePatch(info.Commit)
 	return nil
 }
-
+*/
 type gitPatchPrepInfos struct {
 	Diffs     []Diff
 	TotalSize int64
@@ -137,7 +194,7 @@ type gitPatchPrepInfos struct {
 
 func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
 	var res gitPatchPrepInfos
-	comm, err := GetCurrentVersionCommit()
+	comm, err := GetLatestBuildCommit()
 	if err != nil {
 		return res, err
 	}
@@ -165,20 +222,12 @@ func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
 
 	return res, err
 }
-func addFullGitPatch(info Update) error {
-	_, err := Db.Exec("INSERT INTO neb_updates VALUES(?,?,?,?,?,NOW(),?)", info.Version, info.SemVer, info.Log, info.Size, info.Url, info.Commit)
-	if err != nil {
-		Error.Println("Failed to insert update : ", info)
-		return err
-	}
-
-	return nil
-}
 
 func SignalGameUpdated() {
 	Dispatch("system", "game", "game update released")
 }
 
+// Todo : no duplicate
 func GetUpdateCount() int {
 	var count int
 	err := Db.QueryRow("SELECT COUNT(*) FROM neb_updates").Scan(&count)

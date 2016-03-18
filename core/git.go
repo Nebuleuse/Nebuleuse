@@ -190,7 +190,7 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 }
 
 func gitCreatePatch(commit string) error {
-	latestCommit, err := GetCurrentVersionCommit()
+	latestCommit, err := GetLatestBuildCommit()
 	if err != nil {
 		return err
 	}

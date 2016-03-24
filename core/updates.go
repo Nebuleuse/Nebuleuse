@@ -11,11 +11,14 @@ type Update struct {
 	Branch       string
 	Size         int
 	RollBack     bool
+	SemVer       string
+	Log          string
+	Date         time.Time
 	NextInBranch *Update
+	PrevInBranch *Update
 }
 type Build struct {
 	Id          int
-	SemVer      string
 	Commit      string
 	Log         string
 	Date        time.Time
@@ -24,9 +27,10 @@ type Build struct {
 	Updates     map[string]*Update
 }
 type Branch struct {
-	Name       string
-	AccessRank int
-	Head       *Update
+	Name        string
+	AccessRank  int
+	ActiveBuild int
+	Head        *Update
 }
 
 var updateBuilds map[int]*Build
@@ -36,14 +40,14 @@ func initUpdateSystem() error {
 	updateBuilds = make(map[int]*Build)
 	updateBranches = make(map[string]Branch)
 
-	buildRows, err := Db.Query("SELECT id, semver, commit, log, date, changelist, obselete FROM neb_updates_builds ORDER BY id")
+	buildRows, err := Db.Query("SELECT id, commit, date, changelist, obselete FROM neb_updates_builds ORDER BY id")
 	if err != nil {
 		return err
 	}
 	defer buildRows.Close()
 	for buildRows.Next() {
 		var build Build
-		err := buildRows.Scan(&build.Id, &build.SemVer, &build.Commit, &build.Log, &build.Date, &build.FileChanged, &build.Obselete)
+		err := buildRows.Scan(&build.Id, &build.Commit, &build.Date, &build.FileChanged, &build.Obselete)
 		if err != nil {
 			Warning.Println("Could not scan build from DB:", err)
 			return err
@@ -52,7 +56,7 @@ func initUpdateSystem() error {
 		updateBuilds[build.Id] = &build
 	}
 
-	branchRows, err := Db.Query("SELECT name, rank FROM neb_updates_branches")
+	branchRows, err := Db.Query("SELECT name, rank, activeBuild FROM neb_updates_branches")
 	if err != nil {
 		return err
 	}
@@ -67,7 +71,7 @@ func initUpdateSystem() error {
 		updateBranches[branch.Name] = branch
 	}
 
-	updateRows, err := Db.Query("SELECT build, branch, size, rollback FROM neb_updates ORDER BY build")
+	updateRows, err := Db.Query("SELECT build, branch, size, rollback, semver, log, date FROM neb_updates ORDER BY build")
 	if err != nil {
 		return err
 	}
@@ -76,18 +80,39 @@ func initUpdateSystem() error {
 		var update Update
 		var buildid int
 
-		err := updateRows.Scan(&buildid, update.Branch, update.Size, update.RollBack)
+		err := updateRows.Scan(&buildid, &update.Branch, &update.Size, &update.RollBack, &update.SemVer, &update.Log, &update.Date)
 		if err != nil {
 			return err
 		}
-
+		branch, ok := updateBranches[update.Branch]
+		if !ok {
+			Warning.Println("Skipped update #" + string(buildid) + " because branch " + update.Branch + " does not exist")
+			continue
+		}
+		if updateBuilds[buildid] == nil {
+			Warning.Println("Update found using unknown build id" + string(buildid) + " on branch " + update.Branch)
+		}
 		update.Build = updateBuilds[buildid]
-		update.NextInBranch = updateBranches[update.Branch].Head
-		branch := updateBranches[update.Branch]
+
+		update.NextInBranch = branch.Head
+		if branch.Head != nil {
+			branch.Head.PrevInBranch = &update
+		}
 		branch.Head = &update
 	}
 
+	//Setup Git if needed
+	if Cfg.GetConfig("updateSystem") == "GitPatch" || Cfg.GetConfig("updateSystem") == "FullGit" {
+		initGit()
+	}
+
 	return nil
+}
+func GetBranchHead(branch string) (*Update, error) {
+	if updateBranches[branch].Head == nil {
+		return nil, errors.New("Branch not found:" + branch)
+	}
+	return updateBranches[branch].Head, nil
 }
 func GetUpdateInfos(version int) (Update, error) {
 	var up Update

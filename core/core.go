@@ -55,10 +55,6 @@ func Init() {
 	if err != nil {
 		Warning.Println("Update system not setup")
 	}
-	//Todo: if update system is Git
-	if Cfg.GetConfig("updateSystem") == "GitPatch" || Cfg.GetConfig("updateSystem") == "FullGit" {
-		initGit()
-	}
 }
 func Die() {
 	Db.Close()

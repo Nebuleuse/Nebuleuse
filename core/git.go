@@ -15,7 +15,6 @@ func initGit() error {
 		Error.Println("Failed to open repository")
 		return err
 	}
-	gitUpdateCommitCache()
 
 	return nil
 }

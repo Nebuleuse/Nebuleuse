@@ -7,6 +7,29 @@ import (
 	"net/http"
 )
 
+//User connected
+func getBranchList(w http.ResponseWriter, r *http.Request) {
+	session := context.Get(r, "session").(*core.UserSession)
+	list := core.GetBranchList(session.UserRank)
+	EasyDataResponse(w, list)
+}
+
+//User connected, form values: branch
+func getBranchUpdates(w http.ResponseWriter, r *http.Request) {
+	session := context.Get(r, "session").(*core.UserSession)
+	branch := context.Get(r, "branch").(string)
+	if !core.CanUserAccessBranch(branch, session.UserRank) {
+		EasyResponse(w, core.NebErrorAuthFail, "Cannot access branch: unauthorized or branch does not exist")
+		return
+	}
+
+	list, err := core.GetBranchUpdates(branch)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	}
+	EasyDataResponse(w, list)
+}
+
 func getUpdateList(w http.ResponseWriter, r *http.Request) {
 	version := context.Get(r, "version").(int)
 

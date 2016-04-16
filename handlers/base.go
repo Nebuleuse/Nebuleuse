@@ -53,6 +53,8 @@ func RegisterHandlers() {
 	r.HandleFunc("/setUsersStatFields", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"fields"}, setUsersStatFields)))).Methods("POST")
 
 	//Updates
+	r.HandleFunc("/getBranchList", userBySession(false, getBranchList)).Methods("POST")
+	r.HandleFunc("/getBranchUpdates", userBySession(false, verifyFormValuesExist([]string{"branch"}, getBranchUpdates)))
 	r.HandleFunc("/getUpdateList", verifyFormValuesExist([]string{"version"}, getUpdateList)).Methods("POST")
 	r.HandleFunc("/getUpdateListComplete", userBySession(false, mustBeAdmin(optionalSwitchs([]string{"diffs"}, getUpdateListComplete)))).Methods("POST")
 	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(updateGitCommitCacheList))).Methods("POST")

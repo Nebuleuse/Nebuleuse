@@ -7,15 +7,16 @@ import (
 )
 
 type Update struct {
-	Build        *Build
+	Build        *Build `json:"-"`
+	BuildId      int
 	Branch       string
 	Size         int
 	RollBack     bool
 	SemVer       string
 	Log          string
 	Date         time.Time
-	NextInBranch *Update
-	PrevInBranch *Update
+	NextInBranch *Update `json:"-"`
+	PrevInBranch *Update `json:"-"`
 }
 type Build struct {
 	Id          int
@@ -78,27 +79,31 @@ func initUpdateSystem() error {
 	defer updateRows.Close()
 	for updateRows.Next() {
 		var update Update
-		var buildid int
 
-		err := updateRows.Scan(&buildid, &update.Branch, &update.Size, &update.RollBack, &update.SemVer, &update.Log, &update.Date)
+		err := updateRows.Scan(&update.BuildId, &update.Branch, &update.Size, &update.RollBack, &update.SemVer, &update.Log, &update.Date)
 		if err != nil {
 			return err
 		}
 		branch, ok := updateBranches[update.Branch]
 		if !ok {
-			Warning.Println("Skipped update #" + string(buildid) + " because branch " + update.Branch + " does not exist")
+			Warning.Println("Skipped update #" + string(update.BuildId) + " because branch " + update.Branch + " does not exist")
 			continue
 		}
-		if updateBuilds[buildid] == nil {
-			Warning.Println("Update found using unknown build id" + string(buildid) + " on branch " + update.Branch)
+		if updateBuilds[update.BuildId] == nil {
+			Warning.Println("Skipped update on branch " + update.Branch + " because buildid #" + string(update.BuildId) + " is incorrect")
+			continue
 		}
-		update.Build = updateBuilds[buildid]
+		update.Build = updateBuilds[update.BuildId]
+		update.Build.Updates[update.Branch] = &update
 
 		update.NextInBranch = branch.Head
-		if branch.Head != nil {
-			branch.Head.PrevInBranch = &update
+		//If an update is rolled back, you can only go backward in update history
+		if !update.RollBack {
+			if branch.Head != nil {
+				branch.Head.PrevInBranch = &update
+			}
+			branch.Head = &update
 		}
-		branch.Head = &update
 	}
 
 	//Setup Git if needed
@@ -108,11 +113,43 @@ func initUpdateSystem() error {
 
 	return nil
 }
-func GetBranchHead(branch string) (*Update, error) {
-	if updateBranches[branch].Head == nil {
-		return nil, errors.New("Branch not found:" + branch)
+func GetBranchList(rank int) []string {
+	ret := []string{}
+	for _, branch := range updateBranches {
+		if branch.AccessRank > rank {
+			ret = append(ret, branch.Name)
+		}
 	}
-	return updateBranches[branch].Head, nil
+	return ret
+}
+func GetBranchHead(name string) (*Update, error) {
+	branch, ok := updateBranches[name]
+	if !ok || branch.Head == nil {
+		return nil, errors.New("Branch not found or head missing:" + name)
+	}
+	return branch.Head, nil
+}
+
+//If branch doesn't exist, returns false
+func CanUserAccessBranch(name string, rank int) bool {
+	branch, ok := updateBranches[name]
+	if !ok || branch.AccessRank > rank {
+		return false
+	}
+	return true
+}
+func GetBranchUpdates(name string) ([]Update, error) {
+	branch, ok := updateBranches[name]
+	if !ok {
+		return nil, errors.New("Branch not Found: " + name)
+	}
+	cur := branch.Head
+	var ret []Update
+	for cur != nil {
+		ret = append(ret, *cur)
+		cur = cur.NextInBranch
+	}
+	return ret, nil
 }
 func GetUpdateInfos(version int) (Update, error) {
 	var up Update

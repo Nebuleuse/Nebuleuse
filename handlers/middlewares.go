@@ -93,7 +93,7 @@ func authRank(rank int, next middleWare) middleWare {
 		}
 		rqst := irqst.(*core.User)
 		rqst.FetchUserInfos(core.UserMaskBase)
-		if rqst.Rank < rank {
+		if rqst.Rank&rank == 0 {
 			EasyResponse(w, core.NebErrorAuthFail, "Unauthorized")
 			return
 		}

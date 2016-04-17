@@ -30,6 +30,7 @@ func getBranchUpdates(w http.ResponseWriter, r *http.Request) {
 	EasyDataResponse(w, list)
 }
 
+/*
 func getUpdateList(w http.ResponseWriter, r *http.Request) {
 	version := context.Get(r, "version").(int)
 
@@ -79,6 +80,7 @@ func getUpdateListComplete(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+*/
 
 func addUpdate(w http.ResponseWriter, r *http.Request) {
 	data := context.Get(r, "data").([]byte)

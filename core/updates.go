@@ -116,7 +116,7 @@ func initUpdateSystem() error {
 func GetBranchList(rank int) []string {
 	ret := []string{}
 	for _, branch := range updateBranches {
-		if branch.AccessRank > rank {
+		if branch.AccessRank&rank != 0 {
 			ret = append(ret, branch.Name)
 		}
 	}
@@ -133,7 +133,7 @@ func GetBranchHead(name string) (*Update, error) {
 //If branch doesn't exist, returns false
 func CanUserAccessBranch(name string, rank int) bool {
 	branch, ok := updateBranches[name]
-	if !ok || branch.AccessRank > rank {
+	if !ok || branch.AccessRank&rank == 0 {
 		return false
 	}
 	return true
@@ -151,61 +151,50 @@ func GetBranchUpdates(name string) ([]Update, error) {
 	}
 	return ret, nil
 }
-func GetUpdateInfos(version int) (Update, error) {
-	var up Update
 
-	/*err := Db.QueryRow("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version = ?", version).Scan(&up.Version, &up.SemVer, &up.Log, &up.Size, &up.Url, &up.Date, &up.Commit)
-
-	if err != nil && err == sql.ErrNoRows {
-		return up, &NebuleuseError{NebError, "No update found"}
-	} else if err != nil {
-		return up, err
+func GetUpdateInfos(branchName string, buildId int) (*Update, error) {
+	build := updateBuilds[buildId]
+	if build == nil {
+		return nil, errors.New("Build not found: " + string(buildId))
 	}
-	*/
-	return up, nil
+
+	update, ok := build.Updates[branchName]
+	if !ok {
+		return nil, errors.New("No update info for build #" + string(buildId) + " on branch: " + branchName)
+	}
+	return update, nil
 }
 
-func GetUpdatesInfos(start int) ([]Update, error) {
-	var updates []Update
-	/*rows, err := Db.Query("SELECT version, semVer, log, size, url, date, commit FROM neb_updates WHERE version >= ?", start)
-	if err != nil {
-		return updates, err
+func SetActiveUpdate(branchName string, buildId int) error {
+	branch, ok := updateBranches[branchName]
+	if !ok {
+		return errors.New("Branch not found: " + branchName)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var update Update
-		err := rows.Scan(&update.Version, &update.SemVer, &update.Log, &update.Size, &update.Url, &update.Date, &update.Commit)
-		if err != nil {
-			Warning.Println("Could not get update infos :", err)
-			return updates, err
-		}
-		updates = append(updates, update)
+	build := updateBuilds[buildId]
+	if build == nil {
+		return errors.New("Build not found: " + string(buildId))
+	}
+	if build.Updates[branchName] == nil {
+		return errors.New("Udate not found for build #" + string(buildId) + " on branch " + branchName + "")
 	}
 
-	err = rows.Err()
-	if err != nil {
-		Warning.Println("Could not get update infos :", err)
-		return updates, err
-	}
-	*/
-	return updates, nil
-}
+	branch.ActiveBuild = build.Id
+	Db.Exec("UPDATE neb_updates_branches SET activeBuild = ? WHERE name = ?", build.Id, branch.Name)
 
-func SetActiveUpdate(version int) error {
-	err := Cfg.SetConfig("gameVersion", string(version))
-	if err != nil {
-		return err
-	}
-	SignalGameUpdated()
+	SignalGameUpdated(branch, *build.Updates[branchName])
 	return nil
 }
 
 func UpdateGitCommitCache() error {
 	return gitUpdateCommitCache()
 }
-func GetCurrentVersion() int {
-	return Cfg.GetConfigInt("gameVersion")
+
+func GetBranchActiveBuild(branchName string) (int, error) {
+	branch, ok := updateBranches[branchName]
+	if !ok {
+		return 0, errors.New("Could not find branch: " + branchName)
+	}
+	return branch.ActiveBuild, nil
 }
 
 func GetLatestBuildCommit() (string, error) {
@@ -285,8 +274,8 @@ func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
 	return res, err
 }
 
-func SignalGameUpdated() {
-	Dispatch("system", "game", "game update released")
+func SignalGameUpdated(branch Branch, update Update) {
+	DispatchRank("system", "gameUpdate", update, branch.AccessRank)
 }
 
 // Todo : no duplicate

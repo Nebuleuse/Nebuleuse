@@ -74,7 +74,7 @@ func (c *configMgr) LoadConfig() {
 		value string
 	)
 
-	rows, err := Db.Query("select name, value from neb_config")
+	rows, err := Db.Query("SELECT name, value FROM neb_config")
 	if err != nil {
 		Error.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func (c *configMgr) LoadConfig() {
 
 func (c *configMgr) SetConfig(name, value string) error {
 	c.configLock.Lock()
-	_, err := Db.Query("UPDATE neb_config SET value=? WHERE name=?", value, name)
+	_, err := Db.Exec("UPDATE neb_config SET value=? WHERE name=?", value, name)
 	if err != nil {
 		Error.Println("Failed to update config : ", value, name)
 		return err

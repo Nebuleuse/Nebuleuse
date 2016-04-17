@@ -30,8 +30,8 @@ type messageData struct {
 
 func initMessaging() {
 	messagePipelines = make(map[string]MessagePipeline)
-	messagePipelines["system"] = createPipeline("system", 1, false, false)
-	messagePipelines["admin"] = createPipeline("admin", 2, true, false)
+	messagePipelines["system"] = createPipeline("system", UserRankNormal, false, false)
+	messagePipelines["admin"] = createPipeline("admin", UserRankDev|UserRankAdmin, true, false)
 }
 
 func Listen(pipe, name string, user *UserSession) {
@@ -77,7 +77,7 @@ func CanUserDispatch(pipe string) bool {
 	return messagePipelines[pipe].canUserDispatch
 }
 func CanUserJoin(pipe string, user *UserSession) bool {
-	return messagePipelines[pipe].canUserJoin && messagePipelines[pipe].rank <= user.UserId
+	return messagePipelines[pipe].canUserJoin && messagePipelines[pipe].rank&user.UserId != 0
 }
 func Dispatch(pipe, name string, message interface{}) {
 	var msg messageData
@@ -91,6 +91,22 @@ func Dispatch(pipe, name string, message interface{}) {
 
 	for _, id := range messagePipelines[pipe].pipes[name] {
 		SendMessageToUserId(id, string(res))
+	}
+}
+func DispatchRank(pipe, name string, message interface{}, rank int) {
+	var msg messageData
+	msg.Channel = name
+	msg.Message = message
+	res, err := json.Marshal(msg)
+	if err != nil {
+		Error.Println("Could not marshal message dispatch : ", err)
+		return
+	}
+
+	for _, id := range messagePipelines[pipe].pipes[name] {
+		if id.UserRank&rank != 0 {
+			SendMessageToUserId(id, string(res))
+		}
 	}
 }
 func GetMessages(userid int) chan string {

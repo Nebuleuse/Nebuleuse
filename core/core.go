@@ -53,7 +53,7 @@ func Init() {
 	initMessaging()
 	err := initUpdateSystem()
 	if err != nil {
-		Warning.Println("Update system not setup")
+		Warning.Println("Update system not setup: " + err.Error())
 	}
 }
 func Die() {

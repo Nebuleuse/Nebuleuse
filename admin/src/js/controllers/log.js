@@ -7,7 +7,7 @@ function LogCtrl($scope, $http) {
 	
 	$scope.logLines = "";
 	$scope.setPageTitle("Live Log");
-	$scope.subscribeTo("log");
+	$scope.subscribeTo("admin", "log");
 
 	$scope.$on("log", function (event, arg) {
 		$scope.logLines += arg + "\n";

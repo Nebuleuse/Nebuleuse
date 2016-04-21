@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"github.com/gorilla/context"
-	"net/http"
 )
 
 //User connected
@@ -28,6 +29,12 @@ func getBranchUpdates(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 	}
 	EasyDataResponse(w, list)
+}
+
+//User connected, must be Admin
+func getCompleteBranchUpdates(w http.ResponseWriter, r *http.Request) {
+	data := core.GetCompleteUpdatesInfos()
+	EasyDataResponse(w, data)
 }
 
 /*

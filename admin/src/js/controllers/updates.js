@@ -9,9 +9,9 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	$scope.fullList = [];
 
 	$scope.refreshList = function () {
-		$http.post(APIURL + '/getUpdateListComplete', {sessionid: $scope.Self.SessionId, diffs: true})
+		$http.post(APIURL + '/getCompleteBranchUpdates', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {
-			console.dir(data)
+			console.log(data)
 			$scope.fullList = JSON.parse(JSON.stringify(data));
 			data.Updates = data.Updates.reverse()
 			var compare = "";

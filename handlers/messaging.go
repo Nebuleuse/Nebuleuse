@@ -13,8 +13,7 @@ func subscribeTo(w http.ResponseWriter, r *http.Request) {
 	pipe := context.Get(r, "pipe").(string)
 	channel := context.Get(r, "channel").(string)
 	session := context.Get(r, "session").(*core.UserSession)
-	core.Trace.Println(pipe)
-	core.Trace.Println(channel)
+
 	if core.CanUserJoin(pipe, session) {
 		core.Listen(pipe, channel, session)
 	}

@@ -25,13 +25,13 @@ type Build struct {
 	Date        time.Time
 	FileChanged string
 	Obselete    bool
-	Updates     map[string]*Update
+	Updates     map[string]*Update `json:"-"`
 }
 type Branch struct {
 	Name        string
 	AccessRank  int
 	ActiveBuild int
-	Head        *Update
+	Head        *Update `json:"-"`
 }
 
 var updateBuilds map[int]*Build
@@ -64,7 +64,7 @@ func initUpdateSystem() error {
 	defer branchRows.Close()
 	for branchRows.Next() {
 		var branch Branch
-		err := branchRows.Scan(&branch.Name, &branch.AccessRank)
+		err := branchRows.Scan(&branch.Name, &branch.AccessRank, &branch.ActiveBuild)
 		if err != nil {
 			Warning.Println("Could not scan branch from DB:", err)
 			return err
@@ -152,6 +152,46 @@ func GetBranchUpdates(name string) ([]Update, error) {
 	return ret, nil
 }
 
+type branchUpdatesData struct {
+	Name        string
+	AccessRank  int
+	ActiveBuild int
+	Updates     []Update
+}
+type completeBranchUpdatesData struct {
+	Branches []branchUpdatesData
+	Builds   []Build
+	Commits  []Commit
+}
+
+func GetCompleteUpdatesInfos() completeBranchUpdatesData {
+	var res completeBranchUpdatesData
+	for _, branch := range updateBranches {
+		var branchData branchUpdatesData
+		branchData.Name = branch.Name
+		branchData.ActiveBuild = branch.ActiveBuild
+		branchData.AccessRank = branch.AccessRank
+		cur := branch.Head
+		for cur != nil {
+			branchData.Updates = append(branchData.Updates, *cur)
+			cur = cur.NextInBranch
+		}
+		res.Branches = append(res.Branches, branchData)
+	}
+	for _, build := range updateBuilds {
+		res.Builds = append(res.Builds, *build)
+	}
+	if isGitUpdateSystem() {
+		build, ok := updateBuilds[0]
+		if ok {
+			comm, err := gitGetCommits(build.Commit)
+			if err == nil {
+				res.Commits = comm
+			}
+		}
+	}
+	return res
+}
 func GetUpdateInfos(branchName string, buildId int) (*Update, error) {
 	build := updateBuilds[buildId]
 	if build == nil {
@@ -211,7 +251,12 @@ func GetUpdateSystem() string {
 func GetProductionBranch() string {
 	return Cfg.GetConfig("productionBranch")
 }
-
+func isGitUpdateSystem() bool {
+	if GetUpdateSystem() == "GitPatch" || GetUpdateSystem() == "FullGit" {
+		return true
+	}
+	return false
+}
 func GetGitCommitList() ([]Commit, error) {
 	comm, err := GetLatestBuildCommit()
 	if err != nil {
@@ -232,12 +277,6 @@ func AddUpdate(info Update) error {
 	return nil
 }
 
-//Assumes update selected to create patch from is forward in history tree
-/*func createGitPatch(info Update) error {
-	gitCreatePatch(info.Commit)
-	return nil
-}
-*/
 type gitPatchPrepInfos struct {
 	Diffs     []Diff
 	TotalSize int64

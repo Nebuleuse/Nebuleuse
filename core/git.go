@@ -2,6 +2,7 @@ package core
 
 import (
 	"container/list"
+	"errors"
 	"github.com/Nebuleuse/Nebuleuse/git"
 )
 
@@ -183,8 +184,11 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 		}
 		endPos++
 	}
-	ret := make([]Commit, endPos)
-	copy(ret, commitCache[0:endPos])
+	if !found {
+		return nil, errors.New("Could not find commit:" + commit)
+	}
+	ret := make([]Commit, endPos-1)
+	copy(ret, commitCache[0:endPos-1])
 	return ret, nil
 }
 

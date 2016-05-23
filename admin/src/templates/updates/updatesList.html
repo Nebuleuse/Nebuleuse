@@ -4,39 +4,25 @@
     	<a ng-click="updateCacheList()">Update cache</a>
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
-		<div style="overflow-x: scroll; max-width: 100%;">
-		<ul id='timeline'>
-		  <li class='work' ng-repeat="commit in list.Commits">
-		    <input class='radio' id='{{commit.Id}}' name='works' type='radio' ng-checked="commit.Id == list.CurrentCommit">
-		    <div class="relative">
-		      <label for='{{commit.Id}}'>{{commit.Id}}</label>
-		      <span class='date'>{{commit.Date}}</span>
-		      <span class='circle'></span>
-		    </div>
-		    <div class='content contentCommit'>
-		      <p>
-		        {{commit.Message}}
-		      </p>
-  			  <button type="button" class='btn btn-default' ng-click="createPatch(commit.Id)">Create update</button>
-		    </div>
-		  </li>
-		  <li class='work' ng-repeat="update in list.Updates">
-		    <input class='radio' id='{{update.Version}}' name='works' type='radio' ng-checked="update.Version == list.CurrentVersion">
-		    <div class="relative">
-		      <label for='{{update.Version}}'>V.{{update.SemVer}} <sup>build {{update.Version}}</sup></label>
-		      <span class='date'>{{update.Date}}</span>
-		      <span class='circle'></span>
-		    </div>
-		    <div class='content contentVersion'>
-		      <p>
-		        {{update.Log}}
-		      </p>
-		      <button type="button" class='btn btn-default' ng-click="">Download</button>
-		    </div>
-		  </li>
-		</ul>
-		<br/><br/><br/><br/><br/>
-		</div>
+			<table class="updateTable">
+				<thead>
+					<td>Builds</tr>
+					<td ng-repeat="branch in list.Branches">{{branch.Name}}</td>
+				</thead>
+				<tbody>
+					<!-- Commits -->
+					<tr ng-repeat="commit in list.Commits">
+						<td class="updateTableCommit">
+							<neb-commit commit="commit"></neb-commit>
+						</td>
+					</tr>
+					<!-- Existing builds -->
+					<tr ng-repeat="build in list.Builds | orderBy: Id:true" class="">
+						<td class="updateTableBuild">{{build.Id}}</td>
+						<td ng-repeat="branch in list.Branches" class="updateTableBranch">{{getUpdateForBuild(branch, build.Id)}}</td>
+					</tr>
+				</tbody>
+			</table>
 	</rd-widget-body>
 </rd-widget>
 </div>

@@ -34,12 +34,12 @@ type Branch struct {
 	Head        *Update `json:"-"`
 }
 
-var updateBuilds map[int]*Build
-var updateBranches map[string]Branch
+var updateBuilds []*Build
+var updateBranches []*Branch
 
 func initUpdateSystem() error {
-	updateBuilds = make(map[int]*Build)
-	updateBranches = make(map[string]Branch)
+	updateBuilds = make([]*Build, 0)
+	updateBranches = make([]*Branch, 0)
 
 	buildRows, err := Db.Query("SELECT id, commit, date, changelist, obselete FROM neb_updates_builds ORDER BY id")
 	if err != nil {
@@ -54,7 +54,7 @@ func initUpdateSystem() error {
 			return err
 		}
 		build.Updates = make(map[string]*Update)
-		updateBuilds[build.Id] = &build
+		updateBuilds = append(updateBuilds, &build)
 	}
 
 	branchRows, err := Db.Query("SELECT name, rank, activeBuild FROM neb_updates_branches")
@@ -69,7 +69,7 @@ func initUpdateSystem() error {
 			Warning.Println("Could not scan branch from DB:", err)
 			return err
 		}
-		updateBranches[branch.Name] = branch
+		updateBranches = append(updateBranches, &branch)
 	}
 
 	updateRows, err := Db.Query("SELECT build, branch, size, rollback, semver, log, date FROM neb_updates ORDER BY build")
@@ -84,16 +84,17 @@ func initUpdateSystem() error {
 		if err != nil {
 			return err
 		}
-		branch, ok := updateBranches[update.Branch]
-		if !ok {
+		branch, err := GetBranch(update.Branch)
+		if err != nil {
 			Warning.Println("Skipped update #" + string(update.BuildId) + " because branch " + update.Branch + " does not exist")
 			continue
 		}
-		if updateBuilds[update.BuildId] == nil {
+		build, err := GetBuild(update.BuildId)
+		if err != nil {
 			Warning.Println("Skipped update on branch " + update.Branch + " because buildid #" + string(update.BuildId) + " is incorrect")
 			continue
 		}
-		update.Build = updateBuilds[update.BuildId]
+		update.Build = build
 		update.Build.Updates[update.Branch] = &update
 
 		update.NextInBranch = branch.Head
@@ -107,11 +108,34 @@ func initUpdateSystem() error {
 	}
 
 	//Setup Git if needed
-	if Cfg.GetConfig("updateSystem") == "GitPatch" || Cfg.GetConfig("updateSystem") == "FullGit" {
-		initGit()
+	if isGitUpdateSystem() {
+		err := initGit()
+		if err != nil {
+			return err
+		}
+		err = gitUpdateCommitCache()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+func GetBuild(id int) (*Build, error) {
+	for _, build := range updateBuilds {
+		if build.Id == id {
+			return build, nil
+		}
+	}
+	return nil, errors.New("Could not find build id:" + string(id))
+}
+func GetBranch(name string) (*Branch, error) {
+	for _, branch := range updateBranches {
+		if branch.Name == name {
+			return branch, nil
+		}
+	}
+	return nil, errors.New("Could not find branch named:" + name)
 }
 func GetBranchList(rank int) []string {
 	ret := []string{}
@@ -123,25 +147,25 @@ func GetBranchList(rank int) []string {
 	return ret
 }
 func GetBranchHead(name string) (*Update, error) {
-	branch, ok := updateBranches[name]
-	if !ok || branch.Head == nil {
-		return nil, errors.New("Branch not found or head missing:" + name)
+	branch, err := GetBranch(name)
+	if err != nil || branch.Head == nil {
+		return nil, err
 	}
 	return branch.Head, nil
 }
 
 //If branch doesn't exist, returns false
 func CanUserAccessBranch(name string, rank int) bool {
-	branch, ok := updateBranches[name]
-	if !ok || branch.AccessRank&rank == 0 {
+	branch, err := GetBranch(name)
+	if err != nil || branch.AccessRank&rank == 0 {
 		return false
 	}
 	return true
 }
 func GetBranchUpdates(name string) ([]Update, error) {
-	branch, ok := updateBranches[name]
-	if !ok {
-		return nil, errors.New("Branch not Found: " + name)
+	branch, err := GetBranch(name)
+	if err != nil {
+		return nil, err
 	}
 	cur := branch.Head
 	var ret []Update
@@ -182,19 +206,18 @@ func GetCompleteUpdatesInfos() completeBranchUpdatesData {
 		res.Builds = append(res.Builds, *build)
 	}
 	if isGitUpdateSystem() {
-		build, ok := updateBuilds[0]
-		if ok {
-			comm, err := gitGetCommits(build.Commit)
-			if err == nil {
-				res.Commits = comm
-			}
+		commits, err := GetGitCommitList()
+		if err != nil {
+			Warning.Println("Could not get commit list:" + err.Error())
+		} else {
+			res.Commits = commits
 		}
 	}
 	return res
 }
 func GetUpdateInfos(branchName string, buildId int) (*Update, error) {
-	build := updateBuilds[buildId]
-	if build == nil {
+	build, err := GetBuild(buildId)
+	if err != nil {
 		return nil, errors.New("Build not found: " + string(buildId))
 	}
 
@@ -206,12 +229,12 @@ func GetUpdateInfos(branchName string, buildId int) (*Update, error) {
 }
 
 func SetActiveUpdate(branchName string, buildId int) error {
-	branch, ok := updateBranches[branchName]
-	if !ok {
+	branch, err := GetBranch(branchName)
+	if err != nil {
 		return errors.New("Branch not found: " + branchName)
 	}
-	build := updateBuilds[buildId]
-	if build == nil {
+	build, err := GetBuild(buildId)
+	if err != nil {
 		return errors.New("Build not found: " + string(buildId))
 	}
 	if build.Updates[branchName] == nil {
@@ -221,7 +244,7 @@ func SetActiveUpdate(branchName string, buildId int) error {
 	branch.ActiveBuild = build.Id
 	Db.Exec("UPDATE neb_updates_branches SET activeBuild = ? WHERE name = ?", build.Id, branch.Name)
 
-	SignalGameUpdated(branch, *build.Updates[branchName])
+	SignalGameUpdated(*branch, *build.Updates[branchName])
 	return nil
 }
 
@@ -230,8 +253,8 @@ func UpdateGitCommitCache() error {
 }
 
 func GetBranchActiveBuild(branchName string) (int, error) {
-	branch, ok := updateBranches[branchName]
-	if !ok {
+	branch, err := GetBranch(branchName)
+	if err != nil {
 		return 0, errors.New("Could not find branch: " + branchName)
 	}
 	return branch.ActiveBuild, nil
@@ -241,7 +264,8 @@ func GetLatestBuildCommit() (string, error) {
 	if len(updateBuilds) == 0 {
 		return "", errors.New("No build recorded, cannot acces latest build commit")
 	}
-	return updateBuilds[len(updateBuilds)-1].Commit, nil
+	build := updateBuilds[len(updateBuilds)-1]
+	return build.Commit, nil
 }
 
 func GetUpdateSystem() string {

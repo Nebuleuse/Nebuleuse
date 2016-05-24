@@ -301,13 +301,13 @@ func AddUpdate(info Update) error {
 	return nil
 }
 
-type gitPatchPrepInfos struct {
+type gitBuildPrepInfos struct {
 	Diffs     []Diff
 	TotalSize int64
 }
 
-func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
-	var res gitPatchPrepInfos
+func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
+	var res gitBuildPrepInfos
 	comm, err := GetLatestBuildCommit()
 	if err != nil {
 		return res, err
@@ -319,9 +319,13 @@ func PrepareGitPatch(commit string) (gitPatchPrepInfos, error) {
 	diffs := gitGetDiffs(com)
 	var total int64
 	for _, c := range diffs {
+		if c.IsDeleted {
+			continue
+		}
 		file, err := os.Open(Cfg.GetConfig("gitRepositoryPath") + c.Name)
 		if err != nil {
-			return res, err
+			Warning.Println(err.Error())
+			continue
 		}
 		stat, err := file.Stat()
 		if err != nil {

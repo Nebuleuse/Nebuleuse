@@ -1,0 +1,6 @@
+<div class="diffList">
+    <div ng-repeat="file in diffs" class="diffLine" ng-class="{fileCreated: file.IsCreated, fileDeleted: file.IsDeleted}">
+    	{{file.Name}}</br>
+        <span style="float:right" class="menu-icon fa" ng-class="{'fa-plus': file.IsCreated, 'fa-minus': file.IsDeleted}"></span>
+    </div>
+</div>

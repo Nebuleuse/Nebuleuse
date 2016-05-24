@@ -6,6 +6,16 @@
 [ng-click], [data-ng-click], [x-ng-click] {
     cursor: pointer;
 }
+.diffList{
+  width: 80%;
+  margin: 0px auto;
+  padding: 4px;
+  height: 300px;
+  overflow: scroll;
+}
+.diffLine {
+  border-top: 1px black solid; 
+}
 .updateTimelineContainer{
   width: 40%;
   overflow: scroll;
@@ -162,6 +172,9 @@ header h1 {
 }
 .cd-timeline-img.cd-newUpdate{
   background: rgb(90, 124, 188);
+}
+.cd-timeline-img.cd-obselete{
+  background: #700e60;
 }
 @media only screen and (min-width: 1170px) {
   .cd-timeline-img {

@@ -111,9 +111,9 @@ func updateGitCommitCacheList(w http.ResponseWriter, r *http.Request) {
 }
 
 //User connected, must be admin, form value: commit
-func prepareGitPatch(w http.ResponseWriter, r *http.Request) {
+func prepareGitBuild(w http.ResponseWriter, r *http.Request) {
 	commit := context.Get(r, "commit").(string)
-	res, err := core.PrepareGitPatch(commit)
+	res, err := core.PrepareGitBuild(commit)
 	if err != nil {
 		EasyErrorResponse(w, core.NebError, err)
 	} else {

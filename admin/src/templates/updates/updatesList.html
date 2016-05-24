@@ -5,6 +5,7 @@
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
 	<div class="updateInfoDisplay">
+		Select a dot to see details
 		<div ng-include="selectedTpl"></div>
 	</div>
 	<div class="updateTimelineContainer">
@@ -15,7 +16,7 @@
 				</div>
 			</div>
 			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-click="setSelectedBuild(build)">
-				<div class="cd-timeline-img cd-build">
+				<div class="cd-timeline-img cd-build" ng-class="{'cd-build': !build.Obselete, 'cd-obselete': build.Obselete}">
 					{{build.Id}}
 				</div>
 			</div>

@@ -1,0 +1,15 @@
+<div class="row col-lg-12">
+<rd-widget>
+    <rd-widget-header icon="fa-tasks" ng-attr-title="Create new build from commit {{fromCommit.Id}}">
+    </rd-widget-header>
+    <rd-widget-body>
+    	<p>
+    		This build will include changes from {{commits.length}} commits : <br/>
+			<span ng-repeat="comm in commits">{{comm.Id}}<br/></span>
+    		Files changed : <br/>
+			<neb-difflist diffs="diffs"></neb-difflist>
+    		Uncompressed build size : {{rawSize}}
+    	</p>
+    </rd-widget-body>
+</rd-widget>
+</div>

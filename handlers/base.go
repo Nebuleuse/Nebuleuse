@@ -55,11 +55,11 @@ func RegisterHandlers() {
 	//Updates
 	r.HandleFunc("/getBranchList", userBySession(false, getBranchList)).Methods("POST")
 	r.HandleFunc("/getBranchUpdates", userBySession(false, verifyFormValuesExist([]string{"branch"}, getBranchUpdates))).Methods("POST")
-	
+
 	r.HandleFunc("/getCompleteBranchUpdates", userBySession(false, mustBeAdmin(getCompleteBranchUpdates))).Methods("POST")
-	
+
 	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(updateGitCommitCacheList))).Methods("POST")
-	r.HandleFunc("/prepareGitPatch", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit"}, prepareGitPatch))))
+	r.HandleFunc("/prepareGitBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit"}, prepareGitBuild))))
 
 	http.Handle("/", r)
 }

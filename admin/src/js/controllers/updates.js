@@ -41,7 +41,23 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 			$scope.addAlert("Could not update cache list!", "danger");
 		})
 	}
-
+	$scope.createBuild = function (commit) {
+		var modalInstance = $uibModal.open({
+	      animation: true,
+	      templateUrl: 'templates/updates/createBuildModal.html',
+	      controller: 'BuildCreateModal',
+	      scope: $scope,
+	      size: 'lg',
+	      resolve: {
+	        list: function () {
+	          return $scope.list;
+	        },
+	        commit: function(){
+	        	return commit;
+	        }
+	      }
+	    });
+	}
 	$scope.createPatch = function (commit) {
 		var modalInstance = $uibModal.open({
 	      animation: true,

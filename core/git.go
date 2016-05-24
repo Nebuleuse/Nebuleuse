@@ -205,6 +205,5 @@ func gitCreatePatch(start, end string) (int, error) {
 	gitUpdateRepo()
 	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(end, start)
 
-	Info.Println(diff)
 	return 0, nil
 }

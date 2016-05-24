@@ -125,11 +125,6 @@ func initUpdateSystem() error {
 
 //Inserts update in the structure and add to db
 func insertUpdate(update *Update, build *Build, branch *Branch) error {
-	update.NextInBranch = branch.Head
-	if branch.Head != nil {
-		branch.Head.PrevInBranch = update
-	}
-	branch.Head = update
 	stmt, err := Db.Prepare("INSERT INTO neb_updates(build, branch, size, rollback, semver, log) VALUES (?, ?, ?, 0, ?, ?)")
 	if err != nil {
 		return err
@@ -138,6 +133,12 @@ func insertUpdate(update *Update, build *Build, branch *Branch) error {
 	if err != nil {
 		return err
 	}
+	update.NextInBranch = branch.Head
+	if branch.Head != nil {
+		branch.Head.PrevInBranch = update
+	}
+	branch.Head = update
+	build.Updates[branch.Name] = update
 	return nil
 }
 

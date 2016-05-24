@@ -4,25 +4,35 @@
     	<a ng-click="updateCacheList()">Update cache</a>
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
-			<table class="updateTable">
-				<thead>
-					<td>Builds</tr>
-					<td ng-repeat="branch in list.Branches">{{branch.Name}}</td>
-				</thead>
-				<tbody>
-					<!-- Commits -->
-					<tr ng-repeat="commit in list.Commits">
-						<td class="updateTableCommit">
-							<neb-commit commit="commit"></neb-commit>
-						</td>
-					</tr>
-					<!-- Existing builds -->
-					<tr ng-repeat="build in list.Builds | orderBy: Id:true" class="">
-						<td class="updateTableBuild">{{build.Id}}</td>
-						<td ng-repeat="branch in list.Branches" class="updateTableBranch">{{getUpdateForBuild(branch, build.Id)}}</td>
-					</tr>
-				</tbody>
-			</table>
+	<div class="updateInfoDisplay">
+		<div ng-include="selectedTpl"></div>
+	</div>
+	<div class="updateTimelineContainer">
+		<section id="cd-timeline" class="cd-container">
+			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-click="setSelectedCommit(commit)">
+				<div class="cd-timeline-img cd-commit">
+					
+				</div>
+			</div>
+			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-click="setSelectedBuild(build)">
+				<div class="cd-timeline-img cd-build">
+					{{build.Id}}
+				</div>
+			</div>
+		</section>
+		<section id="cd-timeline" class="cd-container" ng-repeat="branch in list.Branches">
+			<div class="cd-timeline-block" ng-repeat="commit in list.Commits">
+				<div class="cd-timeline-img cd-empty">
+					
+				</div>
+			</div>
+			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-controller="updateDotCtrl" ng-click="setSelectedUpdate(update)">
+				<div class="cd-timeline-img" ng-class="{'cd-empty': !visible, 'cd-newUpdate': visible&&!exist, 'cd-update': exist}">
+					{{!exist&&visible ? '+' : update.BuildId}}
+				</div>
+			</div>
+		</section>
+	</div>
 	</rd-widget-body>
 </rd-widget>
 </div>

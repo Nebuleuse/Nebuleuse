@@ -56,7 +56,7 @@ gulp.task('copy-fonts', function() {
 /**
  * Handle custom files
  */
-gulp.task('build-custom', ['custom-images', 'custom-js', 'custom-sass','custom-css', 'custom-templates']);sass
+gulp.task('build-custom', ['custom-images', 'custom-js', 'custom-sass','custom-css', 'custom-templates']);
 gulp.task('custom-images', function() {
     return gulp.src(paths.images)
         .pipe(gulp.dest('dist/img'));

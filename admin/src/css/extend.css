@@ -6,15 +6,171 @@
 [ng-click], [data-ng-click], [x-ng-click] {
     cursor: pointer;
 }
-.updateTable {
-  width: 80%;
+.updateTimelineContainer{
+  width: 40%;
+  overflow: scroll;
 }
-.updateTableCommit {
-  
+.updateInfoDisplay {
+  float: right;
+  width: 40%;
+  margin: 8px 8px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  border-color: #e9e9e9;
+  border-collapse: separate;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+  padding: 8px;
 }
-.updateTableBuild {
-  background-color: blue;
+.updateInfoDisplayHead{
+  padding: 4px;
+  color: #767676;
+  background-color: #f6f6f6;
+  border-bottom: 1px solid #e9e9e9;
 }
-.updateTableBranch {
-  background-color: red;
+.updateInfoDisplayFoot {
+  padding: 4px;
+  color: #767676;
+  background-color: #f6f6f6;
+  border-top: 1px solid #e9e9e9;
+}
+.cd-container {
+  /* this class is used to give a max-width to the element it is applied to, and center it horizontally when it reaches that max-width */
+  width: 110px;
+  display: inline-block;
+}
+.cd-container::after {
+  /* clearfix */
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* -------------------------------- 
+
+Main components 
+
+-------------------------------- */
+header {
+  height: 200px;
+  line-height: 200px;
+  text-align: center;
+  background: #303e49;
+}
+header h1 {
+  color: white;
+  font-size: 18px;
+  font-size: 1.125rem;
+}
+@media only screen and (min-width: 1170px) {
+  header {
+    height: 300px;
+    line-height: 300px;
+  }
+  header h1 {
+    font-size: 24px;
+    font-size: 1.5rem;
+  }
+}
+
+#cd-timeline {
+  position: relative;
+  padding: 2em 0;
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+#cd-timeline::before {
+  /* this is the vertical line */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18px;
+  height: 100%;
+  width: 4px;
+  background: #d7e4ed;
+}
+@media only screen and (min-width: 1170px) {
+  #cd-timeline {
+    margin-top: 3em;
+    margin-bottom: 3em;
+  }
+  #cd-timeline::before {
+    left: 50%;
+    margin-left: -2px;
+  }
+}
+
+.cd-timeline-block {
+  position: relative;
+  margin: 5em 0;
+}
+.cd-timeline-block:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+.cd-timeline-block:first-child {
+  margin-top: 0;
+}
+.cd-timeline-block:last-child {
+  margin-bottom: 0;
+}
+@media only screen and (min-width: 1170px) {
+  .cd-timeline-block {
+    margin: 6em 0;
+  }
+  .cd-timeline-block:first-child {
+    margin-top: 0;
+  }
+  .cd-timeline-block:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.cd-timeline-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px white, inset 0 2px 0 rgba(0, 0, 0, 0.08), 0 3px 0 4px rgba(0, 0, 0, 0.05);
+    padding-top: 12px;
+  font-size: 18px;
+  text-align: center;
+}
+.cd-timeline-img img {
+  display: block;
+  width: 24px;
+  height: 24px;
+  position: relative;
+  left: 50%;
+  top: 50%;
+  margin-left: -12px;
+  margin-top: -12px;
+}
+.cd-timeline-img.cd-build {
+  background: #75ce66;
+}
+.cd-timeline-img.cd-commit {
+  background: #c03b44;
+}
+.cd-timeline-img.cd-update {
+  background: rgb(45, 62, 99);
+}
+.cd-timeline-img.cd-empty{
+  box-shadow: none;
+}
+.cd-timeline-img.cd-newUpdate{
+  background: rgb(90, 124, 188);
+}
+@media only screen and (min-width: 1170px) {
+  .cd-timeline-img {
+    width: 60px;
+    height: 60px;
+    left: 50%;
+    margin-left: -30px;
+    /* Force Hardware Acceleration in WebKit */
+    -webkit-transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+  }
 }

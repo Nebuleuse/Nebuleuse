@@ -6,7 +6,22 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	if(!$scope.checkAccess())
 		return;
 	$scope.list = {};
-
+	$scope.selected = {};
+	$scope.selectedTpl = "";
+	
+	$scope.setSelectedCommit  = function (obj) {
+		$scope.selected = obj;
+		$scope.selectedTpl = "templates/updates/commits.html";
+	}
+	$scope.setSelectedBuild  = function (obj) {
+		$scope.selected = obj;
+		$scope.selectedTpl = "templates/updates/builds.html";
+	}
+	$scope.setSelectedUpdate  = function (obj) {
+		$scope.selected = obj;
+		$scope.selectedTpl = "templates/updates/updates.html";
+	}
+	
 	$scope.refreshList = function () {
 		$http.post(APIURL + '/getCompleteBranchUpdates', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {

@@ -7,6 +7,7 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		return;
 	$scope.list = {};
 	$scope.selected = {};
+	$scope.selectedBranch={};
 	$scope.selectedTpl = "";
 	
 	$scope.setSelectedCommit  = function (obj) {
@@ -17,9 +18,14 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		$scope.selected = obj;
 		$scope.selectedTpl = "templates/updates/builds.html";
 	}
-	$scope.setSelectedUpdate  = function (obj) {
-		$scope.selected = obj;
-		$scope.selectedTpl = "templates/updates/updates.html";
+	$scope.setSelectedUpdate  = function (obj, branch) {
+		if (obj.create !== null && obj.create === true){
+			$scope.createPatch(obj.build, obj.branch);
+		} else {
+			$scope.selected = obj;
+			$scope.selectedBranch = branch;
+			$scope.selectedTpl = "templates/updates/updates.html";
+		}
 	}
 	
 	$scope.refreshList = function () {
@@ -58,22 +64,35 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	      }
 	    });
 	}
-	$scope.createPatch = function (commit) {
+	$scope.createPatch = function (build, branch) {
 		var modalInstance = $uibModal.open({
 	      animation: true,
-	      templateUrl: 'templates/updates/createModal.html',
+	      templateUrl: 'templates/updates/createUpdateModal.html',
 	      controller: 'UpdateCreateModal',
 	      scope: $scope,
 	      size: 'lg',
 	      resolve: {
-	        list: function () {
-	          return $scope.fullList;
+			  list: function () {
+				 return $scope.list;
+			  },
+	        build: function () {
+	          return build;
 	        },
-	        commit: function(){
-	        	return commit;
+	        branch: function(){
+	        	return branch;
 	        }
 	      }
 	    });
+	}
+	$scope.setActiveUpdate = function (update, branch) {
+		$http.post(APIURL + '/setActiveUpdate', {sessionid: $scope.Self.SessionId, build: update.BuildId, branch: branch.Name})
+		.success(function () {
+			$scope.refreshList();
+		}).error(function (data, status) {
+			$scope.parseError(data, status);
+			$scope.addAlert("Could not set active update!", "danger");
+		});
+		
 	}
 	$scope.getUpdateForBuild = function (branch, id) {
 		var updates = branch.Updates;

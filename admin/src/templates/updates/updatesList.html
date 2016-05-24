@@ -12,7 +12,7 @@
 		<section id="cd-timeline" class="cd-container">
 			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-click="setSelectedCommit(commit)">
 				<div class="cd-timeline-img cd-commit">
-					
+					#
 				</div>
 			</div>
 			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-click="setSelectedBuild(build)">
@@ -27,8 +27,8 @@
 					
 				</div>
 			</div>
-			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-controller="updateDotCtrl" ng-click="setSelectedUpdate(update)">
-				<div class="cd-timeline-img" ng-class="{'cd-empty': !visible, 'cd-newUpdate': visible&&!exist, 'cd-update': exist}">
+			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-controller="updateDotCtrl" ng-click="setSelectedUpdate(update, branch)">
+				<div class="cd-timeline-img" ng-class="{'cd-empty': !visible, 'cd-newUpdate': visible&&!exist, 'cd-update': exist, 'cd-active': active}">
 					{{!exist&&visible ? '+' : update.BuildId}}
 				</div>
 			</div>

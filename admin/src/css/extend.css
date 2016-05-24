@@ -13,8 +13,20 @@
   height: 300px;
   overflow: scroll;
 }
+.diffLine:nth-child(2n+0){
+  background-color: #f6f6f6;
+}
 .diffLine {
-  border-top: 1px black solid; 
+  border-top: 1px black solid;
+  border-left: 1px black solid;
+  padding: 2px;
+}
+.diffLineIcon {
+  float: right;
+}
+.buildModalLog {
+  width: 80%;
+  height: 300px;
 }
 .updateTimelineContainer{
   width: 40%;
@@ -175,6 +187,9 @@ header h1 {
 }
 .cd-timeline-img.cd-obselete{
   background: #700e60;
+}
+.cd-timeline-img.cd-active{
+  background: yellow;
 }
 @media only screen and (min-width: 1170px) {
   .cd-timeline-img {

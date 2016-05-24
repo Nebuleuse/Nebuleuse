@@ -72,17 +72,26 @@ type Diff struct {
 
 func gitGetDiffs(commits []Commit) []Diff {
 	var diffs []Diff
-	found := make(map[string]int) //0 not present, else indicate position+1 in array
+	found := make(map[string]int) //-1 if removed ,0 not present, else indicate position+1 in array
 
 	for _, commit := range commits {
 		for _, diff := range commit.Diff {
 			if found[diff.Name] == 0 {
 				diffs = append(diffs, diff)
 				found[diff.Name] = len(diffs)
+			} else if found[diff.Name] == -1 {
+				continue
 			} else {
 				storedDiff := diffs[found[diff.Name]-1]
-				if diff.IsCreated && !storedDiff.IsCreated && !storedDiff.IsDeleted {
-					diffs[found[diff.Name]-1].IsCreated = true
+				if diff.IsCreated && !storedDiff.IsCreated {
+					if !storedDiff.IsDeleted {
+						diffs[found[diff.Name]-1].IsCreated = true
+					} else { // It was created and deleted in between
+						//Remove file from list
+						pos := found[diff.Name] - 1
+						diffs = append(diffs[:pos], diffs[pos+1:]...)
+						found[diff.Name] = -1
+					}
 				} else if diff.IsDeleted {
 					diffs[found[diff.Name]-1].IsCreated = false
 					diffs[found[diff.Name]-1].IsDeleted = true
@@ -115,7 +124,7 @@ func gitParseCommitList(list *list.List) []Commit {
 			diff.Index = file.Index
 			diff.IsBin = file.IsBin
 			diff.IsCreated = file.IsCreated
-			diff.IsDeleted = file.IsCreated
+			diff.IsDeleted = file.IsDeleted
 			diff.Name = file.Name
 			diff.Type = file.Type
 			commit.Diff = append(commit.Diff, diff)
@@ -192,14 +201,10 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 	return ret, nil
 }
 
-func gitCreatePatch(commit string) error {
-	latestCommit, err := GetLatestBuildCommit()
-	if err != nil {
-		return err
-	}
+func gitCreatePatch(start, end string) (int, error) {
 	gitUpdateRepo()
-	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(GetProductionBranch(), latestCommit, commit)
+	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(end, start)
 
 	Info.Println(diff)
-	return nil
+	return 0, nil
 }

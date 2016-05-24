@@ -1,6 +1,7 @@
 package core
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"time"
@@ -41,14 +42,14 @@ func initUpdateSystem() error {
 	updateBuilds = make([]*Build, 0)
 	updateBranches = make([]*Branch, 0)
 
-	buildRows, err := Db.Query("SELECT id, commit, date, changelist, obselete FROM neb_updates_builds ORDER BY id")
+	buildRows, err := Db.Query("SELECT id, commit, date, changelist, obselete, log FROM neb_updates_builds ORDER BY id")
 	if err != nil {
 		return err
 	}
 	defer buildRows.Close()
 	for buildRows.Next() {
 		var build Build
-		err := buildRows.Scan(&build.Id, &build.Commit, &build.Date, &build.FileChanged, &build.Obselete)
+		err := buildRows.Scan(&build.Id, &build.Commit, &build.Date, &build.FileChanged, &build.Obselete, &build.Log)
 		if err != nil {
 			Warning.Println("Could not scan build from DB:", err)
 			return err
@@ -121,6 +122,25 @@ func initUpdateSystem() error {
 
 	return nil
 }
+
+//Inserts update in the structure and add to db
+func insertUpdate(update *Update, build *Build, branch *Branch) error {
+	update.NextInBranch = branch.Head
+	if branch.Head != nil {
+		branch.Head.PrevInBranch = update
+	}
+	branch.Head = update
+	stmt, err := Db.Prepare("INSERT INTO neb_updates(build, branch, size, rollback, semver, log) VALUES (?, ?, ?, 0, ?, ?)")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(update.BuildId, update.Branch, update.Size, update.SemVer, update.Log)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func GetBuild(id int) (*Build, error) {
 	for _, build := range updateBuilds {
 		if build.Id == id {
@@ -215,6 +235,7 @@ func GetCompleteUpdatesInfos() completeBranchUpdatesData {
 	}
 	return res
 }
+
 func GetUpdateInfos(branchName string, buildId int) (*Update, error) {
 	build, err := GetBuild(buildId)
 	if err != nil {
@@ -241,8 +262,11 @@ func SetActiveUpdate(branchName string, buildId int) error {
 		return errors.New("Udate not found for build #" + string(buildId) + " on branch " + branchName + "")
 	}
 
+	_, err = Db.Exec("UPDATE neb_updates_branches SET activeBuild = ? WHERE name = ?", build.Id, branch.Name)
+	if err != nil {
+		return err
+	}
 	branch.ActiveBuild = build.Id
-	Db.Exec("UPDATE neb_updates_branches SET activeBuild = ? WHERE name = ?", build.Id, branch.Name)
 
 	SignalGameUpdated(*branch, *build.Updates[branchName])
 	return nil
@@ -340,7 +364,74 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 
 	return res, err
 }
+func CreateGitBuild(commit string, log string) error {
+	prerInfos, err := PrepareGitBuild(commit)
+	if err != nil {
+		return err
+	}
+	msh, err := json.Marshal(prerInfos.Diffs)
+	if err != nil {
+		return err
+	}
+	changelist := string(msh)
 
+	stmt, err := Db.Prepare("INSERT INTO neb_updates_builds(commit, log, changelist) VALUES (?,?,?)")
+	if err != nil {
+		return err
+	}
+	res, err := stmt.Exec(commit, log, changelist)
+	if err != nil {
+		return err
+	}
+
+	var build Build
+	id, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	build.Id = int(id)
+	build.Commit = commit
+	build.Date = time.Now()
+	build.Log = log
+	build.FileChanged = changelist
+	build.Updates = make(map[string]*Update)
+	updateBuilds = append(updateBuilds, &build)
+
+	return nil
+}
+func CreateUpdate(build int, branch, semver, log string) error {
+	var update Update
+	buildObj, err := GetBuild(build)
+	if err != nil {
+		return err
+	}
+	branchObj, err := GetBranch(branch)
+	if err != nil {
+		return err
+	}
+	activeBuild, err := GetBuild(branchObj.ActiveBuild)
+	if err != nil {
+		return err
+	}
+
+	update.Branch = branch
+	update.BuildId = build
+	update.Build = buildObj
+	update.Date = time.Now()
+	update.Log = log
+	update.SemVer = semver
+	update.RollBack = false
+
+	size, err := gitCreatePatch(buildObj.Commit, activeBuild.Commit)
+	if err != nil {
+		return err
+	}
+	update.Size = size
+
+	err = insertUpdate(&update, buildObj, branchObj)
+
+	return err
+}
 func SignalGameUpdated(branch Branch, update Update) {
 	DispatchRank("system", "gameUpdate", update, branch.AccessRank)
 }

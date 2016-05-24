@@ -6,6 +6,9 @@
 <div class="updateInfoDisplayBody">Log:
 	<pre>{{selected.Log}}</pre>
 </div>
+<button type="button" class="btn btn-primary" ng-click="setActiveUpdate(selected,selectedBranch)" ng-hide="selected.BuildId == selectedBranch.ActiveBuild">
+	Set active
+</button>
 <div class="updateInfoDisplayFoot">
 	{{selected.Date}}
 </div>

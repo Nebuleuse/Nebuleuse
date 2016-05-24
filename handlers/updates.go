@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"net/http"
-
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"github.com/gorilla/context"
+	"net/http"
+	"strconv"
 )
 
 //User connected
@@ -37,58 +37,6 @@ func getCompleteBranchUpdates(w http.ResponseWriter, r *http.Request) {
 	EasyDataResponse(w, data)
 }
 
-/*
-func getUpdateList(w http.ResponseWriter, r *http.Request) {
-	version := context.Get(r, "version").(int)
-
-	list, err := core.GetUpdatesInfos(version)
-	if err != nil {
-		EasyErrorResponse(w, core.NebError, err)
-	} else {
-		EasyDataResponse(w, list)
-	}
-}
-
-type getUpdateListResponse struct {
-	UpdateSystem   string
-	Updates        []core.Update
-	Commits        []core.Commit
-	CurrentVersion int
-}
-
-//User connected, must be admin, optional switch : diffs, POST
-func getUpdateListComplete(w http.ResponseWriter, r *http.Request) {
-	withDiffs := context.Get(r, "diffs").(bool)
-
-	list, err := core.GetUpdatesInfos(0)
-	if err != nil {
-		EasyErrorResponse(w, core.NebError, err)
-	} else {
-		var response getUpdateListResponse
-		response.UpdateSystem = core.GetUpdateSystem()
-		response.Updates = list
-		response.CurrentVersion = core.GetCurrentVersion()
-
-		if response.UpdateSystem == "FullGit" || response.UpdateSystem == "GitPatch" {
-			commits, err := core.GetGitCommitList()
-			if err != nil {
-				EasyErrorResponse(w, core.NebError, err)
-				return
-			}
-			response.Commits = commits
-			if !withDiffs {
-				for i := range response.Commits {
-					response.Commits[i].Diff = nil
-				}
-			}
-		}
-
-		EasyDataResponse(w, response)
-	}
-
-}
-*/
-
 func addUpdate(w http.ResponseWriter, r *http.Request) {
 	data := context.Get(r, "data").([]byte)
 
@@ -118,5 +66,52 @@ func prepareGitBuild(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 	} else {
 		EasyDataResponse(w, res)
+	}
+}
+
+//User connected, must be admin, form value: commit, log
+func createGitBuild(w http.ResponseWriter, r *http.Request) {
+	commit := context.Get(r, "commit").(string)
+	log := context.Get(r, "log").(string)
+	err := core.CreateGitBuild(commit, log)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "created build")
+	}
+}
+
+func createUpdate(w http.ResponseWriter, r *http.Request) {
+	ibuild := context.Get(r, "build").(string)
+	build, err := strconv.Atoi(ibuild)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	branch := context.Get(r, "branch").(string)
+	semver := context.Get(r, "semver").(string)
+	log := context.Get(r, "log").(string)
+	err = core.CreateUpdate(build, branch, semver, log)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "created update")
+	}
+}
+
+func setActiveUpdate(w http.ResponseWriter, r *http.Request) {
+	ibuild := context.Get(r, "build").(string)
+	build, err := strconv.Atoi(ibuild)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	branch := context.Get(r, "branch").(string)
+
+	err = core.SetActiveUpdate(branch, build)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "activated update")
 	}
 }

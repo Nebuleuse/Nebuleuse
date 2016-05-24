@@ -60,7 +60,9 @@ func RegisterHandlers() {
 
 	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(updateGitCommitCacheList))).Methods("POST")
 	r.HandleFunc("/prepareGitBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit"}, prepareGitBuild))))
-
+	r.HandleFunc("/createGitBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit", "log"}, createGitBuild))))
+	r.HandleFunc("/createUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch", "semver", "log"}, createUpdate))))
+	r.HandleFunc("/setActiveUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch"}, setActiveUpdate))))
 	http.Handle("/", r)
 }
 

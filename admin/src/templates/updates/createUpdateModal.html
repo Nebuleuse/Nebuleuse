@@ -1,0 +1,17 @@
+<div class="row col-lg-12">
+<rd-widget>
+    <rd-widget-header icon="fa-tasks" ng-attr-title="Create new update">
+    </rd-widget-header>
+    <rd-widget-body>
+    	<p>
+            Build {{build.Id}} on branch {{branch.Name}}<br/>
+            {{update}}
+            SemVer: <input type="text"  ng-model="update.semver" name="semver"/><br/>
+			Log:<br/>
+			<textarea ng-model="update.log" class="buildModalLog" name="log"></textarea><br/>
+			<button type="button" class="btn btn-primary" ng-click="createUpdate()">Create update</button>
+			<button type="button" class="btn btn-danger" ng-click="close()">Cancel</button>
+    	</p>
+    </rd-widget-body>
+</rd-widget>
+</div>

@@ -5,10 +5,14 @@
     <rd-widget-body>
     	<p>
     		This build will include changes from {{commits.length}} commits : <br/>
-			<span ng-repeat="comm in commits">{{comm.Id}}<br/></span>
-    		Files changed : <br/>
-			<neb-difflist diffs="diffs"></neb-difflist>
-    		Uncompressed build size : {{rawSize}}
+			From <span style="color: limegreen;">{{commits[0].Id}}</span> to <span style="color: limegreen;">{{commits[commits.length-1].Id}}</span><br/>
+    		<a ng-click="toggleFiles()">Show changed files</a> <br/>
+			<neb-difflist diffs="diffs" ng-hide="!showFiles"></neb-difflist>
+    		Uncompressed build size : {{displaySize}} Kb<br/>
+			Log:<br/>
+			<textarea ng-model="log" class="buildModalLog"></textarea><br/>
+			<button type="button" class="btn btn-primary" ng-click="createBuild()">Create build</button>
+			<button type="button" class="btn btn-danger" ng-click="close()">Cancel</button>
     	</p>
     </rd-widget-body>
 </rd-widget>

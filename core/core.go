@@ -166,19 +166,6 @@ func initDb() {
 	}
 	Db = db
 }
-func GetGameVersion() int {
-	return Cfg.GetConfigInt("gameVersion")
-}
-
-//todo
-func GetGameSemVer() string {
-	/*update, err := GetUpdateInfos(GetGameVersion())
-	if err != nil {
-		return ""
-	}
-	return update.SemVer*/
-	return ""
-}
 func GetUpdaterVersion() int {
 	return Cfg.GetConfigInt("updaterVersion")
 }

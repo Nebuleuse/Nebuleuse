@@ -129,8 +129,6 @@ func EasyErrorResponse(w http.ResponseWriter, code int, err error) {
 
 type statusResponse struct {
 	NebuleuseVersion  int
-	GameVersion       int
-	GameSemVer        string
 	UpdaterVersion    int
 	UpdateSystem      string
 	ComplexStatsTable []core.ComplexStatTableInfo
@@ -142,7 +140,7 @@ func status(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
-	response := statusResponse{core.NebuleuseVersion, core.GetGameVersion(), core.GetGameSemVer(), core.GetUpdaterVersion(), core.GetUpdateSystem(), CStatsInfos}
+	response := statusResponse{core.NebuleuseVersion, core.GetUpdaterVersion(), core.GetUpdateSystem(), CStatsInfos}
 
 	EasyDataResponse(w, response)
 }

@@ -31,6 +31,7 @@
 .updateTimelineContainer{
   width: 40%;
   overflow: scroll;
+  padding-left: 18px;
 }
 .updateInfoDisplay {
   float: right;
@@ -65,6 +66,11 @@
   content: '';
   display: table;
   clear: both;
+}
+.cd-timeline-title {
+  top: -52px;
+  position: relative;
+  margin-bottom: -92px;
 }
 
 /* -------------------------------- 
@@ -110,16 +116,6 @@ header h1 {
   width: 4px;
   background: #d7e4ed;
 }
-@media only screen and (min-width: 1170px) {
-  #cd-timeline {
-    margin-top: 3em;
-    margin-bottom: 3em;
-  }
-  #cd-timeline::before {
-    left: 50%;
-    margin-left: -2px;
-  }
-}
 
 .cd-timeline-block {
   position: relative;
@@ -136,17 +132,6 @@ header h1 {
 .cd-timeline-block:last-child {
   margin-bottom: 0;
 }
-@media only screen and (min-width: 1170px) {
-  .cd-timeline-block {
-    margin: 6em 0;
-  }
-  .cd-timeline-block:first-child {
-    margin-top: 0;
-  }
-  .cd-timeline-block:last-child {
-    margin-bottom: 0;
-  }
-}
 
 .cd-timeline-img {
   position: absolute;
@@ -156,9 +141,10 @@ header h1 {
   height: 40px;
   border-radius: 50%;
   box-shadow: 0 0 0 4px white, inset 0 2px 0 rgba(0, 0, 0, 0.08), 0 3px 0 4px rgba(0, 0, 0, 0.05);
-    padding-top: 12px;
+  padding-top: 8px;
   font-size: 18px;
   text-align: center;
+  color: rgba(0,0,0,0.87);
 }
 .cd-timeline-img img {
   display: block;
@@ -171,34 +157,24 @@ header h1 {
   margin-top: -12px;
 }
 .cd-timeline-img.cd-build {
-  background: #75ce66;
+  background: #43A047;
 }
 .cd-timeline-img.cd-commit {
-  background: #c03b44;
+  background: #039BE5;
 }
 .cd-timeline-img.cd-update {
-  background: rgb(45, 62, 99);
+  background: #1565C0;
+  color: rgba(255,255,255,0.7);
 }
 .cd-timeline-img.cd-empty{
   box-shadow: none;
 }
 .cd-timeline-img.cd-newUpdate{
-  background: rgb(90, 124, 188);
+  background: #81C784;
 }
 .cd-timeline-img.cd-obselete{
-  background: #700e60;
+  background: #757575;
 }
 .cd-timeline-img.cd-active{
-  background: yellow;
-}
-@media only screen and (min-width: 1170px) {
-  .cd-timeline-img {
-    width: 60px;
-    height: 60px;
-    left: 50%;
-    margin-left: -30px;
-    /* Force Hardware Acceleration in WebKit */
-    -webkit-transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-  }
+  background: #1E88E5;
 }

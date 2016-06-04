@@ -10,6 +10,7 @@
 	</div>
 	<div class="updateTimelineContainer">
 		<section id="cd-timeline" class="cd-container">
+			<div class="cd-timeline-title">Master</div>
 			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-click="setSelectedCommit(commit)">
 				<div class="cd-timeline-img cd-commit">
 					#
@@ -22,6 +23,7 @@
 			</div>
 		</section>
 		<section id="cd-timeline" class="cd-container" ng-repeat="branch in list.Branches">
+			<div class="cd-timeline-title">{{branch.Name}}</div>
 			<div class="cd-timeline-block" ng-repeat="commit in list.Commits">
 				<div class="cd-timeline-img cd-empty">
 					

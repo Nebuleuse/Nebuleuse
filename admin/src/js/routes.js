@@ -62,7 +62,7 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
             .state('statTableEdit', {
                 url: '/statTableEdit/:statName',
                 controller: 'StatTableEditCtrl',
-                templateUrl: 'templates/sstats/tatsEdit.html'
+                templateUrl: 'templates/stats/statsEdit.html'
             })
             .state('statTableAdd', {
                 url: '/statTableAdd',

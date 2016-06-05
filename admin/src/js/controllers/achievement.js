@@ -1,7 +1,7 @@
 angular.module('RDash')
-	.controller('AchievementCtrl', ['$scope', '$http', '$modal', '$location', '$stateParams', AchievementCtrl]);
+	.controller('AchievementCtrl', ['$scope', '$http', '$uibModal', '$location', '$stateParams', AchievementCtrl]);
 
-function AchievementCtrl($scope, $http, $modal, $location, $stateParams) {
+function AchievementCtrl($scope, $http, $uibModal, $location, $stateParams) {
 	$scope.getAchievement = function () {
 		$http.post(APIURL + '/getAchievement', {sessionid: $scope.Self.SessionId, achievementid: $scope.achievement.Id})
 		.success(function (data) {
@@ -60,7 +60,7 @@ function AchievementCtrl($scope, $http, $modal, $location, $stateParams) {
 		});
 	};
 	$scope.deleteAchievement = function () {
-		var modalInstance = $modal.open({
+		var modalInstance = $uibModal.open({
 			templateUrl: 'templates/confirmDelete.html',
 			controller: 'ModalCtrl'
 		});

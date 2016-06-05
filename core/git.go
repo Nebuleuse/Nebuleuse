@@ -220,14 +220,15 @@ func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {
 	defer gitRepoLock.Unlock()
 
 	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(end, start)
-	size, err := createPatch(start, strconv.Itoa(buildFrom)+"to"+strconv.Itoa(buildTo), diff, true)
-	createPatch(end, strconv.Itoa(buildTo)+"to"+strconv.Itoa(buildFrom), diff, false)
+	size, err := _createPatch(start, strconv.Itoa(buildFrom)+"to"+strconv.Itoa(buildTo), diff, true)
+	_createPatch(end, strconv.Itoa(buildTo)+"to"+strconv.Itoa(buildFrom), diff, false)
 	gitRepo.Checkout("master")
 
 	return size, err
 }
-func createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (int64, error) {
-	path := "./updates/tmp/" + filename
+func _createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (int64, error) {
+	updatesLocation := Cfg.GetSysConfig("UpdatesLocation")
+	path := updatesLocation + "tmp/" + filename
 	repoPath := Cfg.GetConfig("gitRepositoryPath")
 	gitRepo.Checkout(commit)
 
@@ -255,6 +256,7 @@ func createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (int
 	cmdXz.Dir = "./updates/tmp/"
 	cmdXz.Run()
 	os.RemoveAll(path)
+	os.Rename(path+".tar.xz", updatesLocation+filename+".tar.xz")
 
-	return getFileSize(path + ".tar.xz")
+	return getFileSize(updatesLocation + filename + ".tar.xz")
 }

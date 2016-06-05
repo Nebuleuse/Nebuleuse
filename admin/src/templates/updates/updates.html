@@ -1,7 +1,7 @@
 <div class="updateInfoDisplayHead">
 	SemVer: {{selected.SemVer}}<br>
 	Build {{selected.BuildId}} on {{selected.Branch}}<br>
-	{{selected.Size}}Mb
+	{{selected.Size/(1024*1024)}}Mb
 </div>
 <div class="updateInfoDisplayBody">Log:
 	<pre>{{selected.Log}}</pre>

@@ -9,6 +9,7 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	$scope.selected = {};
 	$scope.selectedBranch={};
 	$scope.selectedTpl = "";
+	$scope.showFiles = false;
 	
 	$scope.setSelectedCommit  = function (obj) {
 		$scope.selected = obj;
@@ -27,12 +28,20 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 			$scope.selectedTpl = "templates/updates/updates.html";
 		}
 	}
-	
+	$scope.toggleFiles = function(){
+		$scope.showFiles = !$scope.showFiles;
+	}
 	$scope.refreshList = function () {
 		$http.post(APIURL + '/getCompleteBranchUpdates', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {
-			console.log(data)
 			$scope.list = data;
+			for	(var i=0; i < data.Builds.length; i++){
+				if(data.Builds[i].FileChanged === ""){
+					continue;
+				}
+				$scope.list.Builds[i].FileChanged = JSON.parse(data.Builds[i].FileChanged);
+			}
+			console.log($scope.list);
 		}).error(function (data, status) {
 			$scope.parseError(data, status);
 			$scope.addAlert("Could not fetch updates infos!", "danger");

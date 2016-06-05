@@ -14,12 +14,13 @@ var defaultOptions = map[string]string{"serverAddress": "127.0.0.1",
 	"dbBase":                   "",
 	"MaxSessionsChannelBuffer": "10",
 	"LongpollingTimeout":       "10",
-	"DashboardLocation":        "./admin/"}
+	"DashboardLocation":        "./admin/",
+	"UpdatesLocation":          "./updates/"}
 
 func (c *configMgr) InitConfig() error {
 	var err error
 	c.Cfg = make(map[string]string)
-	c.SysCfg = make(map[string]string)
+	c.SysCfg = defaultOptions
 
 	configFile, err := config.ReadDefault(".config")
 	if err != nil {

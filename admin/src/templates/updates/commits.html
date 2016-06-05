@@ -5,6 +5,8 @@
 <div class="updateInfoDisplayBody">Message: 
 	<pre>{{selected.Message}}</pre>
 </div>
+<a ng-click="toggleFiles()">Show changed files</a> <br/>
+<neb-difflist diffs="selected.Diff" ng-hide="!showFiles"></neb-difflist>
 <div class="updateInfoDisplayFoot">
 	{{selected.Date}}
 </div>

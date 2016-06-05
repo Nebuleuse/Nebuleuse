@@ -53,6 +53,7 @@ func RegisterHandlers() {
 	r.HandleFunc("/setUsersStatFields", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"fields"}, setUsersStatFields)))).Methods("POST")
 
 	//Updates
+	r.PathPrefix("/updates/").Handler((http.StripPrefix("/updates/", http.FileServer(http.Dir(core.Cfg.GetSysConfig("UpdatesLocation"))))))
 	r.HandleFunc("/getBranchList", userBySession(false, getBranchList)).Methods("POST")
 	r.HandleFunc("/getBranchUpdates", userBySession(false, verifyFormValuesExist([]string{"branch"}, getBranchUpdates))).Methods("POST")
 

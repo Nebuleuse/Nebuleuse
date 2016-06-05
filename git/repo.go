@@ -36,6 +36,14 @@ func (r *Repository) UpdateGitRepo(branch string) {
 	cmd.Start()
 	cmd.Wait()
 }
+func (r *Repository) Checkout(commit string) {
+	cmd := exec.Command("git", "checkout", commit)
+	cmd.Dir = r.Path
+	cmd.Stdin = os.Stdin
+	cmd.Stderr = os.Stderr
+	cmd.Start()
+	cmd.Wait()
+}
 
 func (r *Repository) GetCommitsSinceLastUpdate(branch, latestCommit string) ([]*Commit, error) {
 	var ret []*Commit

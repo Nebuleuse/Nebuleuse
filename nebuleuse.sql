@@ -26,7 +26,6 @@ CREATE TABLE `neb_config` (
 
 INSERT INTO `neb_config` (`name`, `value`) VALUES
 ('gameName', ''),
-('gameVersion', '1'),
 ('updaterVersion', '1'),
 ('sessionTimeout', '1800'),
 ('autoRegister', 'true'),

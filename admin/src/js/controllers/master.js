@@ -101,7 +101,9 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             $scope.lostConnection = true;
         });
     }
-
+    $scope.isGitSystem = function(){
+        return $scope.Nebuleuse.UpdateSystem === "GitPatch";
+    }
     $scope.goto = function (path) {
         $location.path(path);
     }

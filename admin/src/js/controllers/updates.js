@@ -84,6 +84,15 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	      }
 	    });
 	}
+	$scope.createManualBuild = function(){
+		var modalInstance = $uibModal.open({
+	      animation: true,
+	      templateUrl: 'templates/updates/createManualBuildModal.html',
+	      controller: 'ManualBulidCreateModal',
+	      scope: $scope,
+	      size: 'lg'
+	    });
+	}
 	$scope.setActiveUpdate = function (update, branch) {
 		$http.post(APIURL + '/setActiveUpdate', {sessionid: $scope.Self.SessionId, build: update.BuildId, branch: branch.Name})
 		.success(function () {

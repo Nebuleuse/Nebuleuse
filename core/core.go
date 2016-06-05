@@ -169,3 +169,17 @@ func initDb() {
 func GetUpdaterVersion() int {
 	return Cfg.GetConfigInt("updaterVersion")
 }
+
+func getFileSize(path string) (int64, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+	stat, err := file.Stat()
+	if err != nil {
+		return 0, err
+	}
+	return stat.Size(), nil
+
+}

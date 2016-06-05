@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"github.com/gorilla/context"
 	"net/http"
@@ -37,17 +36,6 @@ func getCompleteBranchUpdates(w http.ResponseWriter, r *http.Request) {
 	EasyDataResponse(w, data)
 }
 
-func addUpdate(w http.ResponseWriter, r *http.Request) {
-	data := context.Get(r, "data").([]byte)
-
-	var request core.Update
-	err := json.Unmarshal([]byte(data), &request)
-	if err != nil {
-		EasyErrorResponse(w, core.NebError, err)
-	}
-	err = core.AddUpdate(request)
-}
-
 //User connected, must be admin
 func updateGitCommitCacheList(w http.ResponseWriter, r *http.Request) {
 	err := core.UpdateGitCommitCache()
@@ -81,6 +69,7 @@ func createGitBuild(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//User connected, must be admin, form values: build,branch, semver, log
 func createUpdate(w http.ResponseWriter, r *http.Request) {
 	ibuild := context.Get(r, "build").(string)
 	build, err := strconv.Atoi(ibuild)
@@ -99,6 +88,7 @@ func createUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//User connected, must be admin, form values: build,branch
 func setActiveUpdate(w http.ResponseWriter, r *http.Request) {
 	ibuild := context.Get(r, "build").(string)
 	build, err := strconv.Atoi(ibuild)

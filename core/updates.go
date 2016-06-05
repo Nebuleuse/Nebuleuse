@@ -3,7 +3,6 @@ package core
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"time"
 )
 
@@ -11,7 +10,7 @@ type Update struct {
 	Build        *Build `json:"-"`
 	BuildId      int
 	Branch       string
-	Size         int
+	Size         int64
 	RollBack     bool
 	SemVer       string
 	Log          string
@@ -315,17 +314,6 @@ func GetGitCommitList() ([]Commit, error) {
 	return gitGetLatestCommitsCached(comm, 0)
 }
 
-func AddUpdate(info Update) error {
-	/*if Cfg.GetConfig("updateSystem") == "GitPatch" {
-		return createGitPatch(info)
-	} else if Cfg.GetConfig("updateSystem") == "FullGit" {
-		return addFullGitPatch(info)
-	} else if Cfg.GetConfig("updateSystem") == "Manual" {
-
-	}*/
-	return nil
-}
-
 type gitBuildPrepInfos struct {
 	Diffs     []Diff
 	TotalSize int64
@@ -341,24 +329,21 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 	if err != nil {
 		return res, err
 	}
+
 	diffs := gitGetDiffs(com)
 	var total int64
+	gitLockRepo()
 	for _, c := range diffs {
 		if c.IsDeleted {
 			continue
 		}
-		file, err := os.Open(Cfg.GetConfig("gitRepositoryPath") + c.Name)
+		size, err := getFileSize(Cfg.GetConfig("gitRepositoryPath") + c.Name)
 		if err != nil {
-			Warning.Println(err.Error())
-			continue
+			Warning.Println("Could not read file size: " + err.Error())
 		}
-		stat, err := file.Stat()
-		if err != nil {
-			return res, err
-		}
-		total = total + stat.Size()
-		file.Close()
+		total = total + size
 	}
+	gitUnlockRepo()
 
 	res.Diffs = diffs
 	res.TotalSize = total
@@ -410,9 +395,9 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	if err != nil {
 		return err
 	}
-	activeBuild, err := GetBuild(branchObj.ActiveBuild)
-	if err != nil {
-		return err
+	head := branchObj.Head
+	if head == nil {
+		return errors.New("Branch " + branch + " has no head")
 	}
 
 	update.Branch = branch
@@ -423,7 +408,7 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	update.SemVer = semver
 	update.RollBack = false
 
-	size, err := gitCreatePatch(buildObj.Commit, activeBuild.Commit)
+	size, err := gitCreatePatch(buildObj.Commit, head.Build.Commit, build, head.Build.Id)
 	if err != nil {
 		return err
 	}

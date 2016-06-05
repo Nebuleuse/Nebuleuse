@@ -1,7 +1,7 @@
 <div class="row col-lg-12">
 <rd-widget>
     <rd-widget-header icon="fa-tasks" title="Updates">
-    	<a ng-click="updateCacheList()">Update cache</a>
+    	<a ng-click="updateCacheList()" ng-hide="!isGitSystem()">Update cache</a>
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
 	<div class="updateInfoDisplay">
@@ -11,9 +11,14 @@
 	<div class="updateTimelineContainer">
 		<section id="cd-timeline" class="cd-container">
 			<div class="cd-timeline-title">Master</div>
-			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-click="setSelectedCommit(commit)">
+			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-click="setSelectedCommit(commit)" ng-hide="!isGitSystem()">
 				<div class="cd-timeline-img cd-commit">
 					#
+				</div>
+			</div>
+			<div class="cd-timeline-block" ng-click="createManualBuild()" ng-hide="isGitSystem()">
+				<div class="cd-timeline-img cd-commit">
+					+
 				</div>
 			</div>
 			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-click="setSelectedBuild(build)">
@@ -24,9 +29,13 @@
 		</section>
 		<section id="cd-timeline" class="cd-container" ng-repeat="branch in list.Branches">
 			<div class="cd-timeline-title">{{branch.Name}}</div>
-			<div class="cd-timeline-block" ng-repeat="commit in list.Commits">
+			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-hide="!isGitSystem()">
 				<div class="cd-timeline-img cd-empty">
 					
+				</div>
+			</div>
+			<div class="cd-timeline-block" ng-hide="isGitSystem()">
+				<div class="cd-timeline-img cd-empty">
 				</div>
 			</div>
 			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-controller="updateDotCtrl" ng-click="setSelectedUpdate(update, branch)">

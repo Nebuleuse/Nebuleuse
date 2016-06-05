@@ -2,12 +2,16 @@ package core
 
 import (
 	"container/list"
-	"errors"
 	"github.com/Nebuleuse/Nebuleuse/git"
+	"os"
+	"os/exec"
+	"strconv"
+	"sync"
 )
 
 var gitRepo *git.Repository
 var commitCache []Commit
+var gitRepoLock sync.Mutex
 
 func initGit() error {
 	var err error
@@ -49,6 +53,12 @@ func gitUpdateCommitCache() error {
 func gitUpdateRepo() {
 	gitRepo.UpdateGitRepo(Cfg.GetConfig("productionBranch"))
 	Info.Println("Updated git repository")
+}
+func gitLockRepo() {
+	gitRepoLock.Lock()
+}
+func gitUnlockRepo() {
+	gitRepoLock.Unlock()
 }
 
 type Commit struct {
@@ -194,16 +204,57 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 		endPos++
 	}
 	if !found {
-		return nil, errors.New("Could not find commit:" + commit)
+		Warning.Println("Could not find commit during lookup:" + commit)
+		//Means the commit isn't in this branch. Get full list instead
+		endPos++
 	}
 	ret := make([]Commit, endPos-1)
 	copy(ret, commitCache[0:endPos-1])
 	return ret, nil
 }
 
-func gitCreatePatch(start, end string) (int, error) {
+func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {
 	gitUpdateRepo()
-	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(end, start)
 
-	return 0, nil
+	gitRepoLock.Lock()
+	defer gitRepoLock.Unlock()
+
+	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(end, start)
+	size, err := createPatch(start, strconv.Itoa(buildFrom)+"to"+strconv.Itoa(buildTo), diff, true)
+	createPatch(end, strconv.Itoa(buildTo)+"to"+strconv.Itoa(buildFrom), diff, false)
+	gitRepo.Checkout("master")
+
+	return size, err
+}
+func createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (int64, error) {
+	path := "./updates/tmp/" + filename
+	repoPath := Cfg.GetConfig("gitRepositoryPath")
+	gitRepo.Checkout(commit)
+
+	os.MkdirAll(path, 0764)
+	for _, file := range diff.Files {
+		if skipDeleted && file.IsDeleted {
+			continue
+		} else if !skipDeleted && file.IsCreated {
+			continue
+		}
+		err := os.Link(repoPath+file.Name, path+"/"+file.Name)
+		if err != nil {
+			Error.Println("Could not Link file for patch building: " + err.Error())
+		}
+	}
+
+	cmdTar := exec.Command("tar", "-c", filename, "-f", filename+".tar")
+	cmdTar.Stdout = os.Stdout
+	cmdTar.Stderr = os.Stderr
+	cmdTar.Dir = "./updates/tmp/"
+	cmdTar.Run()
+	cmdXz := exec.Command("xz", "-z", filename+".tar")
+	cmdXz.Stdout = os.Stdout
+	cmdXz.Stderr = os.Stderr
+	cmdXz.Dir = "./updates/tmp/"
+	cmdXz.Run()
+	os.RemoveAll(path)
+
+	return getFileSize(path + ".tar.xz")
 }

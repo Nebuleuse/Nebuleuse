@@ -121,5 +121,9 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		}
 		return {};
 	}
+	$scope.downloadUpdate = function(from, to){
+		var url = APIURL + "/" + $scope.Nebuleuse.UpdatesLocation + from + "to" + to + ".tar.xz";
+		console.log(url) 
+	}
 	$scope.refreshList();
 }

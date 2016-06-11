@@ -132,6 +132,7 @@ type statusResponse struct {
 	NebuleuseVersion  int
 	UpdaterVersion    int
 	UpdateSystem      string
+	UpdatesLocation   string
 	ComplexStatsTable []core.ComplexStatTableInfo
 }
 
@@ -141,7 +142,8 @@ func status(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
-	response := statusResponse{core.NebuleuseVersion, core.GetUpdaterVersion(), core.GetUpdateSystem(), CStatsInfos}
+
+	response := statusResponse{core.NebuleuseVersion, core.GetUpdaterVersion(), core.GetUpdateSystem(), core.GetUpdatesLocation(), CStatsInfos}
 
 	EasyDataResponse(w, response)
 }

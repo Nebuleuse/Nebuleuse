@@ -299,6 +299,9 @@ func GetUpdateSystem() string {
 func GetProductionBranch() string {
 	return Cfg.GetConfig("productionBranch")
 }
+func GetUpdatesLocation() string {
+	return Cfg.GetSysConfig("UpdatesLocation")
+}
 func isGitUpdateSystem() bool {
 	if GetUpdateSystem() == "GitPatch" || GetUpdateSystem() == "FullGit" {
 		return true
@@ -383,6 +386,31 @@ func CreateGitBuild(commit string, log string) error {
 	build.Updates = make(map[string]*Update)
 	updateBuilds = append(updateBuilds, &build)
 
+	return nil
+}
+func checkObseleteBuilds() error {
+	foundFiles := make(map[string]int)
+	for _, build := range updateBuilds {
+		var diffs []Diff
+		obselete := true
+		err := json.Unmarshal([]byte(build.FileChanged), &diffs)
+		if err != nil {
+			Warning.Println("Could not unmarshal build changed files: " + err.Error())
+			continue
+		}
+		for _, file := range diffs {
+			_, ok := foundFiles[file.Name]
+			if !ok {
+				obselete = false
+				foundFiles[file.Name] = build.Id
+			}
+		}
+		if obselete {
+			build.Obselete = true
+			stmt, _ := Db.Prepare("UPDATE neb_updates_builds SET obselete=1 WHERE id = ?")
+			stmt.Exec(build.Id)
+		}
+	}
 	return nil
 }
 func CreateUpdate(build int, branch, semver, log string) error {

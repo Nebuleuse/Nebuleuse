@@ -66,6 +66,10 @@ func RegisterHandlers() {
 	r.HandleFunc("/setActiveUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch"}, setActiveUpdate))))
 	http.Handle("/", r)
 }
+func RegisterInstallHandlers() {
+	r := mux.NewRouter()
+	http.Handle("/", r)
+}
 
 type easyResponse struct {
 	Code    int

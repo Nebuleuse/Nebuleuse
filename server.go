@@ -14,7 +14,10 @@ func createServer() {
 
 	core.Info.Fatal(http.ListenAndServe(core.Cfg.GetSysConfig("serverAddress")+":"+core.Cfg.GetSysConfig("serverPort"), nil))
 }
-
+func createInstallServer() {
+	handlers.RegisterInstallHandlers()
+	core.Info.Fatal(http.ListenAndServe(core.Cfg.GetSysConfig("serverAddress")+":"+core.Cfg.GetSysConfig("serverPort"), nil))
+}
 func sessionsPurgeTimer() {
 	timer := time.NewTimer(time.Minute)
 	<-timer.C

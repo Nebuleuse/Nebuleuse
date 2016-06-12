@@ -182,16 +182,24 @@ func CanUserAccessBranch(name string, rank int) bool {
 	}
 	return true
 }
+
+//Only return updates that are active or are older than the active one
 func GetBranchUpdates(name string) ([]Update, error) {
 	branch, err := GetBranch(name)
 	if err != nil {
 		return nil, err
 	}
 	cur := branch.Head
+	active := false
 	var ret []Update
 	for cur != nil {
-		ret = append(ret, *cur)
-		cur = cur.NextInBranch
+		if branch.ActiveBuild == cur.BuildId {
+			active = true
+		}
+		if active {
+			ret = append(ret, *cur)
+			cur = cur.NextInBranch
+		}
 	}
 	return ret, nil
 }

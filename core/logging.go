@@ -27,7 +27,7 @@ func initLogging() {
 	dash := new(DashboardLogWriter)
 	var err error
 
-	logFile, err = os.OpenFile("nebuleuse.log", os.O_RDWR|os.O_APPEND, os.ModeAppend)
+	logFile, err = os.OpenFile("nebuleuse.log", os.O_RDWR|os.O_APPEND|os.O_CREATE, os.ModeAppend)
 	if err != nil {
 		panic(err)
 	}

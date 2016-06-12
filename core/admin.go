@@ -237,18 +237,30 @@ func SetStatTable(table ComplexStatTableInfo) error {
 	}
 
 	removeQuery := "ALTER TABLE neb_users_stats_" + table.Name + " DROP COLUMN "
+	updateQuery := "ALTER TABLE neb_users_stats_" + table.Name + " CHANGE "
 	if err != nil {
 		return err
 	}
 	for _, oldField := range oldTable.Fields {
 		found := false
+		update := false
+		var newType FieldStruct
 		for _, newField := range table.Fields {
 			if newField.Name == oldField.Name {
 				found = true
+				if newField.Type != oldField.Type || newField.Size != oldField.Size {
+					update = true
+					newType = newField
+				}
 			}
 		}
 		if !found {
 			_, err := Db.Exec(removeQuery + oldField.Name)
+			if err != nil {
+				return err
+			}
+		} else if update {
+			_, err := Db.Exec(updateQuery + newType.Name + " " + newType.Name + " " + getTypeForQuery(newType.Type, newType.Size))
 			if err != nil {
 				return err
 			}

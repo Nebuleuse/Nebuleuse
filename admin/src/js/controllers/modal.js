@@ -1,12 +1,12 @@
 angular.module('RDash')
-  .controller('ModalCtrl', ['$scope', '$modalInstance', ModalCtrl]);
+  .controller('ModalCtrl', ['$scope', '$uibModalInstance', ModalCtrl]);
 
-function ModalCtrl($scope, $modalInstance) {
+function ModalCtrl($scope, $uibModalInstance) {
   $scope.ok = function () {
-    $modalInstance.close();
+    $uibModalInstance.close();
   };
 
   $scope.cancel = function () {
-    $modalInstance.dismiss('cancel');
+    $uibModalInstance.dismiss('cancel');
   };
 }

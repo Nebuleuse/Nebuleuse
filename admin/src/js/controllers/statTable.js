@@ -1,7 +1,7 @@
 angular.module('RDash')
 	.controller('StatTableEditCtrl', ['$scope', '$http', '$uibModal', '$location', '$stateParams', StatTableEditCtrl]);
 
-function StatTableEditCtrl($scope, $http, $modal, $location, $stateParams) {
+function StatTableEditCtrl($scope, $http, $uibModal, $location, $stateParams) {
 	$scope.getStatTable = function () {
 		$http.post(APIURL + '/getStatTable', {sessionid: $scope.Self.SessionId, name: $scope.table.Name})
 		.success(function (data) {
@@ -69,7 +69,7 @@ function StatTableEditCtrl($scope, $http, $modal, $location, $stateParams) {
 		});
 	};
 	$scope.deleteTable = function () {
-		var modalInstance = $modal.open({
+		var modalInstance = $uibModal.open({
 			templateUrl: 'templates/confirmDelete.html',
 			controller: 'ModalCtrl'
 		});

@@ -215,6 +215,7 @@ func GetCompleteUpdatesInfos() completeBranchUpdatesData {
 		branchData.Name = branch.Name
 		branchData.ActiveBuild = branch.ActiveBuild
 		branchData.AccessRank = branch.AccessRank
+		branchData.Updates = make([]Update, 0)
 		cur := branch.Head
 		for cur != nil {
 			branchData.Updates = append(branchData.Updates, *cur)
@@ -222,6 +223,7 @@ func GetCompleteUpdatesInfos() completeBranchUpdatesData {
 		}
 		res.Branches = append(res.Branches, branchData)
 	}
+	res.Builds = make([]Build, 0)
 	for _, build := range updateBuilds {
 		res.Builds = append(res.Builds, *build)
 	}
@@ -286,7 +288,7 @@ func GetBranchActiveBuild(branchName string) (int, error) {
 
 func GetLatestBuildCommit() (string, error) {
 	if len(updateBuilds) == 0 {
-		return "", errors.New("No build recorded, cannot acces latest build commit")
+		return "", errors.New("No build recorded, cannot access latest build commit")
 	}
 	build := updateBuilds[len(updateBuilds)-1]
 	return build.Commit, nil
@@ -308,7 +310,12 @@ func isGitUpdateSystem() bool {
 func GetGitCommitList() ([]Commit, error) {
 	comm, err := GetLatestBuildCommit()
 	if err != nil {
-		return nil, err
+		head, err := gitGetHead()
+		if err != nil {
+			Warning.Println("Could not get HEAD from git: " + err.Error())
+			return nil, err
+		}
+		return gitGetLatestCommitsCached(head.Id, 10)
 	}
 
 	return gitGetLatestCommitsCached(comm, 0)
@@ -323,6 +330,7 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 	var res gitBuildPrepInfos
 	comm, err := GetLatestBuildCommit()
 	if err != nil {
+
 		return res, err
 	}
 	com, err := gitGetCommitsBetween(commit, comm)
@@ -422,10 +430,9 @@ func SignalGameUpdated(branch Branch, update Update) {
 	DispatchRank("system", "gameUpdate", update, branch.AccessRank)
 }
 
-// Todo : no duplicate
-func GetUpdateCount() int {
+func GetBuildsCount() int {
 	var count int
-	err := Db.QueryRow("SELECT COUNT(*) FROM neb_updates").Scan(&count)
+	err := Db.QueryRow("SELECT COUNT(*) FROM neb_updates_builds").Scan(&count)
 	if err != nil {
 		return -1
 	}

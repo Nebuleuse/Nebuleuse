@@ -2,11 +2,13 @@ package core
 
 import (
 	"container/list"
-	"github.com/Nebuleuse/Nebuleuse/git"
+	"errors"
 	"os"
 	"os/exec"
 	"strconv"
 	"sync"
+
+	"github.com/Nebuleuse/Nebuleuse/git"
 )
 
 var gitRepo *git.Repository
@@ -211,6 +213,15 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 	ret := make([]Commit, endPos-1)
 	copy(ret, commitCache[0:endPos-1])
 	return ret, nil
+}
+
+func gitGetHead() (Commit, error) {
+	if len(commitCache) == 0 {
+		//Maybe something more elegant can be done here ?
+		var useless Commit
+		return useless, errors.New("No commit recorded from git")
+	}
+	return commitCache[0], nil
 }
 
 func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {

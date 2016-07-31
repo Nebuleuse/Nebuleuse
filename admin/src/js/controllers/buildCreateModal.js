@@ -10,27 +10,30 @@ function BuildCreateModal($scope, $http, $uibModalInstance, list, commit) {
 	$scope.displaySize=0;
 	$scope.showFiles = false;
 	$scope.log = "";
+	if($scope.list.Builds.length == 0){
+		
+	} else {
+		$http.post(APIURL + '/prepareGitBuild', {sessionid: $scope.Self.SessionId, commit: commit.Id})
+			.success(function (data) {
+				$scope.diffs = data.Diffs;
+				$scope.rawSize = data.TotalSize;
+				$scope.displaySize = Math.round(($scope.rawSize/1024) * 100) / 100;
+			}).error(function (data, status) {
+				$scope.parseError(data, status);
+				$scope.addAlert("Could not fetch build preperation infos!", "danger");
+			});
+			var found = false;
+			for (var i = 0; i < list.Commits.length; i++) {
+				if (list.Commits[i].Id == commit.Id){
+					found = true;
+				}
+				if (found){
+					$scope.log += "-- Message from " + list.Commits[i].Id + "\n"+ list.Commits[i].Message; 
+					$scope.commits.push(list.Commits[i]);
+				}
+			};
+	}
 	
-	$http.post(APIURL + '/prepareGitBuild', {sessionid: $scope.Self.SessionId, commit: commit.Id})
-		.success(function (data) {
-			$scope.diffs = data.Diffs;
-			$scope.rawSize = data.TotalSize;
-			$scope.displaySize = Math.round(($scope.rawSize/1024) * 100) / 100;
-		}).error(function (data, status) {
-			$scope.parseError(data, status);
-			$scope.addAlert("Could not fetch build preperation infos!", "danger");
-		});
-
-	var found = false;
-	for (var i = 0; i < list.Commits.length; i++) {
-		if (list.Commits[i].Id == commit.Id){
-			found = true;
-		}
-		if (found){
-			$scope.log += "-- Message from " + list.Commits[i].Id + "\n"+ list.Commits[i].Message; 
-			$scope.commits.push(list.Commits[i]);
-		}
-	};
 	
 	$scope.toggleFiles = function () {
 		$scope.showFiles = !$scope.showFiles;

@@ -16,6 +16,11 @@ angular.module('RDash').config(['$stateProvider', '$urlRouterProvider',
                 controller: 'DashboardCtrl',
                 templateUrl: 'templates/dashboard.html'
             })
+            .state('install', {
+                url: '/install',
+                controller: 'InstallCtrl',
+                templateUrl: 'templates/install.html'
+            })
             .state('login', {
                 url: '/login',
                 controller: 'LoginCtrl',

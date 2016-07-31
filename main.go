@@ -13,7 +13,7 @@ func main() {
 			return
 		} else if os.Args[1] == "install" {
 			core.Install()
-			return
+			createInstallServer()
 		}
 	}
 

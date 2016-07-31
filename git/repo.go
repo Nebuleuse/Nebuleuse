@@ -5,9 +5,13 @@
 package git
 
 import (
+	"bufio"
+	"errors"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // Repository represents a Git repository.
@@ -27,14 +31,40 @@ func OpenRepository(repoPath string) (*Repository, error) {
 
 	return &Repository{Path: repoPath}, nil
 }
-
-func (r *Repository) UpdateGitRepo(branch string) {
+func parseUpdateRepo(rd io.Reader) error {
+	scanner := bufio.NewScanner(rd)
+	failed := false
+	var err string
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "fatal:") {
+			if !failed {
+				failed = true
+				err = "Git pull failed: "
+			}
+			err = err + line + "\n"
+		}
+	}
+	if failed {
+		return errors.New(err)
+	}
+	return nil
+}
+func (r *Repository) UpdateGitRepo(branch string) error {
 	cmd := exec.Command("git", "pull", "origin", branch)
 	cmd.Dir = r.Path
+	rd, wr := io.Pipe()
+
+	//Todo: Add parser for error output from git
+	//Bug: setting cmd.Stderr to wr makes cmd.start freeze
+	cmd.Stdout = os.Stdout
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 	cmd.Start()
 	cmd.Wait()
+	wr.Close()
+	defer rd.Close()
+	return parseUpdateRepo(rd)
 }
 func (r *Repository) Checkout(commit string) {
 	cmd := exec.Command("git", "checkout", commit)

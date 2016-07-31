@@ -53,8 +53,12 @@ func gitUpdateCommitCache() error {
 }
 
 func gitUpdateRepo() {
-	gitRepo.UpdateGitRepo(Cfg.GetConfig("productionBranch"))
-	Info.Println("Updated git repository")
+	err := gitRepo.UpdateGitRepo(Cfg.GetConfig("productionBranch"))
+	if err != nil {
+		Warning.Println(err.Error())
+	} else {
+		Info.Println("Updated git repository")
+	}
 }
 func gitLockRepo() {
 	gitRepoLock.Lock()

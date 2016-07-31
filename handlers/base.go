@@ -66,6 +66,10 @@ func RegisterHandlers() {
 	r.HandleFunc("/setActiveUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch"}, setActiveUpdate))))
 	http.Handle("/", r)
 }
+func RegisterInstallHandlers() {
+	r := mux.NewRouter()
+	http.Handle("/", r)
+}
 
 type easyResponse struct {
 	Code    int
@@ -132,6 +136,7 @@ type statusResponse struct {
 	NebuleuseVersion  int
 	UpdaterVersion    int
 	UpdateSystem      string
+	UpdatesLocation   string
 	ComplexStatsTable []core.ComplexStatTableInfo
 }
 
@@ -141,7 +146,8 @@ func status(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 		return
 	}
-	response := statusResponse{core.NebuleuseVersion, core.GetUpdaterVersion(), core.GetUpdateSystem(), CStatsInfos}
+
+	response := statusResponse{core.NebuleuseVersion, core.GetUpdaterVersion(), core.GetUpdateSystem(), core.GetUpdatesLocation(), CStatsInfos}
 
 	EasyDataResponse(w, response)
 }

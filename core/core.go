@@ -68,7 +68,7 @@ func Install() {
 		Info.Println(".config file already exists. Replace it ? Y/N")
 
 		in, err := reader.ReadString('\n')
-		in = strings.TrimSpace(in)
+		in = strings.ToUpper(strings.TrimSpace(in))
 		for err != nil || (in != "Y" && in != "N") {
 			in, err = reader.ReadString('\n')
 			in = strings.TrimSpace(in)
@@ -96,6 +96,7 @@ func Install() {
 		in, _ := reader.ReadString('\n')
 		in = strings.TrimSpace(in)
 		for in == "" && !canDefault {
+			Info.Println("No default, please enter a value: ")
 			in, _ = reader.ReadString('\n')
 			in = strings.TrimSpace(in)
 		}
@@ -115,7 +116,7 @@ func Install() {
 	Info.Println("Do you want to create a new admin account ? Y/N")
 
 	in, err := reader.ReadString('\n')
-	in = strings.TrimSpace(in)
+	in = strings.ToUpper(strings.TrimSpace(in))
 	for err != nil || (in != "Y" && in != "N") {
 		in, err = reader.ReadString('\n')
 		in = strings.TrimSpace(in)

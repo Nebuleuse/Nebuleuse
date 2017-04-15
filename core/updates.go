@@ -318,8 +318,8 @@ func isGitUpdateSystem() bool {
 }
 func GetGitCommitList() ([]Commit, error) {
 	comm, err := GetLatestBuildCommit()
-	if err != nil {
-		return nil, err
+	if err != nil { // No builds
+		return gitGetAllCommitsCached(), nil
 	}
 
 	return gitGetLatestCommitsCached(comm, 0)
@@ -332,18 +332,25 @@ type gitBuildPrepInfos struct {
 
 func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 	var res gitBuildPrepInfos
-	comm, err := GetLatestBuildCommit()
-	if err != nil {
-		return res, err
+	baseCommit, err := GetLatestBuildCommit()
+	if err != nil { //No build recorded
+		baseCommit, err = gitGetFirstCommit()
+
+		if err != nil {
+			return res, err
+		}
 	}
-	com, err := gitGetCommitsBetween(commit, comm)
+	commitsBetween, err := gitGetCommitsBetweenCached(commit, baseCommit)
 	if err != nil {
 		return res, err
 	}
 
-	diffs := gitGetDiffs(com)
+	Warning.Println("gitGetCommitsBetween c " + commit + " com " + baseCommit)
+
+	diffs := gitGetDiffs(commitsBetween)
 	var total int64
 	gitLockRepo()
+	gitCheckoutCommit(commit)
 	for _, c := range diffs {
 		if c.IsDeleted {
 			continue
@@ -354,6 +361,7 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 		}
 		total = total + size
 	}
+	gitCheckoutCommit("master")
 	gitUnlockRepo()
 
 	res.Diffs = diffs

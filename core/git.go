@@ -9,6 +9,8 @@ import (
 
 	"errors"
 
+	"path/filepath"
+
 	"github.com/Nebuleuse/Nebuleuse/git"
 )
 
@@ -262,25 +264,35 @@ func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {
 	gitRepoLock.Lock()
 	defer gitRepoLock.Unlock()
 
-	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(end, start)
-	size, err := _createPatch(start, strconv.Itoa(buildFrom)+"to"+strconv.Itoa(buildTo), diff, true)
-	_createPatch(end, strconv.Itoa(buildTo)+"to"+strconv.Itoa(buildFrom), diff, false)
+	commitsBetween, err := gitGetCommitsBetweenCached(start, end)
+	if err != nil {
+		return 0, err
+	}
+	diffs := gitGetDiffs(commitsBetween)
+
+	size, err := _createPatch(start, strconv.Itoa(buildFrom)+"to"+strconv.Itoa(buildTo), diffs, true)
+	_createPatch(end, strconv.Itoa(buildTo)+"to"+strconv.Itoa(buildFrom), diffs, false)
 	gitRepo.Checkout("master")
 
 	return size, err
 }
-func _createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (int64, error) {
+func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64, error) {
 	updatesLocation := Cfg.GetSysConfig("UpdatesLocation")
 	path := updatesLocation + "tmp/" + filename
 	repoPath := Cfg.GetConfig("gitRepositoryPath")
 	gitRepo.Checkout(commit)
 
 	os.MkdirAll(path, 0764)
-	for _, file := range diff.Files {
+	for _, file := range diff {
 		if skipDeleted && file.IsDeleted {
 			continue
 		} else if !skipDeleted && file.IsCreated {
 			continue
+		}
+
+		outPath := filepath.Dir(file.Name)
+		if outPath != "." {
+			os.MkdirAll(path+"/"+outPath, 0764)
 		}
 		err := os.Link(repoPath+file.Name, path+"/"+file.Name)
 		if err != nil {
@@ -298,7 +310,7 @@ func _createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (in
 	cmdXz.Stderr = os.Stderr
 	cmdXz.Dir = "./updates/tmp/"
 	cmdXz.Run()
-	os.RemoveAll(path)
+	//os.RemoveAll(path)
 	os.Rename(path+".tar.xz", updatesLocation+filename+".tar.xz")
 
 	return getFileSize(updatesLocation + filename + ".tar.xz")

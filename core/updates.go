@@ -439,9 +439,18 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	if err != nil {
 		return err
 	}
+	baseCommit := ""
+	baseId := 0
 	head := branchObj.Head
 	if head == nil {
-		return errors.New("Branch " + branch + " has no head")
+		//return errors.New("Branch " + branch + " has no head")
+		baseCommit, err = gitGetFirstCommit()
+		if err != nil {
+			return err
+		}
+	} else {
+		baseCommit = head.Build.Commit
+		baseId = head.Build.Id
 	}
 
 	update.Branch = branch
@@ -452,7 +461,7 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	update.SemVer = semver
 	update.RollBack = false
 
-	size, err := gitCreatePatch(buildObj.Commit, head.Build.Commit, build, head.Build.Id)
+	size, err := gitCreatePatch(buildObj.Commit, baseCommit, build, baseId)
 	if err != nil {
 		return err
 	}

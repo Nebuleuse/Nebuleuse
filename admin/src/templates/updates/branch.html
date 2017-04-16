@@ -1,0 +1,27 @@
+<div class="updateInfoDisplayHead">
+	Branch {{selected.Name}}<br>
+	Active build #{{selected.ActiveBuild}}<br>
+</div>
+
+<div class="updateInfoDisplayFoot">
+    <table>
+        <th>Rank</th>
+        <th></th>
+        <tr>
+            <td>Banned</td>
+            <td>{{isRankAuth(selected.AccessRank, 0) ? 'V' : 'X'}}</td>
+        </tr>
+        <tr>
+            <td>Normal</td>
+            <td>{{isRankAuth(selected.AccessRank, 1) ? 'V' : 'X'}}</td>
+        </tr>
+        <tr>
+            <td>Dev</td>
+            <td>{{isRankAuth(selected.AccessRank, 2) ? 'V' : 'X'}}</td>
+        </tr>
+        <tr>
+            <td>Admin</td>
+            <td>{{isRankAuth(selected.AccessRank, 3) ? 'V' : 'X'}}</td>
+        </tr>
+    </table>
+</div>

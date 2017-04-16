@@ -5,12 +5,12 @@
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
 	<div class="updateInfoDisplay">
-		<span ng-show="selectedTpl == ''">Select a dot to see details</span>
+		<span ng-show="selectedTpl == ''">Select a dot or branch name to see details</span>
 		<div ng-include="selectedTpl"></div>
 	</div>
 	<div class="updateTimelineContainer">
 		<section id="cd-timeline" class="cd-container">
-			<div class="cd-timeline-title">Master</div>
+			<div class="cd-timeline-title">Builds</div>
 			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-click="setSelectedCommit(commit)" ng-hide="!isGitSystem()">
 				<div class="cd-timeline-img cd-commit" ng-class="{'cd-timeline-selected': (selected==commit)}" >
 					#
@@ -28,7 +28,9 @@
 			</div>
 		</section>
 		<section id="cd-timeline" class="cd-container" ng-repeat="branch in list.Branches">
-			<div class="cd-timeline-title">{{branch.Name}}</div>
+			<div class="cd-timeline-title" ng-click="setSelectedBranch(branch)">
+				{{branch.Name}}
+			</div>
 			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-hide="!isGitSystem()">
 				<div class="cd-timeline-img cd-empty">
 					

@@ -19,6 +19,10 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		$scope.selected = obj;
 		$scope.selectedTpl = "templates/updates/builds.html";
 	}
+	$scope.setSelectedBranch  = function (obj) {
+		$scope.selected = obj;
+		$scope.selectedTpl = "templates/updates/branch.html";
+	}
 	$scope.setSelectedUpdate  = function (obj, branch) {
 		if (obj.create !== null && obj.create === true){
 			$scope.createPatch(obj.build, obj.branch);
@@ -27,6 +31,9 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 			$scope.selectedBranch = branch;
 			$scope.selectedTpl = "templates/updates/updates.html";
 		}
+	}
+	$scope.isRankAuth = function(accessRank, rank){
+		return (accessRank & (1<<rank)) == (1<<rank);
 	}
 	$scope.toggleFiles = function(){
 		$scope.showFiles = !$scope.showFiles;

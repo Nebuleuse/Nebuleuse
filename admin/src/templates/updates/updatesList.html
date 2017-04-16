@@ -5,14 +5,14 @@
     </rd-widget-header>
     <rd-widget-body classes="no-padding">
 	<div class="updateInfoDisplay">
-		Select a dot to see details
+		<span ng-show="selectedTpl == ''">Select a dot to see details</span>
 		<div ng-include="selectedTpl"></div>
 	</div>
 	<div class="updateTimelineContainer">
 		<section id="cd-timeline" class="cd-container">
 			<div class="cd-timeline-title">Master</div>
 			<div class="cd-timeline-block" ng-repeat="commit in list.Commits" ng-click="setSelectedCommit(commit)" ng-hide="!isGitSystem()">
-				<div class="cd-timeline-img cd-commit">
+				<div class="cd-timeline-img cd-commit" ng-class="{'cd-timeline-selected': (selected==commit)}" >
 					#
 				</div>
 			</div>
@@ -22,7 +22,7 @@
 				</div>
 			</div>
 			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-click="setSelectedBuild(build)">
-				<div class="cd-timeline-img cd-build" ng-class="{'cd-build': !build.Obselete, 'cd-obselete': build.Obselete}">
+				<div class="cd-timeline-img cd-build" ng-class="{'cd-build': !build.Obselete, 'cd-obselete': build.Obselete,'cd-timeline-selected': (selected==build)}">
 					{{build.Id}}
 				</div>
 			</div>
@@ -39,7 +39,7 @@
 				</div>
 			</div>
 			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-controller="updateDotCtrl" ng-click="setSelectedUpdate(update, branch)">
-				<div class="cd-timeline-img" ng-class="{'cd-empty': !visible, 'cd-newUpdate': visible&&!exist, 'cd-update': exist, 'cd-active': active}">
+				<div class="cd-timeline-img" ng-class="{'cd-empty': !visible, 'cd-newUpdate': visible&&!exist, 'cd-update': exist, 'cd-active': active, 'cd-timeline-selected': (selected==update&&selectedBranch==branch)}">
 					{{!exist&&visible ? '+' : update.BuildId}}
 				</div>
 			</div>

@@ -41,6 +41,7 @@ func initUpdateSystem() error {
 	updateBuilds = make([]*Build, 0)
 	updateBranches = make([]*Branch, 0)
 
+	//	Load builds
 	buildRows, err := Db.Query("SELECT id, commit, date, changelist, obselete, log FROM neb_updates_builds ORDER BY id")
 	if err != nil {
 		return err
@@ -57,6 +58,7 @@ func initUpdateSystem() error {
 		updateBuilds = append(updateBuilds, &build)
 	}
 
+	//Load branches
 	branchRows, err := Db.Query("SELECT name, rank, activeBuild FROM neb_updates_branches")
 	if err != nil {
 		return err
@@ -71,7 +73,7 @@ func initUpdateSystem() error {
 		}
 		updateBranches = append(updateBranches, &branch)
 	}
-
+	//Load updates
 	updateRows, err := Db.Query("SELECT build, branch, size, rollback, semver, log, date FROM neb_updates ORDER BY build")
 	if err != nil {
 		return err

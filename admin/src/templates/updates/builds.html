@@ -3,11 +3,14 @@
 	Commit: {{selected.Commit}}<br>
     Obselete: {{selected.Obselete}}
 </div>
-<div class="updateInfoDisplayBody">Log:
-	<pre>{{selected.Log}}</pre>
-</div>
-<a ng-click="toggleFiles()">Show changed files</a> <br/>
-<neb-difflist diffs="selected.FileChanged" ng-hide="!showFiles"></neb-difflist>
 <div class="updateInfoDisplayFoot">
 	{{selected.Date}}
+</div>
+<button type="button" class="btn btn-secondary" ng-click="toggleFiles()">
+	Show changed files
+</button><br/>
+
+<neb-difflist diffs="selected.FileChanged" ng-hide="!showFiles"></neb-difflist>
+<div class="updateInfoDisplayBody">Log:
+	<pre>{{selected.Log}}</pre>
 </div>

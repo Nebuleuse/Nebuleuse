@@ -123,7 +123,7 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	}
 	$scope.downloadUpdate = function(from, to){
 		var url = APIURL + "/" + $scope.Nebuleuse.UpdatesLocation + from + "to" + to + ".tar.xz";
-		console.log(url) 
+		window.open(url);
 	}
 	$scope.refreshList();
 }

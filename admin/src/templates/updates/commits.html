@@ -2,12 +2,14 @@
 	ID: {{selected.Id}}<br>
 	Committer: {{selected.Committer}}
 </div>
-<div class="updateInfoDisplayBody">Message: 
-	<pre>{{selected.Message}}</pre>
-</div>
-<a ng-click="toggleFiles()">Show changed files</a> <br/>
-<neb-difflist diffs="selected.Diff" ng-hide="!showFiles"></neb-difflist>
 <div class="updateInfoDisplayFoot">
 	{{selected.Date}}
 </div>
 <button type="button" class="btn btn-primary" ng-click="createBuild(selected)">Create build</button>
+<button type="button" class="btn btn-secondary" ng-click="toggleFiles()">
+	Show changed files
+</button><br/>
+<neb-difflist diffs="selected.Diff" ng-hide="!showFiles"></neb-difflist>
+<div class="updateInfoDisplayBody">Message: 
+	<pre>{{selected.Message}}</pre>
+</div>

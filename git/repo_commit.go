@@ -10,7 +10,6 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
-	"github.com/gogits/gogs/modules/process"
 	"io"
 	"log"
 	"os"
@@ -18,6 +17,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gogits/gogs/modules/process"
 
 	"github.com/Unknwon/com"
 )
@@ -416,6 +417,20 @@ func parsePatch(pid int64, cmd *exec.Cmd, reader io.Reader) (*Diff, error) {
 					curFile.Type = DIFF_FILE_CHANGE
 					curFile.IsCreated = false
 					curFile.IsDeleted = false
+				case strings.HasPrefix(scanner.Text(), "similarity index"):
+					//In our case we treat renames as delete and creatin of new file
+					curFile.Type = DIFF_FILE_DEL
+					curFile.IsCreated = false
+					curFile.IsDeleted = true
+					b := fs[1]
+					curFile = &DiffFile{
+						Name:      b[strings.Index(b, "/")+1:],
+						Index:     len(diff.Files) + 1,
+						Type:      DIFF_FILE_CHANGE,
+						IsCreated: true,
+						IsDeleted: false,
+					}
+					diff.Files = append(diff.Files, curFile)
 				}
 				if curFile.Type > 0 {
 					break

@@ -103,7 +103,7 @@ func gitGetDiffs(commits []Commit) []Diff {
 				if diff.IsCreated && !storedDiff.IsCreated {
 					if !storedDiff.IsDeleted {
 						outDiffs[found[diff.Name]-1].IsCreated = true
-					} else { // It was created and deleted in between
+					} else { // It was created and deleted in between, no need to know about this file in our diffs
 						found[diff.Name] = -1
 					}
 				} else if diff.IsDeleted {
@@ -113,15 +113,13 @@ func gitGetDiffs(commits []Commit) []Diff {
 			}
 		}
 	}
-	deleted := 0
-	for i := 0; i < len(outDiffs); i++ {
-		j := i - deleted
-		if found[outDiffs[j].Name] == -1 {
-			outDiffs = append(outDiffs[:j], outDiffs[j+1:]...)
-			deleted++
+	var returnDiffs []Diff
+	for _, diff := range outDiffs {
+		if found[diff.Name] != -1 {
+			returnDiffs = append(returnDiffs, diff)
 		}
 	}
-	return outDiffs
+	return returnDiffs
 }
 
 func gitParseCommitList(list *list.List) []Commit {

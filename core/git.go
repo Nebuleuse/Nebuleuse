@@ -11,6 +11,8 @@ import (
 
 	"path/filepath"
 
+	"encoding/json"
+
 	"github.com/Nebuleuse/Nebuleuse/git"
 )
 
@@ -277,6 +279,7 @@ func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {
 	return size, err
 }
 func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64, error) {
+	var deletedFiles []string
 	updatesLocation := Cfg.GetSysConfig("UpdatesLocation")
 	path := updatesLocation + "tmp/" + filename
 	repoPath := Cfg.GetConfig("gitRepositoryPath")
@@ -285,8 +288,10 @@ func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64
 	os.MkdirAll(path, 0764)
 	for _, file := range diff {
 		if skipDeleted && file.IsDeleted {
+			deletedFiles = append(deletedFiles, file.Name)
 			continue
 		} else if !skipDeleted && file.IsCreated {
+			deletedFiles = append(deletedFiles, file.Name)
 			continue
 		}
 
@@ -300,6 +305,16 @@ func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64
 		}
 	}
 
+	deletedManifest, _ := os.Create(path + "/" + "_deleted.json")
+
+	if len(deletedFiles) > 0 {
+		jsonbytes, _ := json.Marshal(deletedFiles)
+		deletedManifest.Write(jsonbytes[:])
+	} else {
+		deletedManifest.WriteString("{}")
+	}
+	deletedManifest.Close()
+
 	cmdTar := exec.Command("tar", "-c", filename, "-f", filename+".tar")
 	cmdTar.Stdout = os.Stdout
 	cmdTar.Stderr = os.Stderr
@@ -310,7 +325,8 @@ func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64
 	cmdXz.Stderr = os.Stderr
 	cmdXz.Dir = "./updates/tmp/"
 	cmdXz.Run()
-	//os.RemoveAll(path)
+
+	os.RemoveAll(path)
 	os.Rename(path+".tar.xz", updatesLocation+filename+".tar.xz")
 
 	return getFileSize(updatesLocation + filename + ".tar.xz")

@@ -441,6 +441,15 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	if err != nil {
 		return err
 	}
+
+	update.Branch = branch
+	update.BuildId = build
+	update.Build = buildObj
+	update.Date = time.Now()
+	update.Log = log
+	update.SemVer = semver
+	update.RollBack = false
+
 	baseCommit := ""
 	baseId := 0
 	head := branchObj.Head
@@ -454,14 +463,6 @@ func CreateUpdate(build int, branch, semver, log string) error {
 		baseCommit = head.Build.Commit
 		baseId = head.Build.Id
 	}
-
-	update.Branch = branch
-	update.BuildId = build
-	update.Build = buildObj
-	update.Date = time.Now()
-	update.Log = log
-	update.SemVer = semver
-	update.RollBack = false
 
 	size, err := gitCreatePatch(buildObj.Commit, baseCommit, build, baseId)
 	if err != nil {

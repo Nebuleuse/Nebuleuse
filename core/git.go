@@ -283,6 +283,13 @@ func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64
 	updatesLocation := Cfg.GetSysConfig("UpdatesLocation")
 	path := updatesLocation + "tmp/" + filename
 	repoPath := Cfg.GetConfig("gitRepositoryPath")
+
+	//Verify if update already exists
+	if _, err := os.Stat(updatesLocation + filename + ".tar.xz"); !os.IsNotExist(err) {
+		Warning.Println("Update file already exists, skipping " + filename)
+		return getFileSize(updatesLocation + filename + ".tar.xz")
+	}
+
 	gitRepo.Checkout(commit)
 
 	os.MkdirAll(path, 0764)

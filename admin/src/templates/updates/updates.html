@@ -10,7 +10,7 @@
 <button type="button" class="btn btn-primary" ng-click="setActiveUpdate(selected,selectedBranch)" ng-hide="selected.BuildId == selectedBranch.ActiveBuild">
 	Set active
 </button>
-<button type="button" class="btn btn-secondary" ng-click="downloadUpdate(selected.BuildId-1,selected.BuildId)">
+<button type="button" class="btn btn-secondary" ng-click="downloadUpdate(selected.Branch, selected.BuildId)">
 	Download
 </button>
 

@@ -101,6 +101,12 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             $scope.lostConnection = true;
         });
     }
+    $scope.createEmptyBranch = function(){
+        //Todo
+    }
+    $scope.createBranchFromBuild = function(build){
+        //Todo
+    }
     $scope.isGitSystem = function(){
         return $scope.Nebuleuse.UpdateSystem === "GitPatch";
     }

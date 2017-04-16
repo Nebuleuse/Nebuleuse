@@ -107,13 +107,13 @@ header h1 {
   }
 }
 
-#cd-timeline {
+.cd-timeline {
   position: relative;
   padding: 2em 0;
   margin-top: 2em;
   margin-bottom: 2em;
 }
-#cd-timeline::before {
+.cd-timeline::before {
   /* this is the vertical line */
   content: '';
   position: absolute;
@@ -123,7 +123,9 @@ header h1 {
   width: 4px;
   background: #d7e4ed;
 }
-
+.cd-timeline-branch-selected::before {
+  background: red;
+}
 .cd-timeline-block {
   position: relative;
   margin: 5em 0;

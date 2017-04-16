@@ -8,6 +8,9 @@
 </div>
 <button type="button" class="btn btn-secondary" ng-click="toggleFiles()">
 	Show changed files
+</button>
+<button type="button" class="btn btn-secondary" ng-click="createBranchFromBuild(selected)">
+	Create branch
 </button><br/>
 
 <neb-difflist diffs="selected.FileChanged" ng-hide="!showFiles"></neb-difflist>

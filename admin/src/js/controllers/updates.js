@@ -128,8 +128,26 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		}
 		return {};
 	}
-	$scope.downloadUpdate = function(from, to){
-		var url = APIURL + "/" + $scope.Nebuleuse.UpdatesLocation + from + "to" + to + ".tar.xz";
+	$scope.downloadUpdate = function(branch, buildId){
+		var branchObj;
+		for(var j = 0; j < $scope.list.Branches.length; j++){
+			if($scope.list.Branches[j].Name == branch){
+				branchObj = $scope.list.Branches[j];
+				break;
+			}
+		}
+		var updates = branchObj.Updates;
+		var i = 0;
+		for (i=0; i < updates.length; i++){
+			if(updates[i].BuildId == buildId){
+				break;
+			}
+		}
+		var from = 0;
+		if(i+1 < updates.length)
+			from = updates[i+1].BuildId;
+
+		var url = APIURL + "/" + $scope.Nebuleuse.UpdatesLocation + from + "to" + buildId + ".tar.xz";
 		window.open(url);
 	}
 	$scope.refreshList();

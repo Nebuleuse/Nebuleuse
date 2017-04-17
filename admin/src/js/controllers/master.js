@@ -26,7 +26,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         if(data.Code == 2 || status == 401)
             $scope.setConnected(false);
 
-            d = new Date();
+        d = new Date();
         $scope.localLog += d.toLocaleString() + " " + data.Message + "\n";
         console.error(data, status);
     };
@@ -112,7 +112,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         $location.path(path);
     }
 
-    $scope.Menus = [    {name: "Home", icon: "fa-home", link:"/"},
+    $scope.Menus = [    {name: "Home", icon: "fa-home", link:""},
                         {name: "Log", icon: "fa-cloud", link:"log"},
                         {name: "Users", icon: "fa-users", link:"users"},
                         {name: "Achievements", icon: "fa-trophy", link:"achievements"},

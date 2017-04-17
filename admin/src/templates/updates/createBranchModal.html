@@ -5,6 +5,46 @@
     <rd-widget-body>
     	<p>
             Branch name: <input type="text"  ng-model="name" name="name"/><br/>
+            <table>
+                <th>Rank</th>
+                <th></th>
+                <tr>
+                    <td>Banned</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary"  ng-click="toggleAccessRank(0)">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(accessrank, 0)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(accessrank, 0)"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Normal</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary"  ng-click="toggleAccessRank(1)">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(accessrank, 1)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(accessrank, 1)"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Dev</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary"  ng-click="toggleAccessRank(2)">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(accessrank, 2)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(accessrank, 2)"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Admin</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary"  ng-click="toggleAccessRank(3)">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(accessrank, 3)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(accessrank, 3)"></i>
+                        </button>
+                    </td>
+                </tr>
+            </table>
             Branch Access rank: <input type="text"  ng-model="accessrank" name="accessrank"/>
             <br/><br/>
             <span ng-show="!empty">

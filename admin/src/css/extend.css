@@ -11,7 +11,7 @@
   margin: 0px auto;
   padding: 4px;
   height: 300px;
-  overflow: scroll;
+  overflow: auto;
 }
 .diffLine:nth-child(2n+0){
   background-color: #f6f6f6;

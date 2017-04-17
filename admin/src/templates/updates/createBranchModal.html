@@ -1,0 +1,20 @@
+<div class="row col-lg-12">
+<rd-widget>
+    <rd-widget-header icon="fa-tasks" ng-attr-title="Create new branch {{empty ? 'from build ' + build : ''}}">
+    </rd-widget-header>
+    <rd-widget-body>
+    	<p>
+            Branch name: <input type="text"  ng-model="name" name="name"/><br/>
+            Branch Access rank: <input type="text"  ng-model="accessrank" name="accessrank"/>
+            <br/><br/>
+            <span ng-show="!empty">
+                SemVer: <input type="text"  ng-model="semver" name="semver"/><br/>
+                Log:<br/>
+                <textarea ng-model="log" class="buildModalLog" name="log"></textarea><br/>
+			</span>
+			<button type="button" class="btn btn-primary" ng-click="addBranch(name, accessrank, log, semver)">Create branch</button>
+			<button type="button" class="btn btn-danger" ng-click="close()">Cancel</button>
+    	</p>
+    </rd-widget-body>
+</rd-widget>
+</div>

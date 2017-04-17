@@ -7,6 +7,7 @@ angular.module('RDash')
 
 function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     $scope.alerts = [];
+    $scope.localLog = "";
 
     $scope.addAlert = function(message, level) {
         $scope.alerts.push({
@@ -24,6 +25,9 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             return;
         if(data.Code == 2 || status == 401)
             $scope.setConnected(false);
+
+            d = new Date();
+        $scope.localLog += d.toLocaleString() + " " + data.Message + "\n";
         console.error(data, status);
     };
     $scope.parseMessage = function(data) {
@@ -100,12 +104,6 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
                 $scope.addAlert("Could not get new messages", "danger");
             $scope.lostConnection = true;
         });
-    }
-    $scope.createEmptyBranch = function(){
-        //Todo
-    }
-    $scope.createBranchFromBuild = function(build){
-        //Todo
     }
     $scope.isGitSystem = function(){
         return $scope.Nebuleuse.UpdateSystem === "GitPatch";

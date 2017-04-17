@@ -109,6 +109,31 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	      size: 'lg'
 	    });
 	}
+
+    $scope.createEmptyBranch = function(){
+        var modalInstance = $uibModal.open({
+	      animation: true,
+	      templateUrl: 'templates/updates/createBranchModal.html',
+	      controller: 'BranchCreateModal',
+	      scope: $scope,
+	      size: 'lg',
+		  resolve: {
+			  build: function(){return 0;}
+		  }
+	    });
+    }
+    $scope.createBranchFromBuild = function(build){
+        var modalInstance = $uibModal.open({
+	      animation: true,
+	      templateUrl: 'templates/updates/createBranchModal.html',
+	      controller: 'BranchCreateModal',
+	      scope: $scope,
+	      size: 'lg',
+		  resolve: {
+			  build: function(){return build.Id;}
+		  }
+	    });
+    }
 	$scope.setActiveUpdate = function (update, branch) {
 		$http.post(APIURL + '/setActiveUpdate', {sessionid: $scope.Self.SessionId, build: update.BuildId, branch: branch.Name})
 		.success(function () {

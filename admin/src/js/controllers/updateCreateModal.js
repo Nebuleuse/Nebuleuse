@@ -11,7 +11,7 @@ function UpdateCreateModal($scope, $http, $uibModalInstance, build, branch) {
         $uibModalInstance.close();
     }
     $scope.createUpdate = function(){
-       $http.post(APIURL + '/createUpdate', {sessionid: $scope.Self.SessionId, semver: $scope.update.semver, build: build.Id, branch: branch.Name, log: $scope.update.log})
+       $http.post(APIURL + '/addUpdate', {sessionid: $scope.Self.SessionId, semver: $scope.update.semver, build: build.Id, branch: branch.Name, log: $scope.update.log})
 		.success(function () {
 			$scope.refreshList();
 			$uibModalInstance.close();

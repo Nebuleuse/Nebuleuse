@@ -41,7 +41,7 @@
 				<div class="cd-timeline-img cd-empty">
 				</div>
 			</div>
-			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-controller="updateDotCtrl" ng-click="setSelectedUpdate(update, branch)">
+			<div class="cd-timeline-block" ng-repeat="build in list.Builds | orderBy: Id:true" ng-controller="updateDotCtrl" ng-click="visible?setSelectedUpdate(update, branch):null">
 				<div class="cd-timeline-img" ng-class="{'cd-empty': !visible, 'cd-newUpdate': visible&&!exist, 'cd-update': exist, 'cd-active': active, 'cd-timeline-selected': (selected==update&&selectedBranch==branch)}">
 					{{!exist&&visible ? '+' : update.BuildId}}
 				</div>

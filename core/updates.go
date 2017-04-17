@@ -93,7 +93,7 @@ func initUpdateSystem() error {
 		}
 		build, err := GetBuild(update.BuildId)
 		if err != nil {
-			Warning.Println("Skipped update on branch " + update.Branch + " because buildid #" + string(update.BuildId) + " is incorrect")
+			Warning.Println("Skipped update on branch " + update.Branch + " because buildid #" + string(update.BuildId) + " does not exist")
 			continue
 		}
 		update.Build = build
@@ -140,6 +140,21 @@ func insertUpdate(update *Update, build *Build, branch *Branch) error {
 	}
 	branch.Head = update
 	build.Updates[branch.Name] = update
+	return nil
+}
+
+func insertBranch(branch *Branch) error {
+	stmt, err := Db.Prepare("INSERT INTO neb_updates_branches(name, rank, activeBuild) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(branch.Name, branch.AccessRank, branch.ActiveBuild)
+	if err != nil {
+		return err
+	}
+
+	updateBranches = append(updateBranches, branch)
+
 	return nil
 }
 
@@ -431,6 +446,61 @@ func checkObseleteBuilds() error {
 	}
 	return nil
 }
+
+func AddEmptyBranch(name string, accessRank int) error {
+	var branch Branch
+	//Create branch
+	branch.AccessRank = accessRank
+	branch.ActiveBuild = 0
+	branch.Head = nil
+	branch.Name = name
+
+	err := insertBranch(&branch)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddBranchFromBuild(build, accessRank int, name, log, semver string) error {
+	var branch Branch
+	var update Update
+
+	//If the build has yet no updates attached to it, it would create an unaccessible update
+	buildObj, err := GetBuild(build)
+	if err != nil {
+		return err
+	}
+
+	if len(buildObj.Updates) == 0 {
+		return errors.New("Build has no update, would create unaccessible update")
+	}
+
+	//Create branch
+	branch.AccessRank = accessRank
+	branch.ActiveBuild = build
+	branch.Head = nil
+	branch.Name = name
+
+	err = insertBranch(&branch)
+	if err != nil {
+		return err
+	}
+
+	//Add an update to it
+	update.Branch = name
+	update.BuildId = build
+	update.Build = buildObj
+	update.Date = time.Now()
+	update.Log = log
+	update.SemVer = semver
+	update.RollBack = false
+
+	err = insertUpdate(&update, buildObj, &branch)
+
+	return err
+}
 func CreateUpdate(build int, branch, semver, log string) error {
 	var update Update
 	buildObj, err := GetBuild(build)
@@ -450,25 +520,29 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	update.SemVer = semver
 	update.RollBack = false
 
-	baseCommit := ""
-	baseId := 0
-	head := branchObj.Head
-	if head == nil {
-		//return errors.New("Branch " + branch + " has no head")
-		baseCommit, err = gitGetFirstCommit()
+	if isGitUpdateSystem() {
+		baseCommit := ""
+		baseId := 0
+		head := branchObj.Head
+		if head == nil {
+			//In case there is no previous update in the branch, include all previous commits
+			baseCommit, err = gitGetFirstCommit()
+			if err != nil {
+				return err
+			}
+		} else {
+			baseCommit = head.Build.Commit
+			baseId = head.Build.Id
+		}
+
+		size, err := gitCreatePatch(buildObj.Commit, baseCommit, build, baseId)
 		if err != nil {
 			return err
 		}
+		update.Size = size
 	} else {
-		baseCommit = head.Build.Commit
-		baseId = head.Build.Id
+		update.Size = 0 //Todo
 	}
-
-	size, err := gitCreatePatch(buildObj.Commit, baseCommit, build, baseId)
-	if err != nil {
-		return err
-	}
-	update.Size = size
 
 	err = insertUpdate(&update, buildObj, branchObj)
 

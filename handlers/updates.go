@@ -70,6 +70,17 @@ func createGitBuild(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//User connected, must be admin, form value: log
+func createBuild(w http.ResponseWriter, r *http.Request) {
+	log := context.Get(r, "log").(string)
+	err := core.CreateBuild(log)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "created build")
+	}
+}
+
 //User connected, must be admin, form values: build,branch, semver, log
 func createUpdate(w http.ResponseWriter, r *http.Request) {
 	ibuild := context.Get(r, "build").(string)
@@ -87,6 +98,12 @@ func createUpdate(w http.ResponseWriter, r *http.Request) {
 	} else {
 		EasyResponse(w, core.NebErrorNone, "created update")
 	}
+}
+
+//User connected, must be admin, form values: build,branch, file
+func uploadUpdate(w http.ResponseWriter, r *http.Request) {
+	file := context.Get(r, "file").(string)
+	core.Warning.Println(file)
 }
 
 //User connected, must be admin, form values: build,branch

@@ -38,7 +38,7 @@ function BuildCreateModal($scope, $http, $uibModalInstance, list, commit) {
 	$scope.close = function () {
 		$uibModalInstance.close();
 	}
-	$scope.createBuild = function () {
+	$scope.createBuildAction = function () {
 		$http.post(APIURL + '/addGitBuild', {sessionid: $scope.Self.SessionId, commit: commit.Id, log: $scope.log})
 		.success(function () {
 			$scope.refreshList();

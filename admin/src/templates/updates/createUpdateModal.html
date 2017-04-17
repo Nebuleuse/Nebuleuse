@@ -8,6 +8,9 @@
             SemVer: <input type="text"  ng-model="update.semver" name="semver"/><br/>
 			Log:<br/>
 			<textarea ng-model="update.log" class="buildModalLog" name="log"></textarea><br/>
+            <span ng-hide="true">
+                <input type="file" name="file" class="file" ng-model="update.file" /><br>
+            </span>
 			<button type="button" class="btn btn-primary" ng-click="createUpdate()">Create update</button>
 			<button type="button" class="btn btn-danger" ng-click="close()">Cancel</button>
     	</p>

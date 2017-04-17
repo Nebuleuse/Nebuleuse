@@ -386,6 +386,30 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 
 	return res, err
 }
+func CreateBuild(log string) error {
+	stmt, err := Db.Prepare("INSERT INTO neb_updates_builds(commit, log, changelist) VALUES ('',?,'')")
+	if err != nil {
+		return err
+	}
+	res, err := stmt.Exec(log)
+	if err != nil {
+		return err
+	}
+
+	var build Build
+	id, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	build.Id = int(id)
+	build.Commit = ""
+	build.Date = time.Now()
+	build.Log = log
+	build.FileChanged = ""
+	build.Updates = make(map[string]*Update)
+	updateBuilds = append(updateBuilds, &build)
+	return nil
+}
 func CreateGitBuild(commit string, log string) error {
 	prerInfos, err := PrepareGitBuild(commit)
 	if err != nil {

@@ -42,11 +42,13 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 		$http.post(APIURL + '/getCompleteBranchUpdates', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {
 			$scope.list = data;
-			for	(var i=0; i < data.Builds.length; i++){
-				if(data.Builds[i].FileChanged === ""){
-					continue;
+			if(data.Builds !== null){
+				for	(var i=0; i < data.Builds.length; i++){
+					if(data.Builds[i].FileChanged === ""){
+						continue;
+					}
+					$scope.list.Builds[i].FileChanged = JSON.parse(data.Builds[i].FileChanged);
 				}
-				$scope.list.Builds[i].FileChanged = JSON.parse(data.Builds[i].FileChanged);
 			}
 			console.log($scope.list);
 		}).error(function (data, status) {

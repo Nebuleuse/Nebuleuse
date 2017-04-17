@@ -44,6 +44,15 @@
                         </button>
                     </td>
                 </tr>
+                <tr>
+                    <td>Tester</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary"  ng-click="toggleAccessRank(4)">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(accessrank, 4)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(accessrank, 4)"></i>
+                        </button>
+                    </td>
+                </tr>
             </table>
             Branch Access rank: <input type="text"  ng-model="accessrank" name="accessrank"/>
             <br/><br/>

@@ -8,7 +8,7 @@ function updateDotCtrl($scope) {
     $scope.visible = true;
     $scope.active = false;
 
-    if(updates !== null){
+    if(updates !== null && updates !==undefined){
         for (var i=0; i < updates.length; i++){
             if(updates[i].BuildId == $scope.build.Id){
                 $scope.update = updates[i];
@@ -22,8 +22,10 @@ function updateDotCtrl($scope) {
     if(!$scope.exist){
         if($scope.branch.Updates === null)
             return;
-        if($scope.branch.Updates[0].BuildId >= $scope.build.Id){
-            $scope.visible = false;
+        if(updates !== null && updates !==undefined && updates.length > 0){
+            if(updates[0].BuildId >= $scope.build.Id){
+                $scope.visible = false;
+            }
         }
     }
 }

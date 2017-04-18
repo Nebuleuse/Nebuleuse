@@ -9,10 +9,10 @@ function BuildCreateModal($scope, $http, $uibModalInstance, list, commit) {
 	$scope.rawSize = 0;
 	$scope.displaySize=0;
 	$scope.showFiles = false;
-	$scope.log = "";
-	if($scope.list.Builds.length == 0){
+	$scope.build = {};
+	/*if($scope.list.Builds.length == 0){
 		
-	} else {
+	} else {*/
 		$http.post(APIURL + '/prepareGitBuild', {sessionid: $scope.Self.SessionId, commit: commit.Id})
 			.success(function (data) {
 				$scope.diffs = data.Diffs;
@@ -32,7 +32,7 @@ function BuildCreateModal($scope, $http, $uibModalInstance, list, commit) {
 					$scope.commits.push(list.Commits[i]);
 				}
 			};
-	}
+	//}
 	
 	
 	$scope.toggleFiles = function () {
@@ -42,7 +42,7 @@ function BuildCreateModal($scope, $http, $uibModalInstance, list, commit) {
 		$uibModalInstance.close();
 	}
 	$scope.createBuildAction = function () {
-		$http.post(APIURL + '/addGitBuild', {sessionid: $scope.Self.SessionId, commit: commit.Id, log: $scope.log})
+		$http.post(APIURL + '/addGitBuild', {sessionid: $scope.Self.SessionId, commit: commit.Id, log: $scope.build.log})
 		.success(function () {
 			$scope.refreshList();
 			$uibModalInstance.close();

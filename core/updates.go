@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
 	"time"
 )
 
@@ -366,7 +367,7 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 		return res, err
 	}
 
-	Warning.Println("gitGetCommitsBetween c " + commit + " com " + baseCommit)
+	Warning.Println("gitGetCommitsBetween + " + strconv.Itoa(len(commitsBetween)) + " c " + commit + " com " + baseCommit)
 
 	diffs := gitGetDiffs(commitsBetween)
 	var total int64

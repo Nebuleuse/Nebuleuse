@@ -215,7 +215,7 @@ func gitGetCommitsBetweenCached(last, before string) ([]Commit, error) {
 	if endPos == -1 {
 		endPos = len(commitCache) - 1
 	}
-	return commitCache[startPos:endPos], nil
+	return commitCache[startPos : endPos+1], nil
 }
 
 //Get latest commits with no duplicates

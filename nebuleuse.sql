@@ -154,7 +154,7 @@ ALTER TABLE `neb_updates`
   ADD KEY `build` (`build`);
 
 ALTER TABLE `neb_updates_branches`
-  ADD PRIMARY KEY ("name"),
+  ADD PRIMARY KEY (`name`),
   ADD UNIQUE KEY `name` (`name`);
 
 ALTER TABLE `neb_updates_builds`

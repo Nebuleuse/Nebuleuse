@@ -3,9 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/Nebuleuse/Nebuleuse/core"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 func RegisterHandlers() {
@@ -56,13 +57,16 @@ func RegisterHandlers() {
 	r.PathPrefix("/updates/").Handler((http.StripPrefix("/updates/", http.FileServer(http.Dir(core.Cfg.GetSysConfig("UpdatesLocation"))))))
 	r.HandleFunc("/getBranchList", userBySession(false, getBranchList)).Methods("POST")
 	r.HandleFunc("/getBranchUpdates", userBySession(false, verifyFormValuesExist([]string{"branch"}, getBranchUpdates))).Methods("POST")
-
 	r.HandleFunc("/getCompleteBranchUpdates", userBySession(false, mustBeAdmin(getCompleteBranchUpdates))).Methods("POST")
+	r.HandleFunc("/addBranchFromBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "name", "log", "semver", "accessrank"}, addBranchFromBuild)))).Methods("POST")
+	r.HandleFunc("/addEmptyBranch", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"name", "accessrank"}, addEmptyBranch)))).Methods("POST")
 
 	r.HandleFunc("/updateGitCommitCacheList", userBySession(false, mustBeAdmin(updateGitCommitCacheList))).Methods("POST")
 	r.HandleFunc("/prepareGitBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit"}, prepareGitBuild))))
-	r.HandleFunc("/createGitBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit", "log"}, createGitBuild))))
-	r.HandleFunc("/createUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch", "semver", "log"}, createUpdate))))
+	r.HandleFunc("/addBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"log"}, createBuild))))
+	r.HandleFunc("/addGitBuild", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"commit", "log"}, createGitBuild))))
+	r.HandleFunc("/addUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch", "semver", "log"}, createUpdate))))
+	r.HandleFunc("/uploadUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch", "file"}, uploadUpdate))))
 	r.HandleFunc("/setActiveUpdate", userBySession(false, mustBeAdmin(verifyFormValuesExist([]string{"build", "branch"}, setActiveUpdate))))
 	http.Handle("/", r)
 }

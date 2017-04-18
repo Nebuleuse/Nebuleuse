@@ -7,6 +7,7 @@ angular.module('RDash')
 
 function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
     $scope.alerts = [];
+    $scope.localLog = "";
 
     $scope.addAlert = function(message, level) {
         $scope.alerts.push({
@@ -24,6 +25,9 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
             return;
         if(data.Code == 2 || status == 401)
             $scope.setConnected(false);
+
+        d = new Date();
+        $scope.localLog += d.toLocaleString() + " " + data.Message + "\n";
         console.error(data, status);
     };
     $scope.parseMessage = function(data) {
@@ -108,7 +112,7 @@ function MasterCtrl($scope, $cookieStore, $http, $location, $rootScope) {
         $location.path(path);
     }
 
-    $scope.Menus = [    {name: "Home", icon: "fa-home", link:"/"},
+    $scope.Menus = [    {name: "Home", icon: "fa-home", link:""},
                         {name: "Log", icon: "fa-cloud", link:"log"},
                         {name: "Users", icon: "fa-users", link:"users"},
                         {name: "Achievements", icon: "fa-trophy", link:"achievements"},

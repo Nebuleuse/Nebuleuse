@@ -3,16 +3,17 @@
 	Build {{selected.BuildId}} on {{selected.Branch}}<br>
 	{{selected.Size/(1024*1024)}}Mb
 </div>
-<div class="updateInfoDisplayBody">Log:
-	<pre>{{selected.Log}}</pre>
+
+<div class="updateInfoDisplayFoot">
+	{{selected.Date}}
 </div>
 <button type="button" class="btn btn-primary" ng-click="setActiveUpdate(selected,selectedBranch)" ng-hide="selected.BuildId == selectedBranch.ActiveBuild">
 	Set active
 </button>
-<button type="button" class="btn btn-secondary" ng-click="downloadUpdate(selected.BuildId-1,selected.BuildId)">
+<button type="button" class="btn btn-secondary" ng-click="downloadUpdate(selected.Branch, selected.BuildId)">
 	Download
 </button>
 
-<div class="updateInfoDisplayFoot">
-	{{selected.Date}}
+<div class="updateInfoDisplayBody">Log:
+	<pre>{{selected.Log}}</pre>
 </div>

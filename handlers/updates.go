@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/Nebuleuse/Nebuleuse/core"
-	"github.com/gorilla/context"
 	"net/http"
 	"strconv"
+
+	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/gorilla/context"
 )
 
 //User connected
@@ -69,6 +70,17 @@ func createGitBuild(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//User connected, must be admin, form value: log
+func createBuild(w http.ResponseWriter, r *http.Request) {
+	log := context.Get(r, "log").(string)
+	err := core.CreateBuild(log)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "created build")
+	}
+}
+
 //User connected, must be admin, form values: build,branch, semver, log
 func createUpdate(w http.ResponseWriter, r *http.Request) {
 	ibuild := context.Get(r, "build").(string)
@@ -88,6 +100,12 @@ func createUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//User connected, must be admin, form values: build,branch, file
+func uploadUpdate(w http.ResponseWriter, r *http.Request) {
+	file := context.Get(r, "file").(string)
+	core.Warning.Println(file)
+}
+
 //User connected, must be admin, form values: build,branch
 func setActiveUpdate(w http.ResponseWriter, r *http.Request) {
 	ibuild := context.Get(r, "build").(string)
@@ -103,5 +121,46 @@ func setActiveUpdate(w http.ResponseWriter, r *http.Request) {
 		EasyErrorResponse(w, core.NebError, err)
 	} else {
 		EasyResponse(w, core.NebErrorNone, "activated update")
+	}
+}
+
+func addBranchFromBuild(w http.ResponseWriter, r *http.Request) {
+	name := context.Get(r, "name").(string)
+	log := context.Get(r, "log").(string)
+	semver := context.Get(r, "semver").(string)
+	iAccessRank := context.Get(r, "accessrank").(string)
+	ibuild := context.Get(r, "build").(string)
+
+	build, err := strconv.Atoi(ibuild)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	accessRank, err := strconv.Atoi(iAccessRank)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	err = core.AddBranchFromBuild(build, accessRank, name, log, semver)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "build created")
+	}
+}
+
+func addEmptyBranch(w http.ResponseWriter, r *http.Request) {
+	name := context.Get(r, "name").(string)
+	iAccessRank := context.Get(r, "accessrank").(string)
+	accessRank, err := strconv.Atoi(iAccessRank)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+		return
+	}
+	err = core.AddEmptyBranch(name, accessRank)
+	if err != nil {
+		EasyErrorResponse(w, core.NebError, err)
+	} else {
+		EasyResponse(w, core.NebErrorNone, "build created")
 	}
 }

@@ -1,0 +1,56 @@
+<div class="updateInfoDisplayHead">
+	Branch {{selected.Name}}<br>
+	Active build #{{selected.ActiveBuild}}<br>
+</div>
+
+<div class="updateInfoDisplayFoot">
+    <table>
+                <th>Rank</th>
+                <th></th>
+                <tr>
+                    <td>Banned</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(selected.AccessRank, 0)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(selected.AccessRank, 0)"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Normal</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(selected.AccessRank, 1)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(selected.AccessRank, 1)"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Dev</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(selected.AccessRank, 2)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(selected.AccessRank, 2)"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Admin</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(selected.AccessRank, 3)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(selected.AccessRank, 3)"></i>
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Tester</td>
+                    <td>
+                        <button type="button" class="btn btn-secondary">
+                            <i class="fa fa-times" aria-hidden="true" ng-hide="isRankAuth(selected.AccessRank, 4)"></i>
+                            <i class="fa fa-check" aria-hidden="true" ng-show="isRankAuth(selected.AccessRank, 4)"></i>
+                        </button>
+                    </td>
+                </tr>
+            </table>
+</div>

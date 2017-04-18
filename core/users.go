@@ -43,6 +43,7 @@ const (
 	UserRankNormal
 	UserRankDev
 	UserRankAdmin
+	UserRankTester
 )
 
 func GetUserBySession(SessionId string, BitMask int) (*User, error) {

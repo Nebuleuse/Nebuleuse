@@ -3,10 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Nebuleuse/Nebuleuse/core"
-	"github.com/gorilla/context"
 	"net/http"
 	"strconv"
+
+	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/gorilla/context"
 )
 
 type dashboardInfosResponse struct {
@@ -20,7 +21,7 @@ func getDashboardInfos(w http.ResponseWriter, r *http.Request) {
 	var dashRes dashboardInfosResponse
 	dashRes.OnlineUsers = core.CountOnlineUsers()
 	dashRes.UserCount = core.GetUserCount()
-	dashRes.UpdateCount = core.GetUpdateCount()
+	dashRes.UpdateCount = core.GetBuildsCount()
 	EasyDataResponse(w, dashRes)
 }
 

@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/Nebuleuse/Nebuleuse/core"
-	"github.com/gorilla/context"
 	"net/http"
 	"strconv"
+
+	"github.com/Nebuleuse/Nebuleuse/core"
+	"github.com/gorilla/context"
 )
 
 type middleWare func(http.ResponseWriter, *http.Request)

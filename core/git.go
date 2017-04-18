@@ -5,8 +5,11 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"sync"
+
+	"encoding/json"
 
 	"github.com/Nebuleuse/Nebuleuse/git"
 )
@@ -87,35 +90,38 @@ type Diff struct {
 }
 
 func gitGetDiffs(commits []Commit) []Diff {
-	var diffs []Diff
+	var outDiffs []Diff
 	found := make(map[string]int) //-1 if removed ,0 not present, else indicate position+1 in array
 
 	for _, commit := range commits {
 		for _, diff := range commit.Diff {
 			if found[diff.Name] == 0 {
-				diffs = append(diffs, diff)
-				found[diff.Name] = len(diffs)
+				outDiffs = append(outDiffs, diff)
+				found[diff.Name] = len(outDiffs)
 			} else if found[diff.Name] == -1 {
 				continue
 			} else {
-				storedDiff := diffs[found[diff.Name]-1]
+				storedDiff := outDiffs[found[diff.Name]-1]
 				if diff.IsCreated && !storedDiff.IsCreated {
 					if !storedDiff.IsDeleted {
-						diffs[found[diff.Name]-1].IsCreated = true
-					} else { // It was created and deleted in between
-						//Remove file from list
-						pos := found[diff.Name] - 1
-						diffs = append(diffs[:pos], diffs[pos+1:]...)
+						outDiffs[found[diff.Name]-1].IsCreated = true
+					} else { // It was created and deleted in between, no need to know about this file in our diffs
 						found[diff.Name] = -1
 					}
 				} else if diff.IsDeleted {
-					diffs[found[diff.Name]-1].IsCreated = false
-					diffs[found[diff.Name]-1].IsDeleted = true
+					outDiffs[found[diff.Name]-1].IsCreated = false
+					outDiffs[found[diff.Name]-1].IsDeleted = true
 				}
 			}
 		}
 	}
-	return diffs
+	var returnDiffs []Diff
+	for _, diff := range outDiffs {
+		if found[diff.Name] != -1 {
+			returnDiffs = append(returnDiffs, diff)
+		}
+	}
+	return returnDiffs
 }
 
 func gitParseCommitList(list *list.List) []Commit {
@@ -192,6 +198,26 @@ func gitGetCommitsBetween(last, before string) ([]Commit, error) {
 	return gitParseCommitList(list), err
 }
 
+func gitGetCommitsBetweenCached(last, before string) ([]Commit, error) {
+	startPos, endPos := -1, -1
+	for i, commit := range commitCache {
+		if commit.Id == last {
+			startPos = i
+		}
+		if commit.Id == before {
+			endPos = i
+			break
+		}
+	}
+	if startPos == -1 {
+		return nil, errors.New("No commit found " + last)
+	}
+	if endPos == -1 {
+		endPos = len(commitCache) - 1
+	}
+	return commitCache[startPos:endPos], nil
+}
+
 //Get latest commits with no duplicates
 func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 	if len(commitCache) == 0 {
@@ -200,7 +226,7 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 	found := false
 	endPos := 0
 	for _, com := range commitCache {
-		if found && after == 0 {
+		if found && after <= 0 {
 			break
 		} else if found {
 			after--
@@ -219,13 +245,17 @@ func gitGetLatestCommitsCached(commit string, after int) ([]Commit, error) {
 	return ret, nil
 }
 
-func gitGetHead() (Commit, error) {
+func gitGetAllCommitsCached() []Commit {
+	ret := make([]Commit, len(commitCache))
+	copy(ret, commitCache)
+	return ret
+}
+
+func gitGetFirstCommit() (string, error) {
 	if len(commitCache) == 0 {
-		//Maybe something more elegant can be done here ?
-		var useless Commit
-		return useless, errors.New("No commit recorded from git")
+		return "", errors.New("No commit recorder")
 	}
-	return commitCache[0], nil
+	return commitCache[len(commitCache)-1].Id, nil
 }
 
 func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {
@@ -234,31 +264,61 @@ func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {
 	gitRepoLock.Lock()
 	defer gitRepoLock.Unlock()
 
-	diff, _ := gitRepo.GetFilesChangedSinceUpdateRange(end, start)
-	size, err := _createPatch(start, strconv.Itoa(buildFrom)+"to"+strconv.Itoa(buildTo), diff, true)
-	_createPatch(end, strconv.Itoa(buildTo)+"to"+strconv.Itoa(buildFrom), diff, false)
+	commitsBetween, err := gitGetCommitsBetweenCached(start, end)
+	if err != nil {
+		return 0, err
+	}
+	diffs := gitGetDiffs(commitsBetween)
+
+	size, err := _createPatch(start, strconv.Itoa(buildFrom)+"to"+strconv.Itoa(buildTo), diffs, true)
+	_createPatch(end, strconv.Itoa(buildTo)+"to"+strconv.Itoa(buildFrom), diffs, false)
 	gitRepo.Checkout("master")
 
 	return size, err
 }
-func _createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (int64, error) {
+func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64, error) {
+	var deletedFiles []string
 	updatesLocation := Cfg.GetSysConfig("UpdatesLocation")
 	path := updatesLocation + "tmp/" + filename
 	repoPath := Cfg.GetConfig("gitRepositoryPath")
+
+	//Verify if update already exists
+	if _, err := os.Stat(updatesLocation + filename + ".tar.xz"); !os.IsNotExist(err) {
+		Warning.Println("Update file already exists, skipping " + filename)
+		return getFileSize(updatesLocation + filename + ".tar.xz")
+	}
+
 	gitRepo.Checkout(commit)
 
 	os.MkdirAll(path, 0764)
-	for _, file := range diff.Files {
+	for _, file := range diff {
 		if skipDeleted && file.IsDeleted {
+			deletedFiles = append(deletedFiles, file.Name)
 			continue
 		} else if !skipDeleted && file.IsCreated {
+			deletedFiles = append(deletedFiles, file.Name)
 			continue
+		}
+
+		outPath := filepath.Dir(file.Name)
+		if outPath != "." {
+			os.MkdirAll(path+"/"+outPath, 0764)
 		}
 		err := os.Link(repoPath+file.Name, path+"/"+file.Name)
 		if err != nil {
 			Error.Println("Could not Link file for patch building: " + err.Error())
 		}
 	}
+
+	deletedManifest, _ := os.Create(path + "/" + "_deleted.json")
+
+	if len(deletedFiles) > 0 {
+		jsonbytes, _ := json.Marshal(deletedFiles)
+		deletedManifest.Write(jsonbytes[:])
+	} else {
+		deletedManifest.WriteString("{}")
+	}
+	deletedManifest.Close()
 
 	cmdTar := exec.Command("tar", "-c", filename, "-f", filename+".tar")
 	cmdTar.Stdout = os.Stdout
@@ -270,8 +330,13 @@ func _createPatch(commit, filename string, diff *git.Diff, skipDeleted bool) (in
 	cmdXz.Stderr = os.Stderr
 	cmdXz.Dir = "./updates/tmp/"
 	cmdXz.Run()
+
 	os.RemoveAll(path)
 	os.Rename(path+".tar.xz", updatesLocation+filename+".tar.xz")
 
 	return getFileSize(updatesLocation + filename + ".tar.xz")
+}
+
+func gitCheckoutCommit(commit string) {
+	gitRepo.Checkout(commit)
 }

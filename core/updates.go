@@ -41,6 +41,7 @@ func initUpdateSystem() error {
 	updateBuilds = make([]*Build, 0)
 	updateBranches = make([]*Branch, 0)
 
+	//	Load builds
 	buildRows, err := Db.Query("SELECT id, commit, date, changelist, obselete, log FROM neb_updates_builds ORDER BY id")
 	if err != nil {
 		return err
@@ -57,6 +58,7 @@ func initUpdateSystem() error {
 		updateBuilds = append(updateBuilds, &build)
 	}
 
+	//Load branches
 	branchRows, err := Db.Query("SELECT name, rank, activeBuild FROM neb_updates_branches")
 	if err != nil {
 		return err
@@ -71,7 +73,7 @@ func initUpdateSystem() error {
 		}
 		updateBranches = append(updateBranches, &branch)
 	}
-
+	//Load updates
 	updateRows, err := Db.Query("SELECT build, branch, size, rollback, semver, log, date FROM neb_updates ORDER BY build")
 	if err != nil {
 		return err
@@ -91,7 +93,7 @@ func initUpdateSystem() error {
 		}
 		build, err := GetBuild(update.BuildId)
 		if err != nil {
-			Warning.Println("Skipped update on branch " + update.Branch + " because buildid #" + string(update.BuildId) + " is incorrect")
+			Warning.Println("Skipped update on branch " + update.Branch + " because buildid #" + string(update.BuildId) + " does not exist")
 			continue
 		}
 		update.Build = build
@@ -138,6 +140,21 @@ func insertUpdate(update *Update, build *Build, branch *Branch) error {
 	}
 	branch.Head = update
 	build.Updates[branch.Name] = update
+	return nil
+}
+
+func insertBranch(branch *Branch) error {
+	stmt, err := Db.Prepare("INSERT INTO neb_updates_branches(name, rank, activeBuild) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(branch.Name, branch.AccessRank, branch.ActiveBuild)
+	if err != nil {
+		return err
+	}
+
+	updateBranches = append(updateBranches, branch)
+
 	return nil
 }
 
@@ -320,13 +337,9 @@ func isGitUpdateSystem() bool {
 }
 func GetGitCommitList() ([]Commit, error) {
 	comm, err := GetLatestBuildCommit()
-	if err != nil {
-		head, err := gitGetHead()
-		if err != nil {
-			Warning.Println("Could not get HEAD from git: " + err.Error())
-			return nil, err
-		}
-		return gitGetLatestCommitsCached(head.Id, 10)
+
+	if err != nil { // No builds
+		return gitGetAllCommitsCached(), nil
 	}
 
 	return gitGetLatestCommitsCached(comm, 0)
@@ -339,19 +352,26 @@ type gitBuildPrepInfos struct {
 
 func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 	var res gitBuildPrepInfos
-	comm, err := GetLatestBuildCommit()
-	if err != nil {
 
+	baseCommit, err := GetLatestBuildCommit()
+	if err != nil { //No build recorded
+		baseCommit, err = gitGetFirstCommit()
+
+		if err != nil {
+			return res, err
+		}
+	}
+	commitsBetween, err := gitGetCommitsBetweenCached(commit, baseCommit)
+	if err != nil {
 		return res, err
 	}
-	com, err := gitGetCommitsBetween(commit, comm)
-	if err != nil {
-		return res, err
-	}
 
-	diffs := gitGetDiffs(com)
+	Warning.Println("gitGetCommitsBetween c " + commit + " com " + baseCommit)
+
+	diffs := gitGetDiffs(commitsBetween)
 	var total int64
 	gitLockRepo()
+	gitCheckoutCommit(commit)
 	for _, c := range diffs {
 		if c.IsDeleted {
 			continue
@@ -362,12 +382,37 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 		}
 		total = total + size
 	}
+	gitCheckoutCommit("master")
 	gitUnlockRepo()
 
 	res.Diffs = diffs
 	res.TotalSize = total
 
 	return res, err
+}
+func CreateBuild(log string) error {
+	stmt, err := Db.Prepare("INSERT INTO neb_updates_builds(commit, log, changelist) VALUES ('',?,'')")
+	if err != nil {
+		return err
+	}
+	res, err := stmt.Exec(log)
+	if err != nil {
+		return err
+	}
+
+	var build Build
+	id, err := res.LastInsertId()
+	if err != nil {
+		return err
+	}
+	build.Id = int(id)
+	build.Commit = ""
+	build.Date = time.Now()
+	build.Log = log
+	build.FileChanged = ""
+	build.Updates = make(map[string]*Update)
+	updateBuilds = append(updateBuilds, &build)
+	return nil
 }
 func CreateGitBuild(commit string, log string) error {
 	prerInfos, err := PrepareGitBuild(commit)
@@ -429,6 +474,61 @@ func checkObseleteBuilds() error {
 	}
 	return nil
 }
+
+func AddEmptyBranch(name string, accessRank int) error {
+	var branch Branch
+	//Create branch
+	branch.AccessRank = accessRank
+	branch.ActiveBuild = 0
+	branch.Head = nil
+	branch.Name = name
+
+	err := insertBranch(&branch)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func AddBranchFromBuild(build, accessRank int, name, log, semver string) error {
+	var branch Branch
+	var update Update
+
+	//If the build has yet no updates attached to it, it would create an unaccessible update
+	buildObj, err := GetBuild(build)
+	if err != nil {
+		return err
+	}
+
+	if len(buildObj.Updates) == 0 {
+		return errors.New("Build has no update, would create unaccessible update")
+	}
+
+	//Create branch
+	branch.AccessRank = accessRank
+	branch.ActiveBuild = build
+	branch.Head = nil
+	branch.Name = name
+
+	err = insertBranch(&branch)
+	if err != nil {
+		return err
+	}
+
+	//Add an update to it
+	update.Branch = name
+	update.BuildId = build
+	update.Build = buildObj
+	update.Date = time.Now()
+	update.Log = log
+	update.SemVer = semver
+	update.RollBack = false
+
+	err = insertUpdate(&update, buildObj, &branch)
+
+	return err
+}
 func CreateUpdate(build int, branch, semver, log string) error {
 	var update Update
 	buildObj, err := GetBuild(build)
@@ -439,10 +539,6 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	if err != nil {
 		return err
 	}
-	head := branchObj.Head
-	if head == nil {
-		return errors.New("Branch " + branch + " has no head")
-	}
 
 	update.Branch = branch
 	update.BuildId = build
@@ -452,11 +548,29 @@ func CreateUpdate(build int, branch, semver, log string) error {
 	update.SemVer = semver
 	update.RollBack = false
 
-	size, err := gitCreatePatch(buildObj.Commit, head.Build.Commit, build, head.Build.Id)
-	if err != nil {
-		return err
+	if isGitUpdateSystem() {
+		baseCommit := ""
+		baseId := 0
+		head := branchObj.Head
+		if head == nil {
+			//In case there is no previous update in the branch, include all previous commits
+			baseCommit, err = gitGetFirstCommit()
+			if err != nil {
+				return err
+			}
+		} else {
+			baseCommit = head.Build.Commit
+			baseId = head.Build.Id
+		}
+
+		size, err := gitCreatePatch(buildObj.Commit, baseCommit, build, baseId)
+		if err != nil {
+			return err
+		}
+		update.Size = size
+	} else {
+		update.Size = 0 //Todo
 	}
-	update.Size = size
 
 	err = insertUpdate(&update, buildObj, branchObj)
 

@@ -150,12 +150,11 @@ ALTER TABLE `neb_sessions`
   ADD PRIMARY KEY (`userid`);
 
 ALTER TABLE `neb_updates`
-  ADD PRIMARY KEY (`build`),
   ADD KEY `branch` (`branch`),
-  ADD KEY `build` (`build`),
-  ADD KEY `branch_2` (`branch`);
+  ADD KEY `build` (`build`);
 
 ALTER TABLE `neb_updates_branches`
+  ADD PRIMARY KEY ("name"),
   ADD UNIQUE KEY `name` (`name`);
 
 ALTER TABLE `neb_updates_builds`

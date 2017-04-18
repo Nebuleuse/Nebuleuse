@@ -1,10 +1,6 @@
 package core
 
-import (
-	"gopkg.in/DATA-DOG/go-sqlmock.v1"
-	"testing"
-)
-
+/*
 func InitMock(t *testing.T, cfg, sysCfg ConfigMgr, sessions, messaging, git bool) sqlmock.Sqlmock {
 	SysCfg = sysCfg
 	cfg = cfg
@@ -28,3 +24,4 @@ func InitMock(t *testing.T, cfg, sysCfg ConfigMgr, sessions, messaging, git bool
 	}
 	return mock
 }
+*/

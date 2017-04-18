@@ -215,7 +215,10 @@ func gitGetCommitsBetweenCached(last, before string) ([]Commit, error) {
 	if endPos == -1 {
 		endPos = len(commitCache) - 1
 	}
-	return commitCache[startPos : endPos+1], nil
+	if endPos == startPos {
+		return commitCache[startPos : endPos+1], nil
+	}
+	return commitCache[startPos:endPos], nil
 }
 
 //Get latest commits with no duplicates
@@ -259,7 +262,7 @@ func gitGetFirstCommit() (string, error) {
 }
 
 func gitCreatePatch(start, end string, buildTo, buildFrom int) (int64, error) {
-	gitUpdateRepo()
+	//gitUpdateRepo()
 
 	gitRepoLock.Lock()
 	defer gitRepoLock.Unlock()
@@ -325,7 +328,7 @@ func _createPatch(commit, filename string, diff []Diff, skipDeleted bool) (int64
 	cmdTar.Stderr = os.Stderr
 	cmdTar.Dir = "./updates/tmp/"
 	cmdTar.Run()
-	cmdXz := exec.Command("xz", "-z", filename+".tar")
+	cmdXz := exec.Command("xz", "-T", "0", "-z", filename+".tar")
 	cmdXz.Stdout = os.Stdout
 	cmdXz.Stderr = os.Stderr
 	cmdXz.Dir = "./updates/tmp/"

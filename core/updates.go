@@ -362,6 +362,7 @@ func PrepareGitBuild(commit string) (gitBuildPrepInfos, error) {
 			return res, err
 		}
 	}
+
 	commitsBetween, err := gitGetCommitsBetweenCached(commit, baseCommit)
 	if err != nil {
 		return res, err

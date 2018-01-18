@@ -7,14 +7,15 @@ function UpdateCreateModal($scope, $http, $uibModalInstance, build, branch) {
     $scope.update = {}
     $scope.update.log = build.Log;
     $scope.update.semver = "";
+    $scope.validating = false;
     $scope.close = function(){
         $uibModalInstance.close();
     }
     $scope.createUpdate = function(){
+        $scope.validating = true;
        $http.post(APIURL + '/addUpdate', {sessionid: $scope.Self.SessionId, semver: $scope.update.semver, build: build.Id, branch: branch.Name, log: $scope.update.log})
 		.success(function () {
             if(!true){ // Needs to upload file too
-
                 var fd = new FormData();
                 fd.append('file', $scope.update.file);
                 fd.append('sessionid', $scope.Self.SessionId);

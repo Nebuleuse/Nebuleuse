@@ -11,8 +11,13 @@
             <span ng-hide="true">
                 <input type="file" name="file" class="file" ng-model="update.file" /><br>
             </span>
-			<button type="button" class="btn btn-primary" ng-click="createUpdate()">Create update</button>
-			<button type="button" class="btn btn-danger" ng-click="close()">Cancel</button>
+            <span ng-hide="validating">
+                <button type="button" class="btn btn-primary" ng-click="createUpdate()">Create update</button>
+                <button type="button" class="btn btn-danger" ng-click="close()">Cancel</button>
+            </span>
+            <span ng-show="validating">
+                Patch is being built. Please wait
+            </span>
     	</p>
     </rd-widget-body>
 </rd-widget>

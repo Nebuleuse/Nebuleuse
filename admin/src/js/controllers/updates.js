@@ -41,6 +41,7 @@ function UpdatesCtrl($scope, $http, $uibModal) {
 	$scope.refreshList = function () {
 		$http.post(APIURL + '/getCompleteBranchUpdates', {sessionid: $scope.Self.SessionId, diffs: true})
 		.success(function (data) {
+			console.log(data);
 			$scope.list = data;
 			if (data.Builds.length == 0 && data.Commits.length > 0){
 				$scope.addAlert("Looks like you do not have any builds yet. Select a commit to create a build.", "info");

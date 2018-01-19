@@ -32,21 +32,22 @@ func initMessaging() {
 	messagePipelines = make(map[string]MessagePipeline)
 	messagePipelines["system"] = createPipeline("system", UserRankNormal, false, false)
 	messagePipelines["admin"] = createPipeline("admin", UserRankDev|UserRankAdmin, true, false)
+	messagePipelines["game"] = createPipeline("game", UserRankNormal, true, true)
 }
 
 func Listen(pipe, name string, user *UserSession) {
+	Info.Println(pipe)
 	pipeline := messagePipelines[pipe]
 	if !pipeline.canUserJoin {
 		return
-	} else if pipeline.rank > user.UserRank {
-		return
-	}
+	} 
 	for _, list := range pipeline.pipes[name] { // prevent duplicates
 		if user.UserId == list.UserId {
 			return
 		}
 	}
 	pipeline.pipes[name] = append(pipeline.pipes[name], user)
+	Info.Println(len(pipeline.pipes))
 }
 func StopListen(pipe, name string, user *UserSession) {
 	pipeline := messagePipelines[pipe]
@@ -114,5 +115,6 @@ func GetMessages(userid int) chan string {
 }
 
 func SendMessageToUserId(user *UserSession, message string) {
+	Info.Println(len(user.Messages))
 	user.Messages <- message
 }

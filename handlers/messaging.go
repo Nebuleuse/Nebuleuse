@@ -14,11 +14,10 @@ func subscribeTo(w http.ResponseWriter, r *http.Request) {
 	channel := context.Get(r, "channel").(string)
 	session := context.Get(r, "session").(*core.UserSession)
 
-	if core.CanUserJoin(pipe, session) {
 		core.Listen(pipe, channel, session)
-	}
 	EasyResponse(w, core.NebErrorNone, "subscribed to "+channel)
 }
+
 
 //User connected, form value: pipe, channel
 func unSubscribeTo(w http.ResponseWriter, r *http.Request) {

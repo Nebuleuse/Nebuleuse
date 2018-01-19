@@ -163,7 +163,7 @@ func CreateSession(username string, password string) (string, error) {
 	session.UserId = id
 	connectedUsers[id] = session
 
-	Listen("system", "game", &session)
+	//Listen("system", "game", &session)
 
 	return sessionid, nil
 }

@@ -105,6 +105,7 @@ func EasyDataResponse(w http.ResponseWriter, data interface{}) {
 		core.Warning.Println("Could not encode data response", data)
 		EasyErrorResponse(w, core.NebError, err)
 	} else {
+		w.Header().Set("Content-Type", "application/json")
 		fmt.Fprint(w, string(res))
 	}
 }

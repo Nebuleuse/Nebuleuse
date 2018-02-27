@@ -6,6 +6,10 @@
     "Leonel Samayoa <leonel.e.samayoa@gmail.com> (http://gobliip.com)",
     "Ricardo Pascua <rdpascua@outlook.com>"
   ],
+  "scripts": {
+    "bower-install": "bower install --allow-root",
+    "build": "gulp build"
+  },
   "devDependencies": {
     "bower": "^1.3.9",
     "gulp": "~3.8.0",

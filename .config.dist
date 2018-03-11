@@ -1,0 +1,14 @@
+[default]
+dbType: mysql
+dbAddress: 127.0.0.1:3306
+dbUser: nebuleuse
+dbPass: nebuleuse
+dbBase: Nebuleuse
+
+serverAddress: 192.168.0.79
+serverPort: 8080
+
+DashboardLocation: ./admin/dist/
+UpdatesLocation: ./updates/
+MaxSessionsChannelBuffer: 100
+LongpollingTimeout: 10

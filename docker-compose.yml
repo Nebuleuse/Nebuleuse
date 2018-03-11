@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+    nebuleuse-go:
+        image: golang:1.10
+        container_name: nebuleuse-go
+        command: sleep 100000000
+        volumes:
+            - .:/go/src/github.com/Nebuleuse/Nebuleuse
+        working_dir: /go/src/github.com/Nebuleuse/Nebuleuse
+        links:
+            - nebuleuse-database
+        ports:
+            - 12080:80
+
+    nebuleuse-node:
+        image: node:9
+        container_name: nebuleuse-node
+        command: sleep infinity
+        volumes:
+            - ./admin:/var/www
+        working_dir: /var/www
+
+    nebuleuse-database:
+        image: mariadb
+        volumes:
+            - ./nebuleuse.sql:/docker-entrypoint-initdb.d/nebuleuse.sql
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_USER: nebuleuse
+            MYSQL_PASSWORD: nebuleuse
+            MYSQL_DATABASE: Nebuleuse
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            PMA_HOST: nebuleuse-database
+        ports:
+            - 12005:80

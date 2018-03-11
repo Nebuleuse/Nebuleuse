@@ -22,3 +22,7 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+.config
+nebuleuse.log
+Nebuleuse

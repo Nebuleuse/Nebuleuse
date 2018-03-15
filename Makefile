@@ -38,5 +38,5 @@ help:
 	# Nebuleuse
 	#
 	# Nebuleuse API:    http://0.0.0.0:12080/
-	# Nebuleuse Admin:  http://0.0.0.0:12080/admin/dist/ (user: test / pass: test)
+	# Nebuleuse Admin:  http://0.0.0.0:12080/admin/ (user: test / pass: test)
 	#
